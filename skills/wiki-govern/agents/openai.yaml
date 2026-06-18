@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Govern"
+  short_description: "Resolve active wiki drift items"
+  default_prompt: "Use $wiki-govern to resolve active items in wiki/07-drift.md."

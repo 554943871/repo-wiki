@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Radar"
+  short_description: "Find wiki drift and coverage gaps"
+  default_prompt: "Use $wiki-radar to compare the current repository with its repo-local wiki and refresh wiki/07-drift.md."

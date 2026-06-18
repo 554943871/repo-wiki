@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Sink"
+  short_description: "Initialize and write repo-local wiki"
+  default_prompt: "Use $wiki-sink to initialize or update the repo-local wiki with confirmed knowledge."
