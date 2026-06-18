@@ -14,7 +14,7 @@ Read these before acting:
 - `../references/wiki-structure.md`
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for the requested scope
-- Relevant `../references/writing-blocks/*.md` files when judging page navigation, sequence, dependency, state, or decision content
+- Relevant `../references/writing-blocks/*.md` files when judging evidence anchors, module boundary, page layout, page navigation, sequence, dependency, state, or decision content
 
 ## Boundary
 
@@ -26,13 +26,15 @@ Read canonical indexes to judge expected coverage, existing owner pages, and sug
 
 Do not use schema, validator, lint, compliance, PASS, or FAIL language. Judge by semantic reading, code evidence, and user clarification.
 
+Outdated guidance shape alone is not semantic drift. For example, an existing `wiki/01-system.md` that has not yet been reorganized into the current C1 / C2 / Deployment shape is a `wiki-doctor` guidance-refresh candidate, not a Drift Page item, unless it also contains wrong facts, missing important coverage, or boundary/name mismatches compared with the current system.
+
 ## Workflow
 
 1. Locate the target repository's top-level `wiki/` directory.
 2. Inspect `wiki/07-drift.md`.
    - If it has active items, stop and tell the user to run `wiki-drift-govern` first.
    - If it is missing because the wiki has not been initialized, report `Wiki Too Thin` and suggest `wiki-sink`.
-3. Read the relevant wiki pages for the whole project by default, or the user-specified scope.
+3. Read the relevant wiki pages for the whole project by default, or the user-specified scope. When comparing `wiki/01-system.md`, read `../references/writing-guidance/system-overview.md` to understand canonical indexes, C1/C2/Deployment boundaries, and coverage expectations; do not classify guidance-shape lag alone as drift.
 4. Read the relevant canonical indexes:
    - Roles, External Systems, and Main Runtime Units in `wiki/01-system.md`.
    - Flows in `wiki/02-flows/README.md`.

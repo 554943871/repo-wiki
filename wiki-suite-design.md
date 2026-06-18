@@ -58,7 +58,10 @@ skills/
       canonical-index.md
       decision-tradeoff.md
       dependency-map.md
+      evidence-anchor.md
       model-relation.md
+      module-boundary.md
+      page-layout.md
       page-navigation.md
       public-surface.md
       sequence.md
@@ -71,7 +74,7 @@ Shared references stay thin and only hold stable cross-skill rules. Individual s
 
 The suite deliberately avoids schema-oriented language. Do not introduce Doc Schema, Fragment Schema, page schema, validators, linters, compliance checks, or PASS/FAIL language. Wiki quality is judged through human-readable guidance and LLM semantic checking, not mechanical structure checks.
 
-`wiki-structure.md` includes the fixed layout and minimal initial page text with human-readable guidance. It must not define rigid field templates for child pages.
+`wiki-structure.md` includes the fixed layout and minimal initial page text. Detailed page-family writing rules belong in `writing-guidance/*.md`, not in the structure skeleton. It must not define rigid field templates for child pages.
 
 `wiki-guidance-principles.md` is the shared principle layer for all wiki skills. It records cross-cutting rules such as Information Preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater.
 
@@ -81,7 +84,7 @@ Every skill's Required References must list `wiki-guidance-principles.md` before
 
 Guidance and block files must be self-contained. They may be authored from prior documentation experience, but they must not advertise inheritance from another documentation system or create compatibility expectations.
 
-Guidance and block files use Chinese prose by default, while keeping English file names and stable terms such as `wiki-doctor`, `wiki-drift-radar`, `Wiki Drift`, and `Coverage Gap`.
+Guidance and block files use Chinese prose by default, while keeping English file names and stable terms such as `wiki-doctor`, `wiki-drift-radar`, `Wiki Drift`, and `Coverage Gap`. Final reader-facing wiki headings should use Chinese by default and keep English aliases only as stable anchors, for example `系统总览（System）` or `模型关系（Relationships）`.
 
 The suite should absorb useful fine-grained writing lessons from mem-style Doc Schema and Fragment Schema work, but only as natural-language guidance. It must not import schema names, schema gates, validators, PASS/FAIL states, or mechanical compliance claims.
 
@@ -92,6 +95,8 @@ The suite should absorb useful fine-grained writing lessons from mem-style Doc S
 `wiki-sink` is used when `wiki/07-drift.md` has no active items.
 
 It initializes the fixed Repo-Local Wiki skeleton and records confirmed or evidence-grounded reusable knowledge into stable wiki pages.
+
+Initialization creates skeleton files only. Stable content writes require user confirmation, current repo evidence, or existing wiki content; `wiki-sink` must not fill canonical indexes or topology sections by inference during skeleton creation.
 
 It must not write guessed stable knowledge. It must not persist raw conversation archives. It does not own radar result persistence.
 
@@ -141,9 +146,11 @@ Supported actions are report vocabulary, not a machine schema:
 
 `wiki-doctor` defaults to the whole stable wiki scope: `wiki/**/*.md` except `wiki/07-drift.md`. It supports page, directory, or wiki-topic scope. Scope limits writes. Scope-external pages may be read for context but are not rewritten, except for canonical index updates directly required by a safe action unless the user explicitly says to edit only one file.
 
-`wiki-doctor` does not process files outside the target repository's top-level `wiki/`, such as root `README.md`, `docs/**`, ADRs, AGENTS files, source code, this Skill Suite Source Repository's `CONTEXT.md`, or skill source files.
+`wiki-doctor` does not process files outside the target repository's top-level `wiki/`, such as root `README.md`, `docs/**`, ADRs, AGENTS files, source code, this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill source files.
 
 `wiki-doctor` does not run mechanical checks. Its report is semantic: reader-quality audit, changed pages, skipped risk items, suspected drift or coverage, out-of-scope suggestions, deleted/renamed/merged pages, and Drift Page gate notes.
+
+`wiki-doctor` is never used to update the Wiki Guidance System itself. Edits to `wiki-suite-design.md`, `CONTEXT.md`, `skills/references/**`, or skill instructions are skill-suite maintenance and must be made directly or through an explicit skill-refinement workflow.
 
 ### wiki-drift-radar
 
@@ -162,6 +169,8 @@ If classification is ambiguous, `wiki-drift-radar` must ask the user before writ
 Before starting, `wiki-drift-radar` checks only `wiki/07-drift.md`. If it contains active items, `wiki-drift-radar` stops and asks the user to run governance first. It does not require a clean git working tree; the current working tree is the current system being compared.
 
 If the wiki is too thin for meaningful comparison, `wiki-drift-radar` stops normal checking and refreshes `wiki/07-drift.md` with a `Wiki Too Thin` status and needed wiki seeds.
+
+Guidance-shape lag is not drift by itself. If a page is semantically current but not in the latest guidance shape, recommend `wiki-doctor`; create Drift Page items only for wrong facts, missing important coverage, or current-system boundary/name mismatches.
 
 ### wiki-drift-govern
 
@@ -208,18 +217,32 @@ V1 should strengthen the Wiki Guidance System with fine-grained writing blocks i
 
 New blocks:
 
-- `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
+- `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动节点使用 confirmed Subject + SVO 业务动作短句，不同 Subject 用不同 Mermaid class / classDef 或等价样式分色；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
+- `evidence-anchor`: short traceable evidence support for stable wiki facts, uncertainty, and candidate notes. It borrows the useful verification discipline from mem-style evidence docs without adding a separate evidence family or verification matrix to repo-wiki V1.
 - `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
+- `module-boundary`: module边界表达；说明 stable responsibility boundary、public surfaces、internal capabilities、collaboration direction 和 current module rules。它 must not turn package trees, private helpers, deployment inventory, or unconfirmed ownership into module contracts.
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
+- `page-layout`: page detail expression for stable visible regions, major components, overlays, drawers, tabs, placeholders, page variants, visible state projection, and page-level interaction surfaces. It must not become DOM/CSS/component-library documentation or a screenshot archive.
 
-Existing blocks to strengthen:
+Do not add a separate `runtime-topology` block in V1. Deployment / Runtime Topology rules currently belong in `writing-guidance/system-overview.md`; extract a reusable block only if multiple page families need the same topology rules.
+
+Existing guidance / blocks to strengthen:
 
 - `sequence`: complex participant collaboration defaults to Mermaid `sequenceDiagram`; participant names must stay at one abstraction level; actors are triggers or result receivers; implementation details are evidence, not participants.
 - `state-transition`: stable states only; no temporary booleans or display states unless explicitly marked as display states.
 - `page-navigation`: multi-page navigation defaults to Mermaid `flowchart` / `graph`; user-visible navigation only; route params, visibility conditions, and backend calls should not be forced into navigation edges.
+- `page-page`: page guidance should preserve page target, entry points, navigation, visible regions/layout, page variants, state matrix, exit routes, page-level backend interactions, key interactions, related flows/modules/models, and evidence anchors, while avoiding fixed schema mechanics.
+- `module-page`: module guidance should preserve owns / does-not-own boundary, public surfaces, internal capabilities, collaboration direction, module rules, related flows/pages/models, and code anchors, while avoiding package tree or helper-list documentation.
 - `dependency-map`: distinguish runtime calls, data references, responsibility dependencies, ownership, and fact sources.
 - `decision-tradeoff`: decision blocks must explain a real current tradeoff and what it rules out.
+
+Cross-block guidance to add:
+
+- Stable anchors: central diagrams should use stable names, aliases, or short node labels when downstream tables, drill-down sections, evidence, or related pages refer back to them.
+- Traceability root: complex flow pages should treat the main activity map as the reader-facing mainline; sequence, state, navigation, dependency, evidence, and drill-down sections should supplement it rather than define a competing flow.
+- Canonical subjects: activity subjects, fact sources, page nodes, sequence participants, owners, and public surfaces should come from confirmed roles, external systems, runtime units, pages, modules, models, or page-local declared subject lists, not payloads, DTOs, adapters, helpers, SQL, records, or file paths. Activity maps additionally require SVO labels and distinct subject colors/classes.
+- Semantic review checklist: wiki quality review should ask reader question, main expression, stable anchors, canonical subjects, evidence/uncertainty, owner-page fit, information preservation, and diagram readability. This remains natural-language review, not a validator or PASS/FAIL gate.
 
 Do not add a separate `reader-map` block in V1. Reader-first entry guidance belongs in principles and page-family guidance, and should be used for README pages, catalog pages, system overview, and complex long pages.
 
@@ -239,7 +262,7 @@ Do not add `caliber-map` in V1.
 The standard empty state is:
 
 ```md
-# Drift
+# 漂移治理（Drift）
 
 No active drift or coverage gaps.
 ```
@@ -272,7 +295,9 @@ Explains how to read the wiki and what each top-level section contains.
 
 ### 01-system.md
 
-Provides a human-readable system overview. It roughly covers C4 C1 and C2: system context and major runtime units. It does not enter component, class, or function-level detail.
+Provides a human-readable system overview. It defaults to the C1 / C2 / Deployment shape decided by the System Overview Guidance, while `wiki-structure.md` only carries the minimal skeleton that `wiki-sink` can initialize. Detailed headings, canonical-table columns, Mermaid topology rules, evidence rules, and semantic checks are maintained in `skills/references/writing-guidance/system-overview.md`.
+
+The `wiki-structure.md` skeleton may include `TBD` placeholders, including a minimal Mermaid topology placeholder. Stable written pages should replace placeholders with real content or clearly omit the block when it would be filler.
 
 ### 02-flows/
 
@@ -280,11 +305,11 @@ Explains key user, business, and system flows before readers inspect pages and m
 
 ### 03-pages/
 
-Explains user-visible pages, entry points, navigation, visible states, and page relationships to flows, modules, and models. It excludes DOM trees, CSS details, component-library inventories, and backend call chains.
+Explains user-visible pages, entry points, navigation, visible regions, page variants, visible states, page-level interactions, and page relationships to flows, modules, and models. It excludes DOM trees, CSS details, component-library inventories, screenshot archives, and backend call chains.
 
 ### 04-modules/
 
-Explains human-meaningful capability and responsibility boundaries. A module may or may not match a code directory, page, service process, or package.
+Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, and related flows/pages/models. A module may or may not match a code directory, page, service process, or package.
 
 ### 05-models/
 
@@ -305,7 +330,7 @@ Stores the current active radar findings while they are being governed. It is no
 Empty state:
 
 ```md
-# Drift
+# 漂移治理（Drift）
 
 No active drift or coverage gaps.
 ```
@@ -313,7 +338,7 @@ No active drift or coverage gaps.
 When non-empty, it may contain:
 
 ```md
-# Drift
+# 漂移治理（Drift）
 
 ## Wiki Too Thin
 

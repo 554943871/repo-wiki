@@ -52,7 +52,7 @@ Default mode is semantic audit plus direct writes for safe items. Write only ite
 The standard empty state is:
 
 ```md
-# Drift
+# 漂移治理（Drift）
 
 No active drift or coverage gaps.
 ```
@@ -88,7 +88,7 @@ Supported scopes:
 
 Scope limits writes. Scope-external wiki pages may be read for context, but are not rewritten except for canonical-index updates directly required by a safe action. If the user explicitly restricts edits to one file, do not update other files; report any needed index or link updates as out-of-scope suggestions.
 
-`wiki-doctor` only processes top-level `wiki/`. It does not edit target-repository files outside `wiki/`.
+`wiki-doctor` only processes top-level `wiki/`. It does not edit target-repository files outside `wiki/`, and it does not edit this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill instructions. Changes to the Wiki Guidance System itself are skill-suite maintenance work, not `wiki-doctor` work.
 
 ## Classifications
 
@@ -99,6 +99,8 @@ Classify each candidate change before editing:
 - `drift_or_coverage_suspect`: The issue appears to require code/wiki comparison, fact verification, drift classification, or new coverage.
 
 Only `safe_guidance_rewrite` can be written by default. `meaning_loss_risk` and `drift_or_coverage_suspect` are report-only unless the user gives new confirmation that turns the work into a safe existing-wiki rewrite.
+
+For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Deployment shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
 
 ## Action Vocabulary
 
@@ -122,7 +124,7 @@ Use these action names in reports. They are vocabulary, not a machine schema:
 
 ## Workflow
 
-1. Read the required references for the requested scope.
+1. Read the required references for the requested scope. When auditing or rewriting `wiki/01-system.md`, read `../references/writing-guidance/system-overview.md`.
 2. Run the Drift Page gate and skeleton check.
 3. If the gate blocks, stop before auditing stable pages.
 4. Determine mode and scope from the user request.
