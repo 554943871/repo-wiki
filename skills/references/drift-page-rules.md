@@ -19,9 +19,9 @@ No active drift or coverage gaps.
 | `wiki-drift-radar` | May refresh active findings or write the standard empty state when it owns the radar pass. It still writes only `wiki/07-drift.md`. |
 | `wiki-drift-govern` | May resolve and remove active items. It must write the standard empty state when the queue is cleared. |
 | `wiki-sink` | May create the standard empty state during wiki initialization or explicit skeleton completion. Otherwise it only reads the gate and reports non-standard empty formatting. |
-| `wiki-doctor` | Future reader-refresh skill. It only reads the gate, except it may create a missing `wiki/07-drift.md` empty state as part of `complete_skeleton` for an existing wiki. It does not rewrite an existing Drift Page. |
+| `wiki-doctor` | Reader-refresh skill. It only reads the gate, except it may create a missing `wiki/07-drift.md` empty state as part of `complete_skeleton` for an existing wiki. It does not rewrite an existing Drift Page. |
 
-Do not use `wiki/07-drift.md` as resolved history, raw chat storage, doctor audit output, or stable wiki content. Doctor ownership is documented here for lifecycle coherence only; this rule does not implement or require a `wiki-doctor` skill directory.
+Do not use `wiki/07-drift.md` as resolved history, raw chat storage, doctor audit output, or stable wiki content. Doctor ownership is documented here only to define Drift Page permissions; the `wiki-doctor` skill implements its reader-refresh workflow separately.
 
 ## Radar 启动门禁
 

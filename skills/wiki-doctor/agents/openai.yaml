@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Doctor"
+  short_description: "Refresh existing wiki pages"
+  default_prompt: "Use $wiki-doctor to audit or safely refresh existing repo-local wiki pages against current guidance."
