@@ -12,7 +12,27 @@
 
 ## 推荐表达
 
-页面之间的跳转优先使用 Mermaid `flowchart` 或简洁导航表。
+多个页面之间的跳转默认优先使用 Mermaid `flowchart` / `graph`。只要导航关系包含多个页面、多个入口/出口、回跳、异常跳转或读者需要看清路径，主表达就应该是 Mermaid，而不是导航表。
+
+导航表适合两类内容：
+
+- README / catalog 页面按 reader question 或 task 路由到下一页。
+- 页面跳转很少、线性，或需要在 Mermaid 旁边补充 evidence anchors、返回路径、权限限制和不确定性。
+
+页面跳转关系能用 Mermaid 清楚表达时，不使用 SVG 或图片作为主表达。
+
+```mermaid
+flowchart LR
+  Cart[Cart page]
+  Checkout[Checkout page]
+  PaymentResult[Payment result page]
+  OrderDetail[Order detail page]
+
+  Cart -->|Tap checkout| Checkout
+  Checkout -->|Payment approved| PaymentResult
+  PaymentResult -->|View order| OrderDetail
+  PaymentResult -->|Recoverable failure| Checkout
+```
 
 ```md
 | From page | User-visible action | To page | Return or next step | Evidence |
@@ -33,7 +53,8 @@ README / catalog 页面优先使用按 question 或 task 路由的表格。
 
 - 每条边说明用户可见动作或入口。
 - 区分页面跳转、页面内部状态变化和后端调用。
-- 路由参数只在影响读者理解目标页面时写。
+- Mermaid 边标签保持短，只写用户可感知动作、入口、结果或必要回跳。
+- 路由参数、状态枚举、evidence 引用和复杂资格条件默认不要塞进边标签；只有不写会导致目标页面无法区分时才简短说明，细节放到邻近图注、页面详情或证据表。
 - 入口、路由和目标页面要有代码、路由配置、产品材料或用户确认支撑。
 - README 和 catalog 不只做文件索引，要按读者的问题、任务或下一步选择来路由。
 - 每条 reader route 说明适合什么时候使用，避免读者不知道先看哪页。
@@ -60,5 +81,6 @@ README / catalog 页面优先使用按 question 或 task 路由的表格。
 - 把页面跳转图画成业务流程主活动图。
 - 把后端接口调用画成页面跳转。
 - 把组件内部交互提升成页面跳转。
+- 页面跳转可以用 Mermaid 表达时改成 SVG、截图或长表格主表达。
 - 把完整路由参数、接口字段或展示条件都塞进边标签。
 - 只列文件名，不说明读者问题、任务或下一步。

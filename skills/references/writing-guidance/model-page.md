@@ -36,7 +36,7 @@ Model 页面可以自然组合：
 - 模型定位。
 - 模型边界。
 - 生命周期或状态转换。
-- 模型关系图或关系表。
+- Mermaid 模型关系图；必要时用关系表补充证据和不确定性。
 - 关键字段。
 - 相关 flows / pages / modules。
 - 证据和代码锚点。
@@ -47,7 +47,7 @@ Model 页面可以自然组合：
 
 按实际信息选择最能帮助读者理解的表达，不要为了统一样式制造空 section。
 
-- 使用 relationship table：当 model 有多个关系、方向重要、关系标签容易混淆，或需要同时保留 evidence anchors 和 uncertainty 时。关系标签使用 `泛化`、`组成`、`引用`、`衍生`、`事实源`，细节见 `skills/references/writing-blocks/model-relation.md`。
+- 使用 model-relation block：当 model 有多个关系、方向重要、关系标签容易混淆，或需要同时保留 evidence anchors 和 uncertainty 时。多节点、多方向或事实源关系默认用 Mermaid 关系图表达关系本体，再用关系表补充 evidence 和 uncertainty。关系标签使用 `泛化`、`组成`、`引用`、`衍生`、`事实源`，细节见 `skills/references/writing-blocks/model-relation.md`。
 - 使用 state-transition block：当 model 有稳定状态集合、明确触发条件、终态、异常态、回退或不可逆状态时。不要把临时变量或 UI 展示态直接写成业务状态，细节见 `skills/references/writing-blocks/state-transition.md`。
 - 使用 lifecycle section：当读者需要知道 model 什么时候产生、变化、失效或终止，但没有明确状态集合或转换触发器时。lifecycle 可以用短步骤、时间线或 prose，重点是起点、变化点、终止点和证据。
 - 使用 source-of-truth facts 小表：当页面需要说明某个字段、规则、计算结果或解释以哪里为准时。表格应该写清 fact、source of truth、适用范围、evidence 和 uncertainty。
@@ -59,7 +59,7 @@ Model relationships 应该让读者看清“谁指向谁、谁由谁组成、谁
 
 优先使用 `model-relation` block，而不是把关系埋在长段落里。尤其要保留 `引用` 和 `衍生` 的区别：`引用` 是 identity、上下文或当前事实的直接指向；`衍生` 是计算、复制、聚合、规范化或快照后的事实。两者同时存在时拆成两行。
 
-关系表中的 evidence anchors 可以是代码路径、符号名、路由、配置、测试、已有 wiki 页面或用户确认。证据不足时把 uncertainty 写在关系旁边，而不是补成确定结论。
+关系图下的补充表可以承载 evidence anchors，例如代码路径、符号名、路由、配置、测试、已有 wiki 页面或用户确认。证据不足时把 uncertainty 写在关系旁边，而不是补成确定结论。
 
 ## Lifecycle and State
 

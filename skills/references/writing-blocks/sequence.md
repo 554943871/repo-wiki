@@ -12,7 +12,14 @@
 
 ## 推荐表达
 
-优先使用 Mermaid `sequenceDiagram` 或简洁步骤表。短序列可以用表格，分支多或异步多时再使用图。
+Sequence 默认优先使用 Mermaid `sequenceDiagram` 表达关键参与方协作。只要场景存在多个系统参与方、回调、重试、异步协作、分支或异常退出，主表达就应该是 Mermaid，而不是步骤表。
+
+步骤表只能在两类情况下作为主表达：
+
+- 序列很短、线性、无分支，表格比图更容易读。
+- 当前证据还不足以确认完整调用顺序，只能暂存为候选步骤，并明确保留不确定性。
+
+步骤表更常见的用途是补充 Mermaid：承载 evidence anchors、outcome、branch condition 或异常出口说明，而不是替代时序图。
 
 ```mermaid
 sequenceDiagram
@@ -40,6 +47,8 @@ sequenceDiagram
 ## 写作要求
 
 - 参与方保持同一抽象层级。
+- 系统参与方应选择同一层级的业务或系统边界；不要在同一张图里混用系统、module、component、class、method 和 table。
+- 推荐使用稳定 alias，并在图后用短表说明 alias、显示名、边界层级和证据锚点。
 - 先写触发者和触发条件，再写正常顺序，最后写结果。
 - 每个序列说明读者关心的 outcome，例如订单创建、页面可见状态、任务进入队列或人工接手。
 - 分支要写清楚 branch condition，不要只写“if error”。
@@ -63,7 +72,9 @@ sequenceDiagram
 ## 避免
 
 - 用时序图替代主业务流程。
+- 用步骤表替代有多参与方、分支、回调、重试、异步或异常出口的关键协作。
 - 把 Controller、DTO、SQL、表等实现细节画成主要参与方。
+- 在同一张图里混用不同抽象层级的参与方。
 - 一条消息混入多个不同含义的动作。
 - 把数据依赖或 owner 关系画成调用顺序。
 - 只画 happy path，丢掉已知分支、异常出口或人工接手。

@@ -41,7 +41,28 @@
 
 ## 推荐表达
 
-关系较少时可以用短 prose。关系多、方向重要或需要保留证据时，优先使用关系表。
+Model relation 默认优先使用 Mermaid `flowchart` 或等价关系图表达关系本体。只要 model 关系包含多节点、多方向、事实源、`引用` / `衍生` 区分或读者需要看清拓扑，主表达就应该是关系图，而不是关系表。
+
+关系表适合两类内容：
+
+- 关系很少、线性，短 prose 或表格比图更清楚。
+- 作为 Mermaid 旁边的补充表，承载每条边的 meaning、evidence 和 uncertainty。
+
+关系图的边标签必须写明关系分类。图节点应保持同一抽象层级，优先使用 model 和事实来源角色，不把 SQL 表、DTO、Controller、页面按钮或普通字段混进关系图本体。
+
+```mermaid
+flowchart LR
+  Buyer(["Buyer"])
+  Order["Order"]
+  OrderLine["OrderLine"]
+  Product["Product"]
+  OrderTotal["OrderTotal"]
+
+  Buyer -->|事实源| Order
+  OrderLine -->|组成| Order
+  OrderLine -->|引用| Product
+  OrderLine -->|衍生| OrderTotal
+```
 
 ```md
 | From | Relationship | To | Meaning | Evidence | Uncertainty |
@@ -60,6 +81,8 @@
 ## 写作要求
 
 - 每一行都让读者看清方向、关系标签、关系含义和证据锚点。
+- Mermaid 关系图中的每条边都要写清关系标签，不能只画箭头。
+- 需要反复引用、下钻或跨页对齐的模型关系，使用稳定 model 名称或稳定别名；不要依赖临时描述消歧。
 - 关系对象保持同一抽象层级；不要把 model、SQL 表、DTO、Controller、页面按钮混在一张表里，除非正在解释边界差异。
 - 证据锚点保持短而可追溯，可以是路径、符号名、路由、配置、测试、已有 wiki 页面或用户确认。
 - 不确定性要留在关系旁边，例如“只证明当前实现”“未确认业务意图”“未验证异常分支”。
@@ -68,6 +91,7 @@
 ## 避免
 
 - 用箭头或表格行替代关系含义。
+- 用关系表替代需要看清拓扑、多方向或事实源的模型关系图。
 - 把运行时调用、模块依赖、数据库外键、字段共现全部写成 model relationship。
 - 把 `引用` 和 `衍生` 合并成“依赖”“关联”“使用”这类模糊词。
 - 因为表格好看而制造空关系，或隐藏 evidence/uncertainty。
