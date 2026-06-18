@@ -18,3 +18,10 @@ Each fixture has:
 - Optional `expected/wiki/`: snippets that demonstrate required preservation, link updates, or no-write behavior.
 
 The cases intentionally stay small. They are not a replacement for LLM semantic review; they make boundary regressions visible when the skill text changes.
+
+## Sample Refresh Demonstration
+
+`sample-refresh/` contains hand-authored demonstration evidence from a generated
+wiki sample. It shows how `wiki-doctor` guidance can improve reader-facing
+structure while preserving original information. It is intentionally separate
+from the regression fixtures and is not a universal quality benchmark.
