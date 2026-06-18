@@ -1,0 +1,22 @@
+{
+  "id": "code-wiki-mismatch-suspect",
+  "behavior": "suspected_code_wiki_mismatch_recommends_drift_radar",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "drift_or_coverage_suspect"
+  ],
+  "actions": [
+    "recommend_drift_radar"
+  ],
+  "stable_pages_rewritten": false,
+  "report_must_contain": [
+    "Classification: `drift_or_coverage_suspect`.",
+    "Action: `recommend_drift_radar`.",
+    "Recommended next skill: `wiki-drift-radar`."
+  ],
+  "report_must_not_contain": [
+    "safe_guidance_rewrite",
+    "Changed pages:"
+  ]
+}

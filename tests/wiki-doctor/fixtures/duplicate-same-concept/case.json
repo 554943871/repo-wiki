@@ -1,0 +1,37 @@
+{
+  "id": "duplicate-same-concept",
+  "behavior": "duplicate_same_concept_pages_preserve_unique_info_and_links",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "safe_guidance_rewrite"
+  ],
+  "actions": [
+    "safe_page_merge",
+    "safe_file_rename",
+    "safe_page_delete",
+    "update_canonical_index"
+  ],
+  "stable_pages_rewritten": true,
+  "unique_info_must_survive": [
+    "supports recurring invoice retries",
+    "does not own tax-rate policy",
+    "Evidence: `src/billing/BillingRetryJob.ts`",
+    "Evidence: `src/billing/BillingController.ts`"
+  ],
+  "expected_link_updates": [
+    {
+      "old": "../04-modules/billing-module.md",
+      "new": "../04-modules/billing.md"
+    }
+  ],
+  "report_must_contain": [
+    "Classification: `safe_guidance_rewrite`.",
+    "Actions: `safe_page_merge`, `safe_file_rename`, `safe_page_delete`, `update_canonical_index`.",
+    "Unique information preserved:"
+  ],
+  "report_must_not_contain": [
+    "meaning_loss_risk",
+    "drift_or_coverage_suspect"
+  ]
+}

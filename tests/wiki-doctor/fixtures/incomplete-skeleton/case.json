@@ -1,0 +1,29 @@
+{
+  "id": "incomplete-skeleton",
+  "behavior": "existing_incomplete_wiki_completes_skeleton_without_new_facts",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [],
+  "actions": [
+    "complete_skeleton"
+  ],
+  "stable_pages_rewritten": false,
+  "invent_stable_facts": false,
+  "missing_fixed_skeleton_paths": [
+    "wiki/02-flows/README.md",
+    "wiki/03-pages/README.md",
+    "wiki/04-modules/README.md",
+    "wiki/05-models/README.md",
+    "wiki/06-decisions.md"
+  ],
+  "report_must_contain": [
+    "Action: `complete_skeleton`.",
+    "Created only missing fixed skeleton files.",
+    "No project-specific stable facts were added."
+  ],
+  "report_must_not_contain": [
+    "Checkout",
+    "Pricing",
+    "User"
+  ]
+}

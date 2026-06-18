@@ -1,0 +1,22 @@
+{
+  "id": "naming-conflict-risk",
+  "behavior": "naming_conflicts_report_meaning_loss_risk",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "meaning_loss_risk"
+  ],
+  "actions": [
+    "risk_report_only"
+  ],
+  "stable_pages_rewritten": false,
+  "report_must_contain": [
+    "Classification: `meaning_loss_risk`.",
+    "Action: `risk_report_only`.",
+    "Do not guess canonicalization."
+  ],
+  "report_must_not_contain": [
+    "safe_file_rename",
+    "update_canonical_index"
+  ]
+}

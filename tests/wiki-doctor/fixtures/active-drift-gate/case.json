@@ -1,0 +1,19 @@
+{
+  "id": "active-drift-gate",
+  "behavior": "active_drift_page_stops_before_audit_or_rewrite",
+  "mode": "default",
+  "gate": "active_drift_blocks",
+  "classifications": [],
+  "actions": [],
+  "stable_pages_rewritten": false,
+  "must_stop_before_audit": true,
+  "report_must_contain": [
+    "Gate note: `wiki/07-drift.md` contains active Drift Page items.",
+    "Stop before stable-page audit or rewrite.",
+    "Next recommended skill: `wiki-drift-govern`."
+  ],
+  "report_must_not_contain": [
+    "Changed pages:",
+    "safe_guidance_rewrite"
+  ]
+}
