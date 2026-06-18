@@ -39,7 +39,7 @@ wiki 先服务读者理解，再服务文件整齐。
 
 ## Canonical Naming
 
-复用 repo-local wiki 已经确认的 canonical names。优先从 owner pages 和 catalog README 中取名：
+复用 repo-local wiki 已经确认的 canonical names。V1 不创建单独的 wiki glossary page；canonical names 分布在 owner pages 和 catalog README 中。优先从这些位置取名：
 
 - Roles、External Systems、Main Runtime Units: `wiki/01-system.md`
 - Flows: `wiki/02-flows/README.md`
