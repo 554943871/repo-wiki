@@ -26,6 +26,29 @@ wiki 先服务读者理解，再服务文件整齐。
 
 可以把 dense prose 改成短段落、表格、列表或 Mermaid 图，但只有在这些表达让含义更清楚时才使用。不要为了填满固定字段而制造空内容，也不要把自然段机械拆成模板。
 
+## Reader-Facing Heading Language
+
+最终写入目标 repo 的 `wiki/**/*.md` 面向中文母语读者，页面标题、目录入口和正文小节标题默认使用中文。固定 page family 或长期复用的 block 语义可以在中文标题后保留英文别名，例如 `系统总览（System）`、`关键流程（Flows）`、`模块边界（Modules）`、`模型关系（Relationships）`。
+
+文件名、目录名、skill 名、finding type、action vocabulary、代码符号、API path、class name、配置 key、事件名、表名、字段名和 repo 里的 canonical business term 不要为了中文化而强行翻译。需要同时服务读者和 LLM 锚点时，用“中文标题 + 英文别名”的方式，而不是替换掉稳定英文锚点。
+
+生成或重写 wiki 时复用这组固定读者标题：
+
+- `Wiki` -> `项目 Wiki`
+- `Reading Order` -> `阅读顺序`
+- `What Belongs Here` -> `收录范围`
+- `What Does Not Belong Here` -> `不收录内容`
+- `System` -> `系统总览（System）`
+- `Flows` -> `关键流程（Flows）`
+- `Pages` -> `页面与入口（Pages）`
+- `Modules` -> `模块边界（Modules）`
+- `Models` -> `核心模型（Models）`
+- `Decisions` -> `设计决策（Decisions）`
+- `Drift` -> `漂移治理（Drift）`
+- `Guidance` -> `写作指引`
+
+如果已有 wiki 使用英文标题，`wiki-doctor` 可以在不改变 meaning、link、anchor 和 canonical name 的前提下把 reader-facing 标题改成上述中文标题；如果标题本身是 repo 里的 confirmed product / domain name，则保留原名或作为别名，不要机械翻译。
+
 ## Evidence-Aware Writing
 
 稳定 wiki 内容需要清楚区分：
@@ -50,6 +73,26 @@ wiki 先服务读者理解，再服务文件整齐。
 
 如果命名、边界或 owner page 不清楚，先问用户或报告 `meaning_loss_risk` / candidate note。不要为了让文档看起来统一而发明同义词、重命名业务概念、把代码目录名直接提升为 module 名，或把局部实现名当成外部系统名。
 
+## Stable Anchors And Traceability
+
+图、表和短段落都应该能让读者追溯到同一组稳定概念。复杂图里的节点、参与方、页面、model、module、flow、decision 或 public surface，如果会被图下表、下钻段落、相关页面或后续维护反复引用，应使用稳定名称、稳定别名或短编号。
+
+稳定锚点是 reader-facing 约定，不是机器 ID 体系。它的目的只是避免同一个概念在主图、补充表、证据和相关页面之间漂移。不要为了形式统一给一次性说明、候选事实或证据不足的节点硬造编号。
+
+主图和下钻内容的关系要清楚：
+
+- Flow 的 activity map 是复杂 flow 的主线图；sequence、state transition、page navigation、dependency map 和 evidence table 只能补充主图中的关键节点，不应重新定义另一条主业务链路。
+- Drill-down 图或定位图应复用主图中的稳定节点名、边或连续子链，并说明它聚焦哪一段；它可以补充细节，但不能悄悄改写主图语义。
+- Model relation、dependency map 和 page navigation 如果有总览图和局部图，局部图应说明来自哪个总览关系或 reader route，避免读者看到两套互相竞争的拓扑。
+
+## Canonical Subjects
+
+涉及“谁做了什么”的图和表，主语必须来自已经确认的 canonical roles、external systems、main runtime units、pages、modules 或 models，或来自当前页面先声明且有证据支撑的 subject list。主语不能是 payload、DTO、SQL、record、adapter、helper、method、临时状态名或文件路径。
+
+如果写不出清楚主语，说明当前内容可能不是稳定业务活动、事实来源、页面跳转或 public surface；应改成证据说明、候选说明、source-of-truth note，或保留为问题，不要把实现名硬提升成 reader-facing 概念。
+
+Activity map 的活动节点必须显式写出 Subject，并使用 SVO 业务动作短句。多 Subject activity map 应用 Mermaid `class` / `classDef` 或等价样式区分 Subject；颜色只表达 Subject / perspective，不表达状态、风险、优先级或 Component 归属。
+
 ## No Guessing Stable Knowledge
 
 不要把猜测写成稳定 wiki 知识。
@@ -70,6 +113,19 @@ wiki 先服务读者理解，再服务文件整齐。
 禁止把 schema、validator、lint、PASS/FAIL、compliance、字段齐全、标题齐全、表格齐全，包装成 wiki 质量已经正确的证明。一个页面可以格式完整但事实错误、边界错、命名错、读者入口错或丢失关键不确定性。
 
 报告质量时使用自然语言说明：保留了什么、改清楚了什么、还有什么证据不足、哪里有 meaning loss risk、哪里可能需要 drift radar 或用户确认。
+
+## Semantic Review Checklist
+
+每次重写或写入稳定 wiki 内容后，用自然语言做一次语义自检。这个 checklist 不是 validator，也不能产生 PASS/FAIL；它只帮助写作者发现是否还需要保留不确定性或停止改写。
+
+- Reader question: 这段内容正在回答哪个读者问题？主表达是图、表还是 prose，为什么这个表达最清楚？
+- Main expression: 如果内容有拓扑、顺序、分支、跳转、状态或关系，是否优先用了 Mermaid 或等价图形表达？如果用了表格作为主表达，是否确实是短线性或横向对照信息？
+- Stable anchors: 图中节点、表格行和相关段落是否复用同一组 stable names / aliases？下钻内容是否明确回到主图或 owner page？
+- Canonical subjects: 活动主语、事实来源、页面来源、参与方和 owner 是否来自 confirmed canonical concepts 或当前页面声明的 subject list，而不是 runtime / adapter / payload / DTO / SQL / helper？Activity map 是否使用 SVO label，并对不同 Subject 分色？
+- Evidence and uncertainty: 每个关键事实、边、状态、跳转、surface 或 decision 是否有短证据锚点；证据不足处是否保留 uncertainty，而不是补成稳定结论？
+- Boundary fit: 信息是否写在正确 owner page 或 canonical index 附近；是否把 model 关系、dependency、sequence、page navigation、public surface 或 decision 混成一种表达？
+- Preservation: 重排成图、表或短段落后，是否丢失了 unique facts、异常、限制条件、反例、证据或 unresolved question？
+- Diagram readability: 中心 Mermaid 图是否可读、边标签是否过长、节点是否拥挤；如果工具环境能方便预览，可以做一次人工阅读/渲染检查，但这只是可读性检查，不是机械正确性证明。
 
 ## Skill Responsibilities
 

@@ -55,6 +55,7 @@ README / catalog 页面优先使用按 question 或 task 路由的表格。
 - 区分页面跳转、页面内部状态变化和后端调用。
 - Mermaid 边标签保持短，只写用户可感知动作、入口、结果或必要回跳。
 - 路由参数、状态枚举、evidence 引用和复杂资格条件默认不要塞进边标签；只有不写会导致目标页面无法区分时才简短说明，细节放到邻近图注、页面详情或证据表。
+- 页面节点应复用 canonical page names 或 catalog README 中已确认的页面名；页面名不清楚时保留候选说明，不要把 route path、component name 或 file name 直接提升为稳定页面名。
 - 入口、路由和目标页面要有代码、路由配置、产品材料或用户确认支撑。
 - README 和 catalog 不只做文件索引，要按读者的问题、任务或下一步选择来路由。
 - 每条 reader route 说明适合什么时候使用，避免读者不知道先看哪页。
@@ -82,5 +83,6 @@ README / catalog 页面优先使用按 question 或 task 路由的表格。
 - 把后端接口调用画成页面跳转。
 - 把组件内部交互提升成页面跳转。
 - 页面跳转可以用 Mermaid 表达时改成 SVG、截图或长表格主表达。
+- 把 route path、component name 或 file name 当成已经确认的 canonical page name。
 - 把完整路由参数、接口字段或展示条件都塞进边标签。
 - 只列文件名，不说明读者问题、任务或下一步。

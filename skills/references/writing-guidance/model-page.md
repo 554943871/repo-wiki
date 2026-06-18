@@ -53,7 +53,7 @@ Model 页面可以自然组合：
 - 使用 source-of-truth facts 小表：当页面需要说明某个字段、规则、计算结果或解释以哪里为准时。表格应该写清 fact、source of truth、适用范围、evidence 和 uncertainty。
 - 使用 prose：当只有一个简单关系、一个边界说明或一个短规则时。prose 仍然要保留证据和不确定性，不要把多个方向不同的关系塞进一句话。
 
-## Relationships
+## 模型关系（Relationships）
 
 Model relationships 应该让读者看清“谁指向谁、谁由谁组成、谁从谁衍生、哪个事实由哪里说了算”。
 
@@ -61,7 +61,7 @@ Model relationships 应该让读者看清“谁指向谁、谁由谁组成、谁
 
 关系图下的补充表可以承载 evidence anchors，例如代码路径、符号名、路由、配置、测试、已有 wiki 页面或用户确认。证据不足时把 uncertainty 写在关系旁边，而不是补成确定结论。
 
-## Lifecycle and State
+## 生命周期与状态（Lifecycle and State）
 
 Lifecycle 解释 model 从产生到变化、失效或终止的读者路径。它适合表达 creation、mutation、expiration、archival、deletion、manual override 等长期有意义的阶段。
 
@@ -69,7 +69,7 @@ State transition 解释稳定状态之间的变化。只有当状态集合和触
 
 生命周期和状态转换可以同时出现，但不要互相重复：lifecycle 给读者完整路径，state transition 只承接状态名、trigger、result 和 exception。
 
-## Source-of-Truth Facts
+## 事实来源（Source-of-Truth Facts）
 
 当 model 页面包含容易被多个地方重复、覆盖或误解的事实时，写清 source-of-truth facts。
 

@@ -83,15 +83,16 @@ Do not use the suite as a raw archive. Stable wiki pages should contain current,
 | Target Repository | The product or application repository where the suite creates and maintains a top-level `wiki/`. |
 | Repo-Local Wiki | The target repository's top-level `wiki/` directory. |
 | Wiki Guidance System | The complete guidance set used by the suite: Wiki Guidance Principles, Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules. |
-| Wiki Guidance Principles | Shared natural-language reader-quality guidance that every wiki skill reads first: information preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater. |
+| Wiki Guidance Principles | Shared natural-language reader-quality guidance that every wiki skill reads first: information preservation, reader-first structure, reader-facing Chinese headings with stable English aliases, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater. |
 | Wiki Structure | The fixed target wiki layout and minimal initial page text, defined in `skills/references/wiki-structure.md`. |
 | Writing Guidance | Page-family guidance for system, flow, page, module, model, decision, and drift pages. |
-| Writing Blocks | Reusable semantic writing patterns for activity maps, canonical indexes, decisions, dependencies, model relations, page navigation, public surfaces, sequence, and state transitions. |
+| Writing Blocks | Reusable semantic writing patterns for activity maps, canonical indexes, decisions, dependencies, evidence anchors, model relations, module boundaries, page layout, page navigation, public surfaces, sequence, and state transitions. |
 | Drift Page Rules | Rules for `wiki/07-drift.md`, including radar gating, finding types, evidence notes, and governance lifecycle. |
 | Information Preservation | A global principle: readability work must not lose unique information, evidence anchors, naming, boundaries, decision meaning, or uncertainty. |
 | Canonical Index | The stable naming and navigation source for roles, external systems, flows, pages, modules, models, and decisions. |
 | Public Surface | A stable visible entry point, capability, API, tool, route, page entry, or event surface that explains a system or module boundary. |
-| Page Catalog | The repo-local wiki section for user-visible pages, entry points, navigation, visible states, and page-to-flow/module/model links. |
+| Page Catalog | The repo-local wiki section for user-visible pages, entry points, navigation, visible regions, page variants, visible states, page-level interactions, and page-to-flow/module/model links. |
+| Module Catalog | The repo-local wiki section for human-meaningful capability boundaries, stable public surfaces, internal capabilities, collaboration rules, and related flow/page/model links. |
 | Wiki Drift | The wiki is outdated or wrong compared with the current system, so the wiki should change. |
 | Code Drift | Code diverges from wiki-described behavior that the user confirms should still hold, so code should change. |
 | Coverage Gap | Important current system knowledge exists in the target repository but is missing from the wiki. |

@@ -84,6 +84,8 @@ flowchart LR
 - Mermaid 关系图中的每条边都要写清关系标签，不能只画箭头。
 - 需要反复引用、下钻或跨页对齐的模型关系，使用稳定 model 名称或稳定别名；不要依赖临时描述消歧。
 - 关系对象保持同一抽象层级；不要把 model、SQL 表、DTO、Controller、页面按钮混在一张表里，除非正在解释边界差异。
+- `事实源` 的起点应是 canonical role、external system 或明确事实来源；不要把“上传动作”“runtime 记录”“adapter 输出”“payload 字段”写成事实来源角色。
+- 如果一个结果 model 只有 `引用` 边，读者仍然不知道它如何成立；应补充事实源、衍生来源、外部既有说明或 uncertainty。
 - 证据锚点保持短而可追溯，可以是路径、符号名、路由、配置、测试、已有 wiki 页面或用户确认。
 - 不确定性要留在关系旁边，例如“只证明当前实现”“未确认业务意图”“未验证异常分支”。
 - source-of-truth facts 要说明“哪个事实由谁说了算”，不要只写 owner 名称。
@@ -94,17 +96,42 @@ flowchart LR
 - 用关系表替代需要看清拓扑、多方向或事实源的模型关系图。
 - 把运行时调用、模块依赖、数据库外键、字段共现全部写成 model relationship。
 - 把 `引用` 和 `衍生` 合并成“依赖”“关联”“使用”这类模糊词。
+- 把 action phrase、runtime artifact、payload、record、adapter 或日志当成 `事实源` 角色。
 - 因为表格好看而制造空关系，或隐藏 evidence/uncertainty。
 
 ## Representative Example
 
 下面示例展示 model 页面可以怎样同时呈现关系、事实源、证据和 uncertainty。示例路径是格式演示；实际 wiki 页面必须替换为目标 repo 的真实锚点。
 
+```mermaid
+flowchart LR
+  Buyer(["Buyer"])
+  SubscriptionOrder["SubscriptionOrder"]
+  Order["Order"]
+  OrderLine["OrderLine"]
+  Customer["Customer"]
+  ProductPrice["Product.price"]
+  ProductName["Product.name"]
+  PriceSnapshot["OrderLine.priceSnapshot"]
+  NameSnapshot["OrderLine.productNameSnapshot"]
+  OrderTotal["Order.total"]
+  PricingService["PricingService"]
+
+  Buyer -->|事实源| Order
+  SubscriptionOrder -->|泛化| Order
+  OrderLine -->|组成| Order
+  Order -->|引用| Customer
+  ProductPrice -->|衍生| PriceSnapshot
+  ProductName -->|衍生| NameSnapshot
+  PricingService -->|事实源| OrderTotal
+```
+
 ```md
-### Order Model Relationships
+### Order Model Relationship Evidence
 
 | From | Relationship | To | Meaning | Evidence | Uncertainty |
 | --- | --- | --- | --- | --- | --- |
+| `Buyer` | 事实源 | `Order` | buyer action establishes the order fact. | checkout submit flow and order creation route | 未确认 support-created orders 是否同属同一事实来源。 |
 | `SubscriptionOrder` | 泛化 | `Order` | subscription order follows the shared order concept, with renewal-specific rules. | `src/orders/SubscriptionOrder.ts` extends `Order` | 未确认业务是否把 one-time order 和 subscription order 视为同一 catalog family。 |
 | `OrderLine` | 组成 | `Order` | order total and fulfillment need the set of order lines. | `src/orders/Order.ts` exposes `lines` | 只证明 current code shape；不证明 deletion ownership。 |
 | `Order` | 引用 | `Customer` | order keeps customer identity for account context. | `src/orders/Order.ts` field `customerId` | 不说明 customer profile facts are copied into order. |
