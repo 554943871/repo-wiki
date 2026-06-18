@@ -75,6 +75,8 @@ The suite deliberately avoids schema-oriented language. Do not introduce Doc Sch
 
 `wiki-guidance-principles.md` is the shared principle layer for all wiki skills. It records cross-cutting rules such as Information Preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater.
 
+Every skill's Required References must list `wiki-guidance-principles.md` before narrower page-family guidance, writing blocks, or workflow-specific references. The principles are the shared reader-quality baseline; narrower references explain how to apply them to a page family, block type, or drift lifecycle.
+
 `writing-guidance/` holds central quality guidance for each wiki page family. `writing-blocks/` holds reusable writing patterns for common explanatory blocks. These files are semantic standards for LLM writing and review, not schemas or mechanically checked templates.
 
 Guidance and block files must be self-contained. They may be authored from prior documentation experience, but they must not advertise inheritance from another documentation system or create compatibility expectations.

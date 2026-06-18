@@ -35,12 +35,16 @@ Human-readable writing and reading guidance for wiki sections, intended for peop
 _Avoid_: schema, validator, lint, compliance, PASS
 
 **Wiki Guidance System**:
-The complete guidance set used by the Repo Wiki Skill Suite, including Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules.
+The complete guidance set used by the Repo Wiki Skill Suite, including Wiki Guidance Principles, Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules.
 _Avoid_: schema system, validator suite, template framework
 
 **Wiki Guidance Principles**:
 The shared principles that every wiki skill follows when writing, rewriting, or judging repo-local wiki content.
 _Avoid_: validator rules, compliance gate
+
+**No Mechanical Correctness Theater**:
+The principle that schema, validator, lint, PASS/FAIL, compliance framing, or complete-looking fields must not be treated as proof of semantic wiki quality.
+_Avoid_: fake certainty, mechanical correctness proof
 
 **Information Preservation**:
 The principle that readability, structure, movement, deletion, merging, and diagramming must not lose unique information, evidence anchors, naming, boundaries, decision meaning, or uncertainty.

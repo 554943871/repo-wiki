@@ -9,6 +9,7 @@ description: Initialize the fixed top-level repo-local wiki structure and write 
 
 Read these before acting:
 
+- `../references/wiki-guidance-principles.md`
 - `../references/wiki-structure.md`
 - `../references/drift-page-rules.md`
 - Relevant `../references/writing-guidance/*.md` files for target pages

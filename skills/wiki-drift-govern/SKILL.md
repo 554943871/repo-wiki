@@ -9,6 +9,7 @@ description: Resolve active items in wiki/07-drift.md by updating repo-local wik
 
 Read these before acting:
 
+- `../references/wiki-guidance-principles.md`
 - `../references/drift-page-rules.md`
 - `../references/wiki-structure.md`
 - Relevant `../references/writing-guidance/*.md` files for affected pages

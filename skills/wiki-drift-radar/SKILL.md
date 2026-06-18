@@ -9,6 +9,7 @@ description: Compare a target repository's current working-tree system with its 
 
 Read these before acting:
 
+- `../references/wiki-guidance-principles.md`
 - `../references/drift-page-rules.md`
 - `../references/wiki-structure.md`
 - Relevant `../references/writing-guidance/*.md` files for the requested scope
