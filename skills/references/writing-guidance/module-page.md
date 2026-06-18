@@ -16,7 +16,7 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 能力定位。
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
-- 对外入口或关键行为。
+- 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
 - 内部重要能力的自然语言说明。
 - 相关 flows、pages 和 models。
 - 仓库相对代码锚点。
@@ -27,6 +27,7 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 服务进程或部署单元清单。
 - 页面清单。
 - 普通 helper 方法说明。
+- 把 public surface 写成 controller、helper、adapter、文件树或完整方法索引；这些只作为 secondary code evidence。
 - 未确认的 owner 或职责归属。
 
 ## 推荐表达
@@ -35,7 +36,7 @@ Module 页面可以自然组合：
 
 - 模块定位。
 - Owns / Does not own。
-- Public surfaces 或关键入口。
+- Public Surface table 或关键入口。
 - Collaborates with。
 - Important internal capabilities。
 - Related flows。
@@ -50,5 +51,6 @@ Module 页面可以自然组合：
 - 页面是否能让读者判断某个责任该不该归这个 module？
 - 是否区分了 module 边界和代码目录结构？
 - 协作关系是否说明方向和原因？
+- Public surfaces 是否说明 stable interaction points、使用者、稳定行为和 owner boundary，而不是列举 private helpers 或文件？
 - 代码锚点是否支撑了页面里的主要判断？
 - 是否把实现细节写得超过了理解 module 所需的程度？

@@ -35,12 +35,16 @@ Human-readable writing and reading guidance for wiki sections, intended for peop
 _Avoid_: schema, validator, lint, compliance, PASS
 
 **Wiki Guidance System**:
-The complete guidance set used by the Repo Wiki Skill Suite, including Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules.
+The complete guidance set used by the Repo Wiki Skill Suite, including Wiki Guidance Principles, Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules.
 _Avoid_: schema system, validator suite, template framework
 
 **Wiki Guidance Principles**:
 The shared principles that every wiki skill follows when writing, rewriting, or judging repo-local wiki content.
 _Avoid_: validator rules, compliance gate
+
+**No Mechanical Correctness Theater**:
+The principle that schema, validator, lint, PASS/FAIL, compliance framing, or complete-looking fields must not be treated as proof of semantic wiki quality.
+_Avoid_: fake certainty, mechanical correctness proof
 
 **Information Preservation**:
 The principle that readability, structure, movement, deletion, merging, and diagramming must not lose unique information, evidence anchors, naming, boundaries, decision meaning, or uncertainty.
@@ -85,6 +89,26 @@ _Avoid_: component map, class documentation
 **Flow Catalog**:
 The repo-local wiki section that explains key user, business, and system flows before readers inspect page behavior or module boundaries.
 _Avoid_: ordinary call chain, implementation trace log, test scenario dump, troubleshooting SOP
+
+**Activity Map**:
+A graph-first writing block for flow pages that explains who performs which business activity under which condition, including branches, joins, abnormal exits, and cross-role handoffs. Complex flows should use Mermaid `flowchart` as the main expression, with evidence kept nearby.
+_Avoid_: activity table as the default, technical call graph, Controller-Service-SQL diagram
+
+**Activity Table**:
+A compact table for very short linear flows or for evidence and node explanation beside a Mermaid Activity Map. It is not the primary representation for flows with branches, joins, abnormal exits, or handoffs.
+_Avoid_: replacement for complex Activity Map, fixed-field table, implementation trace table
+
+**Sequence Diagram**:
+A Mermaid-first writing block for explaining key participant collaboration, call order, branches, retries, callbacks, async handoffs, and abnormal exits inside a specific scenario. Participant names should stay at one abstraction level.
+_Avoid_: main business flow replacement, mixed-level call graph, steps table as default
+
+**Page Navigation Map**:
+A Mermaid-first writing block for user-visible page-to-page navigation, entries, exits, returns, and reader route choices. It explains where a reader or user goes next, not backend calls or component internals.
+_Avoid_: backend call chain, component interaction map, SVG as default
+
+**Model Relation Map**:
+A graph-first writing block for stable model relationships and fact sources. It uses relationship labels such as `泛化`, `组成`, `引用`, `衍生`, and `事实源`; tables should supplement evidence and uncertainty, not replace relation topology.
+_Avoid_: database ER dump, runtime call graph, vague dependency table
 
 **Page Catalog**:
 The repo-local wiki section that explains user-visible pages, entry points, navigation, visible states, and how pages connect to flows, modules, and models.

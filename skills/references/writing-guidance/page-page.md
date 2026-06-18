@@ -17,7 +17,7 @@ Page 页面解释用户可见页面、入口、导航和页面状态。它关注
 - 页面导航和返回路径。
 - 用户可见状态和关键展示条件。
 - 相关 flows、modules 和 models。
-- 理解页面行为所需的关键路由、接口或数据来源。
+- 理解页面行为所需的关键路由、接口或数据来源；当页面有多个入口、route、action、event 或 exposed capability 时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
 - 仓库相对代码锚点。
 
 ## 避免写
@@ -28,6 +28,7 @@ Page 页面解释用户可见页面、入口、导航和页面状态。它关注
 - 后端调用链。
 - 每个字段的展示规则全集。
 - 把页面当成 module 的能力边界替代品。
+- 把 public surface 写成组件树、private handlers、文件树或完整接口字段索引；这些只作为 secondary code evidence。
 
 ## 推荐表达
 
@@ -35,6 +36,7 @@ Page 页面可以自然组合：
 
 - 页面定位。
 - Entry points。
+- Public Surface table（当入口或暴露能力需要横向比较时）。
 - Navigation。
 - Visible states。
 - Related flows。
@@ -48,6 +50,7 @@ Page 页面可以自然组合：
 
 - 页面是否从用户可见行为出发，而不是从组件树或路由表出发？
 - 入口和跳转是否能被代码、路由、产品材料或用户确认支撑？
+- 页面级 public surfaces 是否说明 stable interaction points、使用者、稳定行为和 owner boundary，而不是列举组件或后端调用链？
 - 页面状态是否区分了业务状态、接口状态和 UI 展示态？
 - 是否链接到相关 flow、module 和 model，而不是重复它们的完整内容？
 - 是否避免把后端调用链或模块职责写进页面页？

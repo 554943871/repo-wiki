@@ -1,0 +1,23 @@
+{
+  "id": "audit-only-no-rewrite",
+  "behavior": "audit_only_does_not_rewrite_stable_pages",
+  "mode": "audit-only",
+  "gate": "empty_drift_allows_audit_only",
+  "classifications": [
+    "safe_guidance_rewrite"
+  ],
+  "actions": [
+    "rewrite_page",
+    "add_table_or_diagram"
+  ],
+  "stable_pages_rewritten": false,
+  "report_must_contain": [
+    "Mode: audit-only.",
+    "No stable wiki pages were rewritten.",
+    "Proposed actions: `rewrite_page`, `add_table_or_diagram`."
+  ],
+  "report_must_not_contain": [
+    "Changed pages:",
+    "safe_page_delete"
+  ]
+}

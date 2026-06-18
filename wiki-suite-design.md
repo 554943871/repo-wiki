@@ -75,6 +75,8 @@ The suite deliberately avoids schema-oriented language. Do not introduce Doc Sch
 
 `wiki-guidance-principles.md` is the shared principle layer for all wiki skills. It records cross-cutting rules such as Information Preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater.
 
+Every skill's Required References must list `wiki-guidance-principles.md` before narrower page-family guidance, writing blocks, or workflow-specific references. The principles are the shared reader-quality baseline; narrower references explain how to apply them to a page family, block type, or drift lifecycle.
+
 `writing-guidance/` holds central quality guidance for each wiki page family. `writing-blocks/` holds reusable writing patterns for common explanatory blocks. These files are semantic standards for LLM writing and review, not schemas or mechanically checked templates.
 
 Guidance and block files must be self-contained. They may be authored from prior documentation experience, but they must not advertise inheritance from another documentation system or create compatibility expectations.
@@ -206,16 +208,16 @@ V1 should strengthen the Wiki Guidance System with fine-grained writing blocks i
 
 New blocks:
 
-- `activity-map`: flow主链路表达；说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
-- `model-relation`: model关系表达；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
+- `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
+- `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
 
 Existing blocks to strengthen:
 
-- `sequence`: participant names must stay at one abstraction level; actors are triggers or result receivers; implementation details are evidence, not participants.
+- `sequence`: complex participant collaboration defaults to Mermaid `sequenceDiagram`; participant names must stay at one abstraction level; actors are triggers or result receivers; implementation details are evidence, not participants.
 - `state-transition`: stable states only; no temporary booleans or display states unless explicitly marked as display states.
-- `page-navigation`: user-visible navigation only; route params, visibility conditions, and backend calls should not be forced into navigation edges.
+- `page-navigation`: multi-page navigation defaults to Mermaid `flowchart` / `graph`; user-visible navigation only; route params, visibility conditions, and backend calls should not be forced into navigation edges.
 - `dependency-map`: distinguish runtime calls, data references, responsibility dependencies, ownership, and fact sources.
 - `decision-tradeoff`: decision blocks must explain a real current tradeoff and what it rules out.
 

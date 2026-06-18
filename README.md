@@ -82,8 +82,8 @@ Do not use the suite as a raw archive. Stable wiki pages should contain current,
 | Skill Suite Source Repository | This repository: the source for the skills and their shared references. |
 | Target Repository | The product or application repository where the suite creates and maintains a top-level `wiki/`. |
 | Repo-Local Wiki | The target repository's top-level `wiki/` directory. |
-| Wiki Guidance System | The complete guidance set used by the suite: Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules. |
-| Wiki Guidance Principles | Cross-skill principles such as information preservation, reader-first structure, evidence-aware writing, canonical naming, and no guessing. |
+| Wiki Guidance System | The complete guidance set used by the suite: Wiki Guidance Principles, Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules. |
+| Wiki Guidance Principles | Shared natural-language reader-quality guidance that every wiki skill reads first: information preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater. |
 | Wiki Structure | The fixed target wiki layout and minimal initial page text, defined in `skills/references/wiki-structure.md`. |
 | Writing Guidance | Page-family guidance for system, flow, page, module, model, decision, and drift pages. |
 | Writing Blocks | Reusable semantic writing patterns for activity maps, canonical indexes, decisions, dependencies, model relations, page navigation, public surfaces, sequence, and state transitions. |
@@ -101,5 +101,7 @@ Do not use the suite as a raw archive. Stable wiki pages should contain current,
 ## Quality Model
 
 The suite uses human-readable guidance and LLM semantic judgment. It does not use mechanical validators, lint checks, or pass/fail compliance gates for wiki quality.
+
+`skills/references/wiki-guidance-principles.md` is the shared first reference for all wiki skills. It treats Information Preservation as the highest-priority rule and distinguishes reader-facing rewrites from drift detection, drift resolution, and new stable knowledge capture.
 
 Fine-grained guidance is still expected. The suite should borrow useful expression rules from mature documentation systems, but translate them into natural-language writing guidance and writing blocks instead of schemas or mechanical checks.
