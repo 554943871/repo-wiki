@@ -1,9 +1,9 @@
 ---
-name: wiki-radar
+name: wiki-drift-radar
 description: Compare a target repository's current working-tree system with its top-level repo-local wiki, classify Wiki Drift, Code Drift, Coverage Gap, or Wiki Too Thin, ask the user to resolve ambiguity, and refresh only wiki/07-drift.md. Use when the user asks to scan, radar, inspect drift, find coverage gaps, or compare wiki docs against the current code/system.
 ---
 
-# wiki-radar
+# wiki-drift-radar
 
 ## Required References
 
@@ -26,7 +26,7 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Judge by
 
 1. Locate the target repository's top-level `wiki/` directory.
 2. Inspect `wiki/07-drift.md`.
-   - If it has active items, stop and tell the user to run `wiki-govern` first.
+   - If it has active items, stop and tell the user to run `wiki-drift-govern` first.
    - If it is missing because the wiki has not been initialized, report `Wiki Too Thin` and suggest `wiki-sink`.
 3. Read the relevant wiki pages for the whole project by default, or the user-specified scope.
 4. Read current system evidence from code, tests, routes, config, docs, and git diff as useful for the scope.
@@ -44,6 +44,6 @@ After writing `wiki/07-drift.md`, summarize:
 
 - Counts by finding type.
 - Any user clarifications that changed classification.
-- The next recommended action, usually `wiki-govern`.
+- The next recommended action, usually `wiki-drift-govern`.
 
 If there are no active findings, leave `wiki/07-drift.md` in empty state.

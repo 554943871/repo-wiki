@@ -1,9 +1,9 @@
 ---
-name: wiki-govern
+name: wiki-drift-govern
 description: Resolve active items in wiki/07-drift.md by updating repo-local wiki pages for Wiki Drift or Coverage Gap, changing code for confirmed Code Drift, and clearing resolved drift items. Use when the Drift Page has active items and the user wants to govern, resolve, fix, or clear wiki drift findings.
 ---
 
-# wiki-govern
+# wiki-drift-govern
 
 ## Required References
 
@@ -20,7 +20,7 @@ Use this skill only when `wiki/07-drift.md` has active items.
 
 Resolve only classified Drift Page items. Do not perform open-ended refactors, broad documentation rewrites, or new radar checks.
 
-Do not silently resolve ambiguous findings. If a Drift Page item is ambiguous or lacks a clear type, ask the user to classify it as `Wiki Drift`, `Code Drift`, `Coverage Gap`, or remove it from the governance queue. Do not ask the user to rerun `wiki-radar` while the Drift Page has active items.
+Do not silently resolve ambiguous findings. If a Drift Page item is ambiguous or lacks a clear type, ask the user to classify it as `Wiki Drift`, `Code Drift`, `Coverage Gap`, or remove it from the governance queue. Do not ask the user to rerun `wiki-drift-radar` while the Drift Page has active items.
 
 Do not use schema, validator, lint, compliance, PASS, or FAIL language. Judge and write by semantic fit, evidence, and user clarification.
 

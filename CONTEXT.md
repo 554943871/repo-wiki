@@ -38,8 +38,36 @@ _Avoid_: schema, validator, lint, compliance, PASS
 The complete guidance set used by the Repo Wiki Skill Suite, including Wiki Structure, Writing Guidance, Writing Blocks, and Drift Page Rules.
 _Avoid_: schema system, validator suite, template framework
 
+**Wiki Guidance Principles**:
+The shared principles that every wiki skill follows when writing, rewriting, or judging repo-local wiki content.
+_Avoid_: validator rules, compliance gate
+
+**Information Preservation**:
+The principle that readability, structure, movement, deletion, merging, and diagramming must not lose unique information, evidence anchors, naming, boundaries, decision meaning, or uncertainty.
+_Avoid_: cleanup by deletion, lossy rewrite
+
+**Canonical Index**:
+The repo-local wiki's stable naming and navigation source for a knowledge family, such as roles, external systems, flows, pages, modules, models, or decisions.
+_Avoid_: standalone glossary, schema registry
+
+**Canonical Roles**:
+The repo-wide role names used consistently in activity maps, model relations, sequences, page navigation, and system context.
+_Avoid_: role enum, ad hoc actor names
+
+**Canonical External Systems**:
+The repo-wide external-system names used consistently when explaining system context, dependencies, flows, modules, and evidence.
+_Avoid_: adapter names as external systems, local synonyms
+
+**Public Surface**:
+A stable externally visible entry point, capability, API, tool, route, page entry, or event surface that helps readers understand a system or module boundary.
+_Avoid_: helper list, private implementation method
+
+**wiki-doctor**:
+The explicit refresh skill that checks whether an existing Repo-Local Wiki follows the current Wiki Guidance System, then rewrites formatting, structure, and expression when the original information can be preserved.
+_Avoid_: validator, readability drift, wiki-drift-radar, wiki-drift-govern
+
 **Drift Page**:
-The top-level numbered repo-local wiki file that records the current active semantic drift and coverage gaps while they are being governed; a new wiki-radar check must not start while it still contains active items.
+The top-level numbered repo-local wiki file that records the current active semantic drift and coverage gaps while they are being governed; a new wiki-drift-radar check must not start while it still contains active items.
 _Avoid_: drift directory, drift backlog archive, append-only drift history
 
 **Evidence Note**:
@@ -70,13 +98,13 @@ _Avoid_: package tree, runtime unit inventory, page inventory
 The repo-local wiki section that explains important system-understanding models, including their meaning, state, and relationships, without requiring strict DDD classification or focusing on persistence technology.
 _Avoid_: strict DDD model, database table catalog, storage inventory
 
-**wiki-radar**:
+**wiki-drift-radar**:
 The radar skill that compares the target repository's current working-tree system with its repo-local wiki across the whole project by default or a user-specified scope, classifies each finding as wiki drift, code drift, or coverage gap, asks the user to resolve ambiguity before writing, and may refresh the Drift Page without confirmation after classification when the Drift Page has no active items.
-_Avoid_: wiki-xray, validator, stable wiki page writer, ambiguous drift handoff, git clean gate
+_Avoid_: wiki-radar, wiki-xray, validator, stable wiki page writer, ambiguous drift handoff, git clean gate
 
-**wiki-govern**:
+**wiki-drift-govern**:
 The governance skill used when the Drift Page has active items; it resolves classified Drift Page items by updating wiki pages for wiki drift or coverage gaps, or by changing code when code drift means the implementation should return to the wiki-described behavior; after all active items are resolved, it clears the Drift Page to its empty state.
-_Avoid_: ambiguous drift resolver, open-ended refactor skill, guessing intent from code
+_Avoid_: wiki-govern, ambiguous drift resolver, open-ended refactor skill, guessing intent from code
 
 **wiki-sink**:
 The write skill used when the Drift Page has no active items; it initializes the fixed repo-local wiki skeleton and records confirmed or evidence-grounded reusable knowledge into it, including system, flow, page, module, model, and decision knowledge, while excluding radar findings persisted to the Drift Page.
@@ -95,5 +123,5 @@ A mismatch where the current implementation diverges from wiki-described behavio
 _Avoid_: wiki drift, open-ended refactor
 
 **Wiki Too Thin**:
-A repo-local wiki with too little relevant content for meaningful radar comparison; wiki-radar may stop and refresh the Drift Page with this status instead of producing drift or coverage-gap findings.
+A repo-local wiki with too little relevant content for meaningful radar comparison; wiki-drift-radar may stop and refresh the Drift Page with this status instead of producing drift or coverage-gap findings.
 _Avoid_: pretending a meaningful comparison is possible
