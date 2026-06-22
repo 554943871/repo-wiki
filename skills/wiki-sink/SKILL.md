@@ -38,7 +38,7 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
 2. If `wiki/07-drift.md` exists and has active items, stop and tell the user to run `wiki-drift-govern` first.
 3. For initialization:
    - If `wiki/` is absent, create the fixed structure from `../references/wiki-structure.md`, including all README files and empty `wiki/07-drift.md`.
-   - Initialization creates skeleton files only. Do not infer or fill Canonical Roles, Canonical External Systems, Canonical Main Runtime Units, flows, pages, modules, models, decisions, or Deployment topology just because the skeleton contains those sections.
+   - Initialization creates skeleton files only. Do not infer or fill Canonical Roles, Canonical External Systems, Canonical Main Runtime Units, flows, pages, modules, models, decisions, or Runtime Topology just because the skeleton contains those sections.
    - If `wiki/` already exists, never overwrite existing files. Compare it with the fixed structure, list missing skeleton paths, and create only missing files when the user explicitly asked to initialize or complete the skeleton. Otherwise, report the missing paths and ask before creating them.
 4. For stable knowledge writes, read the relevant current canonical index before choosing the owner page:
    - `01-system.md` for system context and major runtime units.

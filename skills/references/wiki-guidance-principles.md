@@ -73,6 +73,8 @@ wiki 先服务读者理解，再服务文件整齐。
 
 如果命名、边界或 owner page 不清楚，先问用户或报告 `meaning_loss_risk` / candidate note。不要为了让文档看起来统一而发明同义词、重命名业务概念、把代码目录名直接提升为 module 名，或把局部实现名当成外部系统名。
 
+Canonical name 必须是单一稳定名称。不要在 canonical name 里用 `A / B`、`A or B`、`A 或 B` 或类似混名写法来包住多个候选名、别名或不同概念；这些信息只能放在 alias、candidate note、证据或待确认问题里。
+
 ## Stable Anchors And Traceability
 
 图、表和短段落都应该能让读者追溯到同一组稳定概念。复杂图里的节点、参与方、页面、model、module、flow、decision 或 public surface，如果会被图下表、下钻段落、相关页面或后续维护反复引用，应使用稳定名称、稳定别名或短编号。
@@ -87,7 +89,7 @@ wiki 先服务读者理解，再服务文件整齐。
 
 ## Canonical Subjects
 
-涉及“谁做了什么”的图和表，主语必须来自已经确认的 canonical roles、external systems、main runtime units、pages、modules 或 models，或来自当前页面先声明且有证据支撑的 subject list。主语不能是 payload、DTO、SQL、record、adapter、helper、method、临时状态名或文件路径。
+涉及“谁做了什么”的图和表，主语必须来自已经确认的 system context node、canonical roles、external systems、main runtime units、pages、modules 或 models，或来自当前页面先声明且有证据支撑的 subject list。目标系统本身可以在确实由系统发起的活动里作为 subject，但不要因此写进 Canonical Roles。主语不能是 payload、DTO、SQL、record、adapter、helper、method、临时状态名或文件路径。
 
 如果写不出清楚主语，说明当前内容可能不是稳定业务活动、事实来源、页面跳转或 public surface；应改成证据说明、候选说明、source-of-truth note，或保留为问题，不要把实现名硬提升成 reader-facing 概念。
 

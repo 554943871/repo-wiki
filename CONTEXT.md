@@ -58,17 +58,21 @@ _Avoid_: cleanup by deletion, lossy rewrite
 The repo-local wiki's stable naming and navigation source for a knowledge family, such as roles, external systems, flows, pages, modules, models, or decisions.
 _Avoid_: standalone glossary, schema registry
 
+**Canonical Name**:
+A single stable reader-facing name for one confirmed concept in a Canonical Index. It must not combine competing names or concept candidates with slash, "or", or similar mixed-name syntax; if the stable name is unclear, keep aliases or candidate notes outside the canonical name and ask for confirmation. A canonical name has one owner index; other pages or indexes should reference it instead of duplicating the same canonical entry. Different concepts across knowledge-family indexes may share a natural domain root, but must not use the exact same canonical name.
+_Avoid_: slash-joined name, or-joined name, candidate-name bundle, cross-index duplicate name, duplicated canonical entry
+
 **Canonical Roles**:
 The repo-wide role names used consistently in activity maps, model relations, sequences, page navigation, and system context. In `wiki/01-system.md`, this index belongs inside C1 (System Context) because roles are external behavior subjects around the repository boundary; runtime units do not belong here.
-_Avoid_: role enum, ad hoc actor names, runtime unit as role
+_Avoid_: role enum, ad hoc actor names, runtime unit as role, target system as role
 
 **Canonical External Systems**:
-The repo-wide external-system names used consistently when explaining system context, dependencies, flows, modules, and evidence. In `wiki/01-system.md`, this index belongs inside C1 (System Context) because it names highly relevant external context nodes around the repository boundary.
-_Avoid_: adapter names as external systems, local synonyms
+The repo-wide external-system names used consistently when explaining system context, dependencies, flows, modules, and evidence. In `wiki/01-system.md`, this index belongs inside C1 (System Context) because it names highly relevant external systems, platforms, services, or organizational systems outside the target system boundary that interact with the target system at runtime or across a clear data/dependency boundary. External origin alone is not enough: libraries, SDKs, runtime frameworks, and protocols are not Canonical External Systems unless they are themselves exposed as an independent external service or platform.
+_Avoid_: adapter names as external systems, local synonyms, dependency library, runtime framework, protocol
 
 **Public Surface**:
-A stable externally visible entry point, capability, API, tool, route, page entry, or event surface that helps readers understand a system or module boundary.
-_Avoid_: helper list, private implementation method
+A stable externally visible entry point, capability, API, tool, route, command, page entry, or event surface that helps readers understand a system, module, page, or runtime-unit boundary. A Public Surface is the interaction point exposed by a boundary; it is not automatically the Major Runtime Unit itself.
+_Avoid_: helper list, private implementation method, runtime unit by default
 
 **wiki-doctor**:
 The explicit refresh skill that checks whether an existing Repo-Local Wiki follows the current Wiki Guidance System, then rewrites formatting, structure, and expression when the original information can be preserved.
@@ -87,7 +91,7 @@ The repo-local wiki page that summarizes current active decisions and tradeoffs 
 _Avoid_: history archive, decision inbox
 
 **System Overview**:
-The top-level repo-local wiki page for human-readable system context, major runtime-unit overview, and lightweight deployment/runtime topology, roughly covering C4 C1 (System Context), C2 (Container), and small Deployment / Runtime Topology views without going into component or code-level detail.
+The top-level repo-local wiki page for human-readable system context, major runtime-unit overview, and lightweight runtime topology, roughly covering C4 C1 (System Context), C2 (Container), and small Runtime Topology views without going into component or code-level detail.
 _Avoid_: component map, class documentation
 
 **System Overview Default Structure**:
@@ -95,7 +99,7 @@ The named default section order and heading set for `wiki/01-system.md`, detaile
 _Avoid_: free-form system overview, empty template section
 
 **System Overview Default Blocks**:
-The named set of default content blocks for `wiki/01-system.md`, including C1 context, canonical indexes, C2 runtime units, Deployment topology, and continue-reading navigation.
+The named set of default content blocks for `wiki/01-system.md`, including C1 context, canonical indexes, C2 runtime units, Runtime Topology, and continue-reading navigation.
 _Avoid_: title-only skeleton, mandatory filler diagram, prose-only topology
 
 **System Overview Canonical Tables**:
@@ -103,20 +107,20 @@ The canonical role, external-system, and runtime-unit tables in `wiki/01-system.
 _Avoid_: ad hoc table columns, bilingual column clutter, owner-page boilerplate, schema fields
 
 **System Context Node**:
-A node in the C1 (System Context) view, such as the repository's system, an external role, or a highly relevant external system or platform around the repository boundary. Roles are external behavior subjects; runtime units are C2 concepts. Use this term instead of treating C1 itself as an entity.
-_Avoid_: C1 as entity, runtime unit, module
+A node in the C1 (System Context) view, such as the repository's system, an external role, or a highly relevant external system or platform outside the repository boundary. Roles are external behavior subjects; runtime units are C2 concepts; dependency libraries, SDKs, runtime frameworks, and protocols are not System Context Nodes by themselves. Use this term instead of treating C1 itself as an entity.
+_Avoid_: C1 as entity, runtime unit, module, dependency library, protocol
 
 **Canonical Main Runtime Units**:
-The repo-wide runtime-unit names used consistently when explaining C2 (Container), deployment topology, flows, modules, pages, and models. In `wiki/01-system.md`, this index belongs inside C2 because it is the canonical source for major runtime units.
-_Avoid_: package list, helper list, infrastructure inventory
+The repo-wide Major Runtime Unit names used consistently when explaining C2 (Container), Runtime Topology, flows, modules, pages, and models. In `wiki/01-system.md`, this index belongs inside C2 because it is the canonical source for independently running process-boundary units. Each entry must have an independent runtime process boundary; data exchange with another C2 crosses that boundary and cannot rely on shared memory.
+_Avoid_: package list, helper list, infrastructure inventory, interface layer, in-process capability
 
-**Deployment Topology**:
-A lightweight system-overview view that shows how stable entry points, major runtime units, external systems, and persistence points are operationally connected for the runtime scope being explained. It defaults to a Mermaid `flowchart`, and diagram nodes should reuse names from Canonical Roles, Canonical External Systems, and Canonical Main Runtime Units whenever applicable. A single topology may include multiple stable entry points when that is still readable.
-_Avoid_: request sequence, component map, prose-only topology, infrastructure inventory, hard-coded entry exclusion
+**Runtime Topology**:
+A lightweight system-overview view that shows how Canonical Roles, Canonical External Systems, and Canonical Main Runtime Units are operationally connected for the runtime scope being explained. It defaults to a Mermaid `flowchart`; every entity node in the diagram must reuse a C1 or C2 canonical name from those three indexes only. Protocols, read/write modes, files, persistence media, modules, pages, flows, models, decisions, and other non-C1/C2 details belong in edge labels, short notes, or continue-reading routes, not as topology nodes. A single topology may include multiple stable entry points when that is still readable.
+_Avoid_: request sequence, component map, prose-only topology, infrastructure inventory, hard-coded entry exclusion, topology-local entity node, module node, page node, flow node
 
 **Major Runtime Unit**:
-The reader-facing phrase for C4 C2 Container-level applications, services, tools, data stores, or other independently meaningful runtime units. Use this phrase after expanding C2 (Container) once, because the Chinese word 容器 can be confused with Docker or Kubernetes containers.
-_Avoid_: Docker container, package, helper, component
+The reader-facing phrase for C4 C2 Container-level applications, services, tools, data stores, or other independently meaningful runtime units. A Major Runtime Unit must have an independent runtime process boundary; data exchange between two Major Runtime Units crosses that process boundary and cannot rely on shared memory. Use this phrase after expanding C2 (Container) once, because the Chinese word 容器 can be confused with Docker or Kubernetes containers.
+_Avoid_: Docker container, package, helper, component, shared-memory internal component
 
 **Flow Catalog**:
 The repo-local wiki section that explains key user, business, and system flows before readers inspect page behavior or module boundaries.
@@ -163,8 +167,8 @@ The main diagram or owner page that downstream diagrams, tables, and drill-down 
 _Avoid_: competing mainline, duplicate truth source, disconnected drill-down
 
 **Canonical Subject**:
-The confirmed role, external system, runtime unit, page, module, model, or page-local declared subject that can validly appear as the subject of an activity, fact source, navigation edge, participant, owner, or public surface.
-_Avoid_: payload as actor, adapter as business role, route file as page name
+The confirmed system context node, role, external system, runtime unit, page, module, model, or page-local declared subject that can validly appear as the subject of an activity, fact source, navigation edge, participant, owner, or public surface. The target system itself may be a Canonical Subject when an activity is genuinely system-initiated, but it is not a Canonical Role.
+_Avoid_: payload as actor, adapter as business role, route file as page name, target system as role
 
 **Page Catalog**:
 The repo-local wiki section that explains user-visible pages, entry points, navigation, visible regions, page variants, visible states, page-level interactions, and how pages connect to flows, modules, and models.

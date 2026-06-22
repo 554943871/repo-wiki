@@ -225,7 +225,7 @@ New blocks:
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
 - `page-layout`: page detail expression for stable visible regions, major components, overlays, drawers, tabs, placeholders, page variants, visible state projection, and page-level interaction surfaces. It must not become DOM/CSS/component-library documentation or a screenshot archive.
 
-Do not add a separate `runtime-topology` block in V1. Deployment / Runtime Topology rules currently belong in `writing-guidance/system-overview.md`; extract a reusable block only if multiple page families need the same topology rules.
+Do not add a separate `runtime-topology` block in V1. Runtime Topology rules currently belong in `writing-guidance/system-overview.md`; extract a reusable block only if multiple page families need the same topology rules.
 
 Existing guidance / blocks to strengthen:
 
@@ -295,9 +295,9 @@ Explains how to read the wiki and what each top-level section contains.
 
 ### 01-system.md
 
-Provides a human-readable system overview. It defaults to the C1 / C2 / Deployment shape decided by the System Overview Guidance, while `wiki-structure.md` only carries the minimal skeleton that `wiki-sink` can initialize. Detailed headings, canonical-table columns, Mermaid topology rules, evidence rules, and semantic checks are maintained in `skills/references/writing-guidance/system-overview.md`.
+Provides a human-readable system overview. It defaults to the C1 / C2 / Runtime Topology shape decided by the System Overview Guidance, while `wiki-structure.md` only carries the minimal skeleton that `wiki-sink` can initialize. Detailed headings, canonical-table columns, Mermaid topology rules, evidence rules, and semantic checks are maintained in `skills/references/writing-guidance/system-overview.md`.
 
-The `wiki-structure.md` skeleton may include `TBD` placeholders, including a minimal Mermaid topology placeholder. Stable written pages should replace placeholders with real content or clearly omit the block when it would be filler.
+The `wiki-structure.md` skeleton may include `TBD` placeholders, including a minimal Mermaid topology placeholder. Stable written pages should replace placeholders with a real Runtime Topology graph; when relationships are incomplete, draw the confirmed C1/C2 nodes and edges and state the remaining gaps after the diagram.
 
 ### 02-flows/
 

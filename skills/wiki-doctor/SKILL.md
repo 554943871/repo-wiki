@@ -100,7 +100,7 @@ Classify each candidate change before editing:
 
 Only `safe_guidance_rewrite` can be written by default. `meaning_loss_risk` and `drift_or_coverage_suspect` are report-only unless the user gives new confirmation that turns the work into a safe existing-wiki rewrite.
 
-For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Deployment shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
+For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Runtime Topology shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
 
 ## Action Vocabulary
 
