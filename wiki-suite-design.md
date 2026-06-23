@@ -66,6 +66,7 @@ skills/
       public-surface.md
       sequence.md
       state-transition.md
+      whitebox-component.md
 ```
 
 This is the suite's source layout. It is separate from the `wiki/` output that `wiki-sink` creates inside a Target Repository.
@@ -221,6 +222,7 @@ New blocks:
 - `evidence-anchor`: short traceable evidence support for stable wiki facts, uncertainty, and candidate notes. It borrows the useful verification discipline from mem-style evidence docs without adding a separate evidence family or verification matrix to repo-wiki V1.
 - `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
 - `module-boundary`: module边界表达；说明 stable responsibility boundary、public surfaces、internal capabilities、collaboration direction 和 current module rules。它 must not turn package trees, private helpers, deployment inventory, or unconfirmed ownership into module contracts.
+- `whitebox-component`: module page 的必备 Module Boundary Map；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达 module 内部组装关系。
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
 - `page-layout`: page detail expression for stable visible regions, major components, overlays, drawers, tabs, placeholders, page variants, visible state projection, and page-level interaction surfaces. It must not become DOM/CSS/component-library documentation or a screenshot archive.

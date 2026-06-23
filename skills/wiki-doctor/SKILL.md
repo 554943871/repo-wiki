@@ -15,6 +15,7 @@ Read these before acting:
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for the scoped wiki pages
 - Relevant `../references/writing-blocks/*.md` files for the rewrite shape
+- For module-page refreshes, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
 
 For whole-wiki refresh, read all page-family guidance and the writing blocks needed by the existing pages. For narrow page or directory scope, read only the matching guidance plus any block guidance needed to preserve the page's information.
 
@@ -29,6 +30,8 @@ Require an empty Drift Page before any audit or rewrite. This gate applies to `a
 Do not inspect source code, tests, routes, config, root `README.md`, `docs/**`, ADRs, AGENTS files, or skill source files to decide whether wiki facts are current. `wiki-doctor` reads existing wiki content and refreshes its reader-facing structure; it does not compare the wiki with the current system.
 
 Do not classify drift, do not rewrite an existing `wiki/07-drift.md`, and do not capture new stable knowledge. If a finding needs code/wiki comparison, fact verification, or missing coverage classification, report `drift_or_coverage_suspect` and recommend `wiki-drift-radar`.
+
+For module pages, `wiki-doctor` may create or refresh co-located `.whitebox.yaml` and derived `.whitebox.svg` files under `wiki/04-modules/**` only from facts already present in the existing wiki content being refreshed. It must not inspect target source code to discover new whitebox facts, and it must not write Whitebox files outside the target repo's top-level `wiki/`.
 
 Do not use schema, validator, lint, compliance, PASS, or FAIL language. This is semantic reader-quality work, not mechanical validation.
 
@@ -90,6 +93,8 @@ Scope limits writes. Scope-external wiki pages may be read for context, but are 
 
 `wiki-doctor` only processes top-level `wiki/`. It does not edit target-repository files outside `wiki/`, and it does not edit this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill instructions. Changes to the Wiki Guidance System itself are skill-suite maintenance work, not `wiki-doctor` work.
 
+Within any scope that includes module pages, safe Whitebox refresh may also write the module page's co-located `.whitebox.yaml` source model and derived `.whitebox.svg` under `wiki/04-modules/**`. Other non-Markdown files remain out of scope.
+
 ## Classifications
 
 Classify each candidate change before editing:
@@ -102,13 +107,15 @@ Only `safe_guidance_rewrite` can be written by default. `meaning_loss_risk` and 
 
 For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Runtime Topology shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
 
+For `wiki/04-modules/**`, refresh older module maps into Whitebox Component Diagrams only when the existing wiki already contains enough confirmed information to build a legal source model: enclosing module name, at least one boundary port, at least one external node, an `external` connector between them, and any internal parts or interface roles being migrated. A Mermaid diagram, PlantUML sketch, draw.io XML, Markdown table, prose block, generated SVG, or image can be migration input, but the resulting `.whitebox.yaml` becomes the fact source and the SVG is derived. If the old map does not identify legal whitebox facts, connector direction, evidence, or uncertainty clearly enough, report `meaning_loss_risk`; if deciding the facts requires code/wiki comparison or missing coverage classification, report `drift_or_coverage_suspect`.
+
 ## Action Vocabulary
 
 Use these action names in reports. They are vocabulary, not a machine schema:
 
 - `rewrite_page`: Reshape dense prose, headings, lists, tables, or diagrams while preserving all information.
 - `add_reader_entry`: Add or improve an intro, reader question, reading route, or next-step cue from existing wiki content.
-- `add_table_or_diagram`: Convert existing dense relationships, activities, states, surfaces, or navigation into a clearer table or Mermaid diagram.
+- `add_table_or_diagram`: Convert existing dense relationships, activities, states, surfaces, navigation, or module-boundary maps into a clearer table, Mermaid diagram, or Whitebox Component Diagram.
 - `update_canonical_index`: Rebuild or adjust an index from existing wiki pages without inventing names or deciding conflicts.
 - `relocate_content`: Move content to the page that already owns the same canonical concept.
 - `split_page`: Split a page only when each destination preserves the same confirmed concepts and all links/evidence remain recoverable.
@@ -134,10 +141,17 @@ Use these action names in reports. They are vocabulary, not a machine schema:
    - improve reader entry, navigation, canonical names, tables, diagrams, and evidence placement when safe;
    - keep uncertainty visible;
    - avoid template-filling and mechanical completeness claims.
-7. Classify candidate changes.
-8. In `audit-only`, write nothing and report proposed actions.
-9. In default mode, apply only `safe_guidance_rewrite` and allowed `complete_skeleton` changes.
-10. Stop and ask a focused question only when a small number of `meaning_loss_risk` items block an otherwise safe rewrite. Otherwise report risks without editing them.
+7. For scopes that include module pages, identify any existing Module Boundary Map, Module Boundary block, dependency-like boundary map, Mermaid/PlantUML/draw.io diagram, table, prose map, SVG, or image that appears to describe module boundaries. Treat conversion to a Whitebox Component Diagram as a candidate change only when every converted fact is already explicit in the wiki content and can be preserved without choosing new meaning.
+8. Classify candidate changes.
+9. In `audit-only`, write nothing and report proposed actions.
+10. When a Whitebox refresh is classified as `safe_guidance_rewrite` in default mode:
+   - Create or update the co-located `.whitebox.yaml` source model.
+   - Render the derived `.whitebox.svg` from that source model. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
+   - Validate the source model. When the suite checker is available, use `python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>` or the equivalent installed command.
+   - Update the module page Markdown to link both the generated SVG and the `.whitebox.yaml` source model.
+   - Preserve old-map information that does not fit the diagram as prose, uncertainty, or risk notes instead of deleting it.
+11. In default mode, apply only `safe_guidance_rewrite` and allowed `complete_skeleton` changes.
+12. Stop and ask a focused question only when a small number of `meaning_loss_risk` items block an otherwise safe rewrite. Otherwise report risks without editing them.
 
 ## Output
 
@@ -146,6 +160,7 @@ Always report:
 - Gate notes, including whether `wiki/07-drift.md` was empty, missing, non-standard empty, or blocking.
 - Structural changes made or proposed, especially `complete_skeleton`.
 - Changed pages, with action names.
+- Whitebox Component Diagram source models and SVGs created, refreshed, rendered, validated, and linked, or why old module maps were left unchanged.
 - Skipped risk items classified as `meaning_loss_risk`.
 - Suspected drift or coverage items classified as `drift_or_coverage_suspect`, with a recommendation to run `wiki-drift-radar`.
 - Out-of-scope suggestions caused by scope limits.

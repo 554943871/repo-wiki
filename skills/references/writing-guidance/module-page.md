@@ -9,6 +9,7 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 它为哪些 flow 提供能力。
 - 它依赖谁，被谁依赖。
 - 它对外暴露哪些稳定入口、行为或能力。
+- 它的 Module Boundary Map 如何展示 confirmed boundary ports、external interactions、internal parts 和 connector direction。
 - 哪些内部稳定能力支撑这些对外行为，但不应被外部直接依赖。
 - 哪些边界规则、must / must not、owner decision 或 active uncertainty 会影响后续修改。
 - 当前代码中哪些位置能帮助验证这个理解。
@@ -19,7 +20,8 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
 - 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
-- 内部重要能力的自然语言说明；当内部能力和 public surfaces 的支撑关系会影响理解时，使用 Module Boundary block。
+- Module Boundary Map：每个 module 页面都必须包含 Whitebox Component Diagram，并以 `.whitebox.yaml` 作为 diagram fact source、生成的 `.whitebox.svg` 作为 reader-facing rendering。细节见 `skills/references/writing-blocks/whitebox-component.md`。
+- 内部重要能力的自然语言说明；当内部能力和 public surfaces 的支撑关系会影响理解时，在 Whitebox Component Diagram 旁补充短段落、Public Surface table 或 Module Boundary block，不要用 prose 代替 diagram fact source。
 - Module rules：当前仍有效的边界约束、必须遵守 / 不应做、owner decision 或非显然约定。
 - 协作关系的方向、类型、稳定性和证据；关系复杂时使用 Dependency Map block。
 - 相关 flows、pages 和 models。
@@ -36,6 +38,8 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 过期历史讨论或未拍板 ownership。
 - 把 public surface 写成 controller、helper、adapter、文件树或完整方法索引；这些只作为 secondary code evidence。
 - 未确认的 owner 或职责归属。
+- 把 Mermaid、PlantUML、draw.io XML、Markdown prose、生成 SVG 或其他生成图片当作 Module Boundary Map 的事实源。
+- 为了让图看起来完整而发明 boundary port、external node、internal part、interface role、connector direction 或 evidence。
 
 ## 推荐表达
 
@@ -43,7 +47,7 @@ Module 页面可以自然组合：
 
 - 模块定位。
 - 负责 / 不负责（Owns / Does not own）。
-- 模块边界（Module Boundary block）：当 public surface、内部能力、协作关系和规则共同定义边界时。
+- 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 同时链接 `.whitebox.svg` 和 `.whitebox.yaml`，并从 `.whitebox.yaml` 重新渲染 SVG。
 - 对外入口（Public Surface table）或关键入口。
 - 协作对象（Collaborates with）。
 - 重要内部能力（Important internal capabilities）。
@@ -55,10 +59,16 @@ Module 页面可以自然组合：
 
 这些是写作建议，不是固定字段。
 
+简单 module 可以使用没有 internal parts 的 empty whitebox，但仍必须包含至少一个 confirmed boundary port、一个 external node，以及连接两者的 `external` connector。如果没有证据能确认 boundary port 或 external interaction，不要补占位图；先确认事实或报告缺口。
+
 ## LLM 语义检查问题
 
 - 页面是否能让读者判断某个责任该不该归这个 module？
 - 是否区分了 module 边界和代码目录结构？
+- 是否包含 Whitebox Component Diagram 作为 Module Boundary Map，并同时链接 generated SVG 和 `.whitebox.yaml` source model？
+- `.whitebox.yaml` 是否是唯一 fact source；SVG、Mermaid、PlantUML、draw.io XML、Markdown prose 或生成图片是否只作为 derived/rendered/sketch material？
+- 图中是否至少有一个 confirmed boundary port 连接到 external node；simple module 是否使用合法 empty whitebox 而不是无事实空盒？
+- 图中的 components、parts、ports、interfaces、externals 和 connectors 是否都有足够 evidence 或用户确认，没有把猜测写成稳定事实？
 - 协作关系是否说明方向和原因？
 - Public surfaces 是否说明 stable interaction points、使用者、稳定行为和 owner boundary，而不是列举 private helpers 或文件？
 - 内部能力是否只解释 module 内部稳定能力，没有被误写成跨 module contract？

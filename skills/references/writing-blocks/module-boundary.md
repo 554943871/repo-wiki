@@ -44,6 +44,7 @@ Module boundary 不是 package tree、service process、deployment unit、page i
 
 ## 与其他 Blocks 的关系
 
+- Whitebox Component Diagram 是 module page 的必备 Module Boundary Map，并由 `.whitebox.yaml` 作为 diagram fact source。Module Boundary Block 可以补充 owns / does-not-own、public surface table、internal capability 说明和 module rules，但不能替代 Whitebox Component Diagram，也不能把 prose、Mermaid、PlantUML、draw.io XML 或生成图片当作 diagram fact source。
 - Public Surface Block 解释对外稳定入口；Module Boundary Block 用它作为 module 边界的一部分，而不是替代整个 module 页面。
 - Dependency Map Block 解释 module 与其他对象的关系方向、类型、稳定性和证据。
 - Activity Map 和 Sequence 可以引用 module 的 public surface 或 stable capability，但不能把 private helper 当成业务活动或主要 participant。

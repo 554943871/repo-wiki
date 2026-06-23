@@ -15,6 +15,7 @@ Read these before acting:
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for target pages
 - Relevant `../references/writing-blocks/*.md` files for explanatory blocks
+- For module pages, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
 
 ## Boundary
 
@@ -54,19 +55,29 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - `activity-map.md`, `sequence.md`, or `state-transition.md` for flow content.
    - `model-relation.md` or `state-transition.md` for model relationships, lifecycle, source-of-truth facts, or stable states.
    - `public-surface.md` for system, module, or page surfaces such as APIs, tools, routes, page entries, events, or capabilities.
+   - `whitebox-component.md` for every module page's required Whitebox Component Diagram / Module Boundary Map.
    - `module-boundary.md` for module responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and module rules.
    - `page-navigation.md` for README/catalog routing and user-visible page navigation.
    - `page-layout.md` for page visible regions, stable components, overlays, drawers, tabs, page variants, visible state projection, and page-level layout.
    - `dependency-map.md` or `decision-tradeoff.md` for stable dependencies, active decisions, and current tradeoffs.
-7. Update the owner page and its canonical index together when the name, owner page, and boundary are confirmed. If a name conflict, unclear boundary, or unconfirmed owner would cause meaning loss, ask the user or leave it out instead of canonicalizing it.
-8. Ask the user before writing business intent, design rationale, page names, module names, or boundary decisions when evidence is not enough.
-9. Keep edits human-readable and concise. Prefer stable wiki content over raw notes.
+7. When writing or updating a module page under `wiki/04-modules/**`, maintain its Whitebox Component Diagram as the Module Boundary Map:
+   - Create or update the co-located `.whitebox.yaml` source model from confirmed repo evidence, existing wiki facts, or user confirmation.
+   - Keep `.whitebox.yaml` as the only diagram fact source. Mermaid, PlantUML, draw.io XML, Markdown prose, generated SVG, and other generated images are not the fact source.
+   - Include at least one confirmed boundary port connected to an external node. Simple modules may omit internal `parts`, but they still need this external interaction.
+   - Render the derived `.whitebox.svg` from the source model after source changes. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
+   - Validate the source model after edits. When the suite checker is available, use `python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>` or the equivalent installed command.
+   - Link both the generated SVG and the `.whitebox.yaml` source model from the module page Markdown.
+   - If the evidence does not confirm a boundary port, external node, connector direction, internal part, interface role, or ownership boundary, ask the user or leave the fact out instead of filling a placeholder.
+8. Update the owner page and its canonical index together when the name, owner page, and boundary are confirmed. If a name conflict, unclear boundary, or unconfirmed owner would cause meaning loss, ask the user or leave it out instead of canonicalizing it.
+9. Ask the user before writing business intent, design rationale, page names, module names, or boundary decisions when evidence is not enough.
+10. Keep edits human-readable and concise. Prefer stable wiki content over raw notes.
 
 ## Output
 
 Report:
 
 - Wiki pages created or updated.
+- Module Whitebox Component Diagram source models and SVGs created, updated, rendered, validated, and linked, or why they were left incomplete.
 - Canonical indexes maintained, or why an index update was skipped.
 - What evidence or confirmation supported the write.
 - Any knowledge intentionally left out because it was unconfirmed or too implementation-local.
