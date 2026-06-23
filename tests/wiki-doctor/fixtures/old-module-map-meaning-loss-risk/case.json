@@ -1,0 +1,31 @@
+{
+  "id": "old-module-map-meaning-loss-risk",
+  "behavior": "old_module_map_insufficient_evidence_reports_meaning_loss_risk",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "meaning_loss_risk"
+  ],
+  "actions": [
+    "risk_report_only"
+  ],
+  "stable_pages_rewritten": false,
+  "unchanged_wiki_paths": [
+    "04-modules/refund.md"
+  ],
+  "expected_wiki_must_contain": [
+    "[Refund flow](../02-flows/refund.md)",
+    "Evidence: `docs/refund-notes.md#legacy-map`",
+    "Payment owns reversals?",
+    "Refund Processor may be external."
+  ],
+  "report_must_contain": [
+    "Classification: `meaning_loss_risk`.",
+    "Action: `risk_report_only`.",
+    "No Whitebox Component Diagram files were generated."
+  ],
+  "report_must_not_contain": [
+    "safe_guidance_rewrite",
+    "Source model:"
+  ]
+}

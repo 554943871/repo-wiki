@@ -1,0 +1,52 @@
+{
+  "id": "old-module-map-safe-whitebox-refresh",
+  "behavior": "old_module_map_refreshes_to_whitebox_source_and_svg",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "safe_guidance_rewrite"
+  ],
+  "actions": [
+    "rewrite_page",
+    "add_table_or_diagram"
+  ],
+  "stable_pages_rewritten": true,
+  "whitebox_source": "wiki/04-modules/fulfillment.whitebox.yaml",
+  "whitebox_svg": "wiki/04-modules/fulfillment.whitebox.svg",
+  "module_page": "wiki/04-modules/fulfillment.md",
+  "expected_wiki_must_contain": [
+    "![Fulfillment Module whitebox component diagram](./fulfillment.whitebox.svg)",
+    "Source model: [`fulfillment.whitebox.yaml`](./fulfillment.whitebox.yaml)",
+    "Checkout flow starts fulfillment through the Submit Fulfillment boundary port.",
+    "Submit Fulfillment is delegated to Order Intake.",
+    "Order Intake delegates stock reservation needs to Inventory Client.",
+    "Cancellation from Returns is mentioned as a future boundary candidate, not confirmed.",
+    "[Checkout flow](../02-flows/checkout.md)",
+    "[Inventory model](../05-models/inventory.md)",
+    "Evidence: `src/fulfillment/FulfillmentController.ts`",
+    "Evidence: `src/fulfillment/OrderIntake.ts`",
+    "Evidence: `src/fulfillment/InventoryClient.ts`"
+  ],
+  "expected_wiki_must_not_contain": [
+    "Returns Adapter"
+  ],
+  "whitebox_model_must_contain": [
+    "kind: whitebox_component_diagram",
+    "id: fulfillment_module",
+    "id: submit_fulfillment",
+    "id: order_intake",
+    "id: inventory_client",
+    "type: external",
+    "type: delegation",
+    "type: interfaceAssembly"
+  ],
+  "report_must_contain": [
+    "Classification: `safe_guidance_rewrite`.",
+    "Actions: `rewrite_page`, `add_table_or_diagram`.",
+    "Whitebox files refreshed:"
+  ],
+  "report_must_not_contain": [
+    "meaning_loss_risk",
+    "drift_or_coverage_suspect"
+  ]
+}

@@ -8,6 +8,8 @@ import re
 import sys
 from pathlib import Path
 
+from check_whitebox_fixtures import load_source_model, render_svg, validate_source_model
+
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "tests" / "wiki-doctor" / "fixtures"
@@ -20,6 +22,9 @@ REQUIRED_BEHAVIORS = {
     "naming_conflicts_report_meaning_loss_risk",
     "suspected_code_wiki_mismatch_recommends_drift_radar",
     "audit_only_does_not_rewrite_stable_pages",
+    "old_module_map_refreshes_to_whitebox_source_and_svg",
+    "old_module_map_insufficient_evidence_reports_meaning_loss_risk",
+    "old_module_map_needing_code_comparison_recommends_drift_radar",
 }
 
 ALLOWED_GATES = {
@@ -154,6 +159,58 @@ def all_markdown_text(root: Path) -> str:
     return "\n".join(parts)
 
 
+def all_expected_wiki_text(case_dir: Path) -> str:
+    parts: list[str] = []
+    expected_dir = case_dir / "expected" / "wiki"
+    if expected_dir.exists():
+        for path in sorted(p for p in expected_dir.rglob("*") if p.is_file()):
+            if path.suffix in {".md", ".svg", ".yaml"}:
+                parts.append(read_text(path))
+    return "\n".join(parts)
+
+
+def check_expected_text_requirements(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    expected_text = all_expected_wiki_text(case_dir)
+
+    for phrase in expect_list(metadata, "expected_wiki_must_contain"):
+        if phrase not in expected_text:
+            errors.append(f"{rel(case_dir / 'expected')} must preserve {phrase!r}")
+
+    for phrase in expect_list(metadata, "expected_wiki_must_not_contain"):
+        if phrase in expected_text:
+            errors.append(f"{rel(case_dir / 'expected')} must not contain {phrase!r}")
+
+    return errors
+
+
+def check_unchanged_wiki_paths(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    for path_name in expect_list(metadata, "unchanged_wiki_paths"):
+        input_path = case_dir / "input" / "wiki" / path_name
+        expected_path = case_dir / "expected" / "wiki" / path_name
+        if not input_path.exists():
+            errors.append(f"{rel(input_path)} must exist for unchanged wiki comparison")
+            continue
+        if not expected_path.exists():
+            errors.append(f"{rel(expected_path)} must exist for unchanged wiki comparison")
+            continue
+        if read_text(input_path) != read_text(expected_path):
+            errors.append(f"{rel(expected_path)} must match input for no-write behavior")
+    return errors
+
+
+def check_no_expected_whitebox_files(case_dir: Path) -> list[str]:
+    expected_wiki = case_dir / "expected" / "wiki"
+    if not expected_wiki.exists():
+        return []
+
+    errors: list[str] = []
+    for path in sorted(expected_wiki.rglob("*.whitebox.*")):
+        errors.append(f"{rel(path)} must not exist for report-only old module map behavior")
+    return errors
+
+
 def check_active_drift_gate(case_dir: Path, metadata: dict[str, object]) -> list[str]:
     errors: list[str] = []
     drift_path = case_dir / "input" / "wiki" / "07-drift.md"
@@ -280,6 +337,94 @@ def check_audit_only(case_dir: Path, metadata: dict[str, object]) -> list[str]:
     return errors
 
 
+def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    report = read_text(case_dir / "expected" / "report.md")
+
+    if "safe_guidance_rewrite" not in expect_list(metadata, "classifications"):
+        errors.append(f"{rel(case_dir / 'case.json')} must classify safe_guidance_rewrite")
+    if "add_table_or_diagram" not in expect_list(metadata, "actions"):
+        errors.append(f"{rel(case_dir / 'case.json')} must expect add_table_or_diagram")
+    if metadata.get("stable_pages_rewritten") is not True:
+        errors.append(f"{rel(case_dir / 'case.json')} must rewrite the module page")
+    if "Whitebox files refreshed:" not in report:
+        errors.append(f"{rel(case_dir / 'expected' / 'report.md')} must report refreshed Whitebox files")
+
+    source_value = metadata.get("whitebox_source")
+    svg_value = metadata.get("whitebox_svg")
+    module_page_value = metadata.get("module_page")
+    if not isinstance(source_value, str) or not source_value.endswith(".whitebox.yaml"):
+        errors.append(f"{rel(case_dir / 'case.json')} must set whitebox_source")
+        source_path = None
+    else:
+        source_path = case_dir / "expected" / source_value
+        if not source_path.exists():
+            errors.append(f"{rel(source_path)} must exist")
+
+    if not isinstance(svg_value, str) or not svg_value.endswith(".whitebox.svg"):
+        errors.append(f"{rel(case_dir / 'case.json')} must set whitebox_svg")
+        svg_path = None
+    else:
+        svg_path = case_dir / "expected" / svg_value
+        if not svg_path.exists():
+            errors.append(f"{rel(svg_path)} must exist")
+
+    if not isinstance(module_page_value, str) or not module_page_value.endswith(".md"):
+        errors.append(f"{rel(case_dir / 'case.json')} must set module_page")
+        module_page_path = None
+    else:
+        module_page_path = case_dir / "expected" / module_page_value
+        if not module_page_path.exists():
+            errors.append(f"{rel(module_page_path)} must exist")
+
+    if module_page_path and source_value and svg_value and module_page_path.exists():
+        module_page = read_text(module_page_path)
+        source_name = Path(source_value).name
+        svg_name = Path(svg_value).name
+        if source_name not in module_page:
+            errors.append(f"{rel(module_page_path)} must link the Whitebox source model")
+        if svg_name not in module_page:
+            errors.append(f"{rel(module_page_path)} must link the rendered Whitebox SVG")
+
+    if source_path and source_path.exists():
+        source_text = read_text(source_path)
+        for phrase in expect_list(metadata, "whitebox_model_must_contain"):
+            if phrase not in source_text:
+                errors.append(f"{rel(source_path)} must contain {phrase!r}")
+
+        model, load_errors = load_source_model(source_path)
+        for error in load_errors:
+            errors.append(error)
+        if not load_errors:
+            validation_errors = validate_source_model(model)
+            for error in validation_errors:
+                errors.append(error)
+            if not validation_errors and svg_path and svg_path.exists() and isinstance(model, dict):
+                rendered_svg = render_svg(model)
+                expected_svg = read_text(svg_path)
+                if rendered_svg != expected_svg:
+                    errors.append(f"{rel(svg_path)} must be rendered from {rel(source_path)}")
+
+    errors.extend(check_expected_text_requirements(case_dir, metadata))
+    return errors
+
+
+def check_old_module_map_meaning_loss(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors = check_naming_conflict(case_dir, metadata)
+    errors.extend(check_unchanged_wiki_paths(case_dir, metadata))
+    errors.extend(check_expected_text_requirements(case_dir, metadata))
+    errors.extend(check_no_expected_whitebox_files(case_dir))
+    return errors
+
+
+def check_old_module_map_drift_radar(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors = check_code_wiki_mismatch(case_dir, metadata)
+    errors.extend(check_unchanged_wiki_paths(case_dir, metadata))
+    errors.extend(check_expected_text_requirements(case_dir, metadata))
+    errors.extend(check_no_expected_whitebox_files(case_dir))
+    return errors
+
+
 def check_boundary_wording() -> list[str]:
     errors: list[str] = []
     docs = [DOC_ROOT / "README.md"]
@@ -330,6 +475,9 @@ def main() -> int:
         "naming_conflicts_report_meaning_loss_risk": check_naming_conflict,
         "suspected_code_wiki_mismatch_recommends_drift_radar": check_code_wiki_mismatch,
         "audit_only_does_not_rewrite_stable_pages": check_audit_only,
+        "old_module_map_refreshes_to_whitebox_source_and_svg": check_old_module_map_safe_whitebox,
+        "old_module_map_insufficient_evidence_reports_meaning_loss_risk": check_old_module_map_meaning_loss,
+        "old_module_map_needing_code_comparison_recommends_drift_radar": check_old_module_map_drift_radar,
     }
 
     for case_dir, metadata in cases:
