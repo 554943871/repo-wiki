@@ -1,0 +1,1 @@
+component.evidence[0] user evidence must not include path, lines, or symbol

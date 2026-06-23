@@ -4,8 +4,8 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - type: file
-      path: tests/whitebox/fixtures/evidence/minimal-module.md
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this diagram fact.
   ports:
     - id: order_events
       label: Order Events
@@ -13,8 +13,8 @@ parts:
   - id: event_publisher
     label: Event Publisher
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
     ports:
       - id: publish_event
         label: Publish Event
@@ -30,8 +30,8 @@ connectors:
       external: event_bus
     label: publishes events
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
   - id: publisher_to_order_events
     type: delegation
     source:
@@ -42,5 +42,5 @@ connectors:
       port: order_events
     label: exposes events
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.

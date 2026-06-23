@@ -4,8 +4,8 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - type: file
-      path: tests/whitebox/fixtures/evidence/minimal-module.md
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this diagram fact.
   ports:
     - id: submit_order
       label: Submit Order
@@ -21,5 +21,5 @@ connectors:
       port: submit_order
     label: submits order
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.

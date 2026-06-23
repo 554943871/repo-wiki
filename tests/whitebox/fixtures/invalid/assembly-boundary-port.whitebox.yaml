@@ -4,8 +4,8 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - type: file
-      path: tests/whitebox/fixtures/evidence/minimal-module.md
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this diagram fact.
   ports:
     - id: submit_order
       label: Submit Order
@@ -26,8 +26,8 @@ connectors:
     target:
       port: submit_order
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
   - id: boundary_assembles_with_processor
     type: assembly
     source:
@@ -37,5 +37,5 @@ connectors:
         part: order_processor
         port: accept_order
     evidence:
-      - type: file
-        path: tests/whitebox/fixtures/evidence/minimal-module.md
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.

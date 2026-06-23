@@ -3,6 +3,9 @@ version: 1
 component:
   id: checkout_module
   label: Checkout Module
+  evidence:
+    - source: user
+      note: User confirmed the module boundary during issue 17 fixture setup.
   ports:
     - id: submit_order
       label: Submit Order
@@ -16,6 +19,7 @@ connectors:
       external: external_actor
     target:
       port: submit_order
+    label: submits order
     evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+      - source: user
+        note: User confirmed the actor-to-boundary interaction.

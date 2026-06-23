@@ -1,0 +1,1 @@
+component.evidence[0].lines must be a line string like '12' or '12-18'

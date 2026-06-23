@@ -22,18 +22,25 @@ FIXTURE_ROOT = ROOT / "tests" / "whitebox" / "fixtures"
 REQUIRED_VALID_FIXTURES = {
     "delegation-input.whitebox.yaml",
     "delegation-output.whitebox.yaml",
+    "file-evidence-lines-symbol.whitebox.yaml",
     "internal-assembly.whitebox.yaml",
     "minimal-empty.whitebox.yaml",
+    "user-evidence.whitebox.yaml",
 }
 REQUIRED_INVALID_FIXTURES = {
+    "absolute-evidence-path.whitebox.yaml",
     "assembly-boundary-port.whitebox.yaml",
     "connector-direction-field.whitebox.yaml",
     "delegation-external-to-part.whitebox.yaml",
     "external-to-internal.whitebox.yaml",
+    "malformed-evidence-lines.whitebox.yaml",
     "missing-component-evidence.whitebox.yaml",
     "missing-connector-evidence.whitebox.yaml",
+    "missing-evidence-note.whitebox.yaml",
     "missing-required-label.whitebox.yaml",
+    "mixed-evidence-shape.whitebox.yaml",
     "non-snake-case-id.whitebox.yaml",
+    "nonexistent-evidence-path.whitebox.yaml",
     "source-layout-hint.whitebox.yaml",
     "unconnected-port.whitebox.yaml",
     "unsupported-top-level-field.whitebox.yaml",
@@ -46,6 +53,8 @@ ALLOWED_PART_FIELDS = {"id", "label", "evidence", "ports"}
 ALLOWED_PORT_FIELDS = {"id", "label", "evidence"}
 ALLOWED_EXTERNAL_FIELDS = {"id", "label", "evidence"}
 ALLOWED_CONNECTOR_FIELDS = {"id", "type", "source", "target", "label", "evidence"}
+ALLOWED_FILE_EVIDENCE_FIELDS = {"path", "note", "lines", "symbol"}
+ALLOWED_USER_EVIDENCE_FIELDS = {"source", "note"}
 ALLOWED_PART_PORT_ENDPOINT_FIELDS = {"part", "port"}
 CONNECTOR_TYPES = {"external", "delegation", "assembly"}
 LAYOUT_HINT_FIELDS = {
@@ -64,6 +73,7 @@ LAYOUT_HINT_FIELDS = {
     "y",
 }
 SNAKE_CASE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
+LINE_RANGE = re.compile(r"^([1-9][0-9]*)(?:-([1-9][0-9]*))?$")
 
 
 @dataclass(frozen=True)
@@ -148,6 +158,21 @@ def check_snake_case(value: str | None, field_path: str, errors: list[str]) -> N
         errors.append(f"{field_path} must be snake_case")
 
 
+def check_line_range(value: object, field_path: str, errors: list[str]) -> None:
+    if not isinstance(value, str):
+        errors.append(f"{field_path} must be a line string like '12' or '12-18'")
+        return
+
+    match = LINE_RANGE.fullmatch(value)
+    if match is None:
+        errors.append(f"{field_path} must be a line string like '12' or '12-18'")
+        return
+
+    start, end = match.groups()
+    if end is not None and int(start) > int(end):
+        errors.append(f"{field_path} must be a line string like '12' or '12-18'")
+
+
 def check_evidence(value: object, field_path: str, errors: list[str]) -> None:
     entries = expect_list(value, field_path, errors)
     if entries is None:
@@ -161,19 +186,38 @@ def check_evidence(value: object, field_path: str, errors: list[str]) -> None:
         evidence = expect_mapping(entry, entry_path, errors)
         if evidence is None:
             continue
-        evidence_type = require_string(evidence, "type", entry_path, errors)
-        if evidence_type == "file":
-            path_value = require_string(evidence, "path", entry_path, errors)
-            if path_value:
-                evidence_path = Path(path_value)
-                if evidence_path.is_absolute() or ".." in evidence_path.parts:
-                    errors.append(f"{entry_path}.path must be repo-relative")
-                elif not (ROOT / evidence_path).exists():
-                    errors.append(f"{entry_path}.path does not exist: {path_value}")
-        elif evidence_type == "user":
+
+        if evidence.get("source") == "user":
+            if any(key in evidence for key in ("path", "lines", "symbol")):
+                errors.append(f"{entry_path} user evidence must not include path, lines, or symbol")
+            check_allowed_fields(evidence, ALLOWED_USER_EVIDENCE_FIELDS, entry_path, errors)
             require_string(evidence, "note", entry_path, errors)
-        elif evidence_type is not None:
-            errors.append(f"{entry_path}.type must be file or user")
+            continue
+
+        if "source" in evidence:
+            errors.append(f"{entry_path}.source must be user")
+            check_allowed_fields(evidence, ALLOWED_USER_EVIDENCE_FIELDS | ALLOWED_FILE_EVIDENCE_FIELDS, entry_path, errors)
+            continue
+
+        if "path" not in evidence:
+            errors.append(f"{entry_path} must include either path or source: user")
+            check_allowed_fields(evidence, ALLOWED_USER_EVIDENCE_FIELDS | ALLOWED_FILE_EVIDENCE_FIELDS, entry_path, errors)
+            continue
+
+        check_allowed_fields(evidence, ALLOWED_FILE_EVIDENCE_FIELDS, entry_path, errors)
+        path_value = require_string(evidence, "path", entry_path, errors)
+        require_string(evidence, "note", entry_path, errors)
+        if "lines" in evidence:
+            check_line_range(evidence.get("lines"), f"{entry_path}.lines", errors)
+        if "symbol" in evidence:
+            require_string(evidence, "symbol", entry_path, errors)
+
+        if path_value:
+            evidence_path = Path(path_value)
+            if evidence_path.is_absolute() or ".." in evidence_path.parts:
+                errors.append(f"{entry_path}.path must be repo-relative")
+            elif not (ROOT / evidence_path).exists():
+                errors.append(f"{entry_path}.path does not exist: {path_value}")
 
 
 def parse_endpoint(

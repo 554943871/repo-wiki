@@ -4,29 +4,21 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+    - path: /tmp/minimal-module.md
+      note: Absolute evidence paths are not portable.
   ports:
     - id: submit_order
       label: Submit Order
-parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: accept_order
-        label: Accept Order
 externals:
   - id: external_actor
     label: External Actor
 connectors:
-  - id: actor_to_processor
+  - id: actor_submits_order
     type: external
     source:
       external: external_actor
     target:
-      part_port:
-        part: order_processor
-        port: accept_order
+      port: submit_order
     evidence:
       - path: tests/whitebox/fixtures/evidence/minimal-module.md
         note: Fixture evidence anchors this diagram fact.

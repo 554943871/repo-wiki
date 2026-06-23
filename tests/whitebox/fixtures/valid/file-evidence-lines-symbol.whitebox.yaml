@@ -5,28 +5,25 @@ component:
   label: Checkout Module
   evidence:
     - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+      lines: "1-4"
+      symbol: CheckoutModule
+      note: File evidence with optional lines and symbol anchors the component.
   ports:
     - id: submit_order
       label: Submit Order
-parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: accept_order
-        label: Accept Order
 externals:
   - id: external_actor
     label: External Actor
 connectors:
-  - id: actor_to_processor
+  - id: actor_submits_order
     type: external
     source:
       external: external_actor
     target:
-      part_port:
-        part: order_processor
-        port: accept_order
+      port: submit_order
+    label: submits order
     evidence:
       - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+        lines: "3"
+        symbol: submit_order
+        note: File evidence with a single line anchors the connector.
