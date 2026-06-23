@@ -1,0 +1,2 @@
+source model must not contain layout hint field: component.ports[0].x
+component.ports[0] unsupported field: x

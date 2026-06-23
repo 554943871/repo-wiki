@@ -1,0 +1,1 @@
+component.id must be snake_case

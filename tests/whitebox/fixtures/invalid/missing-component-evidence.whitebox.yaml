@@ -1,0 +1,21 @@
+kind: whitebox_component_diagram
+version: 1
+component:
+  id: checkout_module
+  label: Checkout Module
+  ports:
+    - id: submit_order
+      label: Submit Order
+externals:
+  - id: external_actor
+    label: External Actor
+connectors:
+  - id: actor_submits_order
+    type: external
+    source:
+      external: external_actor
+    target:
+      port: submit_order
+    evidence:
+      - type: file
+        path: tests/whitebox/fixtures/evidence/minimal-module.md
