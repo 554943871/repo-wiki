@@ -20,11 +20,16 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "tests" / "whitebox" / "fixtures"
 
 REQUIRED_VALID_FIXTURES = {
+    "both-interface-roles.whitebox.yaml",
     "delegation-input.whitebox.yaml",
     "delegation-output.whitebox.yaml",
     "file-evidence-lines-symbol.whitebox.yaml",
+    "interface-assembly.whitebox.yaml",
     "internal-assembly.whitebox.yaml",
     "minimal-empty.whitebox.yaml",
+    "multiple-interfaces.whitebox.yaml",
+    "provided-interface.whitebox.yaml",
+    "required-interface.whitebox.yaml",
     "user-evidence.whitebox.yaml",
 }
 REQUIRED_INVALID_FIXTURES = {
@@ -33,6 +38,8 @@ REQUIRED_INVALID_FIXTURES = {
     "connector-direction-field.whitebox.yaml",
     "delegation-external-to-part.whitebox.yaml",
     "external-to-internal.whitebox.yaml",
+    "invalid-interface-assembly-endpoints.whitebox.yaml",
+    "invalid-interface-role-references.whitebox.yaml",
     "malformed-evidence-lines.whitebox.yaml",
     "missing-component-evidence.whitebox.yaml",
     "missing-connector-evidence.whitebox.yaml",
@@ -47,16 +54,19 @@ REQUIRED_INVALID_FIXTURES = {
     "whole-component-connector.whitebox.yaml",
     "whole-part-connector.whitebox.yaml",
 }
-ALLOWED_TOP_LEVEL = {"kind", "version", "component", "parts", "externals", "connectors"}
+ALLOWED_TOP_LEVEL = {"kind", "version", "interfaces", "component", "parts", "externals", "connectors"}
+ALLOWED_INTERFACE_FIELDS = {"id", "label", "description"}
 ALLOWED_COMPONENT_FIELDS = {"id", "label", "evidence", "ports"}
 ALLOWED_PART_FIELDS = {"id", "label", "evidence", "ports"}
-ALLOWED_PORT_FIELDS = {"id", "label", "evidence"}
+ALLOWED_PORT_FIELDS = {"id", "label", "evidence", "provides", "requires"}
 ALLOWED_EXTERNAL_FIELDS = {"id", "label", "evidence"}
 ALLOWED_CONNECTOR_FIELDS = {"id", "type", "source", "target", "label", "evidence"}
 ALLOWED_FILE_EVIDENCE_FIELDS = {"path", "note", "lines", "symbol"}
 ALLOWED_USER_EVIDENCE_FIELDS = {"source", "note"}
 ALLOWED_PART_PORT_ENDPOINT_FIELDS = {"part", "port"}
-CONNECTOR_TYPES = {"external", "delegation", "assembly"}
+ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS = {"owner", "port", "interface", "role"}
+CONNECTOR_TYPES = {"external", "delegation", "assembly", "interfaceAssembly"}
+INTERFACE_ROLES = {"provided", "required"}
 LAYOUT_HINT_FIELDS = {
     "canvas",
     "coordinate",
@@ -81,6 +91,9 @@ class Endpoint:
     kind: str
     owner_id: str
     port_id: str | None = None
+    owner_kind: str | None = None
+    interface_id: str | None = None
+    role: str | None = None
 
 
 def rel(path: Path) -> str:
@@ -220,13 +233,73 @@ def check_evidence(value: object, field_path: str, errors: list[str]) -> None:
                 errors.append(f"{entry_path}.path does not exist: {path_value}")
 
 
+def check_interface_references(
+    value: object,
+    field_path: str,
+    interface_ids: set[str],
+    errors: list[str],
+) -> list[str]:
+    entries = expect_list(value, field_path, errors)
+    if entries is None:
+        return []
+    if not entries:
+        errors.append(f"{field_path} must include at least one interface id")
+        return []
+
+    interface_refs: list[str] = []
+    seen_refs: set[str] = set()
+    for index, entry in enumerate(entries):
+        entry_path = f"{field_path}[{index}]"
+        if not isinstance(entry, str) or not entry.strip():
+            errors.append(f"{entry_path} must be an interface id")
+            continue
+        interface_id = entry
+        check_snake_case(interface_id, entry_path, errors)
+        if interface_id not in interface_ids:
+            errors.append(f"{entry_path} references unknown interface: {interface_id}")
+            continue
+        if interface_id in seen_refs:
+            errors.append(f"{entry_path} duplicates interface role: {interface_id}")
+            continue
+        seen_refs.add(interface_id)
+        interface_refs.append(interface_id)
+    return interface_refs
+
+
+def collect_port_interface_roles(
+    port: dict[str, object],
+    port_path: str,
+    owner_id: str | None,
+    port_id: str | None,
+    interface_ids: set[str],
+    interface_roles: set[tuple[str, str, str, str]],
+    errors: list[str],
+) -> None:
+    if owner_id is None or port_id is None:
+        return
+
+    for role_field, role in (("provides", "provided"), ("requires", "required")):
+        if role_field not in port:
+            continue
+        for interface_id in check_interface_references(
+            port.get(role_field),
+            f"{port_path}.{role_field}",
+            interface_ids,
+            errors,
+        ):
+            interface_roles.add((owner_id, port_id, interface_id, role))
+
+
 def parse_endpoint(
     value: object,
     field_path: str,
     external_ids: set[str],
+    component_id: str | None,
     component_port_ids: set[str],
     part_ids: set[str],
     part_port_ids: set[tuple[str, str]],
+    interface_ids: set[str],
+    interface_roles: set[tuple[str, str, str, str]],
     errors: list[str],
 ) -> Endpoint | None:
     endpoint = expect_mapping(value, field_path, errors)
@@ -251,7 +324,70 @@ def parse_endpoint(
             errors.append(f"{field_path}.part_port.port references unknown port on part {part_id}: {port_id}")
             return None
         if part_id and port_id:
-            return Endpoint("part_port", part_id, port_id)
+            return Endpoint(kind="part_port", owner_id=part_id, port_id=port_id)
+        return None
+
+    if endpoint_type == "interface_role":
+        interface_role = expect_mapping(endpoint_value, f"{field_path}.interface_role", errors)
+        if interface_role is None:
+            return None
+        check_allowed_fields(
+            interface_role,
+            ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS,
+            f"{field_path}.interface_role",
+            errors,
+        )
+        owner_id = require_string(interface_role, "owner", f"{field_path}.interface_role", errors)
+        port_id = require_string(interface_role, "port", f"{field_path}.interface_role", errors)
+        interface_id = require_string(interface_role, "interface", f"{field_path}.interface_role", errors)
+        role = require_string(interface_role, "role", f"{field_path}.interface_role", errors)
+
+        owner_kind: str | None = None
+        if owner_id:
+            if owner_id == component_id:
+                owner_kind = "component"
+                if port_id and port_id not in component_port_ids:
+                    errors.append(
+                        f"{field_path}.interface_role.port references unknown port on component {owner_id}: {port_id}"
+                    )
+                    return None
+            elif owner_id in part_ids:
+                owner_kind = "part"
+                if port_id and (owner_id, port_id) not in part_port_ids:
+                    errors.append(
+                        f"{field_path}.interface_role.port references unknown port on part {owner_id}: {port_id}"
+                    )
+                    return None
+            else:
+                errors.append(f"{field_path}.interface_role.owner references unknown owner: {owner_id}")
+                return None
+
+        if interface_id:
+            check_snake_case(interface_id, f"{field_path}.interface_role.interface", errors)
+            if interface_id not in interface_ids:
+                errors.append(f"{field_path}.interface_role.interface references unknown interface: {interface_id}")
+                return None
+
+        if role and role not in INTERFACE_ROLES:
+            errors.append(f"{field_path}.interface_role.role must be provided or required")
+            return None
+
+        if owner_id and port_id and interface_id and role:
+            role_key = (owner_id, port_id, interface_id, role)
+            if role_key not in interface_roles:
+                errors.append(
+                    f"{field_path}.interface_role references undeclared {role} interface role: "
+                    f"{owner_id}.{port_id}.{interface_id}"
+                )
+                return None
+            return Endpoint(
+                kind="interface_role",
+                owner_id=owner_id,
+                port_id=port_id,
+                owner_kind=owner_kind,
+                interface_id=interface_id,
+                role=role,
+            )
         return None
 
     if not isinstance(endpoint_value, str) or not endpoint_value.strip():
@@ -261,12 +397,12 @@ def parse_endpoint(
         if endpoint_value not in external_ids:
             errors.append(f"{field_path}.external references unknown external: {endpoint_value}")
             return None
-        return Endpoint("external", endpoint_value)
+        return Endpoint(kind="external", owner_id=endpoint_value)
     if endpoint_type == "port":
         if endpoint_value not in component_port_ids:
             errors.append(f"{field_path}.port references unknown component port: {endpoint_value}")
             return None
-        return Endpoint("component_port", endpoint_value)
+        return Endpoint(kind="component_port", owner_id=endpoint_value)
     if endpoint_type == "component":
         errors.append(f"{field_path}.component cannot target a whole component; use a component port endpoint")
         return None
@@ -287,6 +423,11 @@ def mark_connected_port(
         connected_component_ports.add(endpoint.owner_id)
     elif endpoint.kind == "part_port" and endpoint.port_id is not None:
         connected_part_ports.add((endpoint.owner_id, endpoint.port_id))
+    elif endpoint.kind == "interface_role" and endpoint.port_id is not None:
+        if endpoint.owner_kind == "component":
+            connected_component_ports.add(endpoint.port_id)
+        elif endpoint.owner_kind == "part":
+            connected_part_ports.add((endpoint.owner_id, endpoint.port_id))
 
 
 def connector_endpoint_error(connector_type: object, connector_path: str) -> str:
@@ -296,7 +437,9 @@ def connector_endpoint_error(connector_type: object, connector_path: str) -> str
         return f"{connector_path} delegation connector must connect one component port and one part port"
     if connector_type == "assembly":
         return f"{connector_path} assembly connector must connect two part ports"
-    return f"{connector_path}.type must be external, delegation, or assembly in this slice"
+    if connector_type == "interfaceAssembly":
+        return f"{connector_path} interfaceAssembly connector must connect a required interface role to a provided interface role"
+    return f"{connector_path}.type must be external, delegation, assembly, or interfaceAssembly"
 
 
 def validate_source_model(model: object) -> list[str]:
@@ -316,8 +459,32 @@ def validate_source_model(model: object) -> list[str]:
     if root.get("version") != 1:
         errors.append("version must be 1")
 
+    interface_ids: set[str] = set()
+    if "interfaces" in root:
+        interfaces = expect_list(root.get("interfaces"), "interfaces", errors)
+        if interfaces is not None:
+            if not interfaces:
+                errors.append("interfaces must include at least one interface definition")
+            for index, interface_value in enumerate(interfaces):
+                interface_path = f"interfaces[{index}]"
+                interface = expect_mapping(interface_value, interface_path, errors)
+                if interface is None:
+                    continue
+                check_allowed_fields(interface, ALLOWED_INTERFACE_FIELDS, interface_path, errors)
+                interface_id = require_string(interface, "id", interface_path, errors)
+                check_snake_case(interface_id, f"{interface_path}.id", errors)
+                require_string(interface, "label", interface_path, errors)
+                if "description" in interface:
+                    require_string(interface, "description", interface_path, errors)
+                if interface_id:
+                    if interface_id in interface_ids:
+                        errors.append(f"{interface_path}.id duplicates interface: {interface_id}")
+                    interface_ids.add(interface_id)
+
     component = expect_mapping(root.get("component"), "component", errors)
+    component_id: str | None = None
     component_port_ids: set[str] = set()
+    interface_roles: set[tuple[str, str, str, str]] = set()
     if component is not None:
         check_allowed_fields(component, ALLOWED_COMPONENT_FIELDS, "component", errors)
         component_id = require_string(component, "id", "component", errors)
@@ -345,6 +512,15 @@ def validate_source_model(model: object) -> list[str]:
                     if port_id in component_port_ids:
                         errors.append(f"{port_path}.id duplicates component port: {port_id}")
                     component_port_ids.add(port_id)
+                collect_port_interface_roles(
+                    port,
+                    port_path,
+                    component_id,
+                    port_id,
+                    interface_ids,
+                    interface_roles,
+                    errors,
+                )
 
     part_ids: set[str] = set()
     part_port_ids: set[tuple[str, str]] = set()
@@ -388,6 +564,15 @@ def validate_source_model(model: object) -> list[str]:
                                 errors.append(f"{port_path}.id duplicates port on part {part_id}: {port_id}")
                             part_local_port_ids.add(port_id)
                             part_port_ids.add((part_id, port_id))
+                        collect_port_interface_roles(
+                            port,
+                            port_path,
+                            part_id,
+                            port_id,
+                            interface_ids,
+                            interface_roles,
+                            errors,
+                        )
 
     externals = expect_list(root.get("externals"), "externals", errors)
     external_ids: set[str] = set()
@@ -436,34 +621,57 @@ def validate_source_model(model: object) -> list[str]:
                 connector.get("source"),
                 f"{connector_path}.source",
                 external_ids,
+                component_id,
                 component_port_ids,
                 part_ids,
                 part_port_ids,
+                interface_ids,
+                interface_roles,
                 errors,
             )
             target = parse_endpoint(
                 connector.get("target"),
                 f"{connector_path}.target",
                 external_ids,
+                component_id,
                 component_port_ids,
                 part_ids,
                 part_port_ids,
+                interface_ids,
+                interface_roles,
                 errors,
             )
             if source is not None and target is not None:
                 endpoint_kinds = {source.kind, target.kind}
                 connector_is_valid = False
+                connector_error_reported = False
                 if connector_type == "external":
                     connector_is_valid = endpoint_kinds == {"external", "component_port"}
                 elif connector_type == "delegation":
                     connector_is_valid = endpoint_kinds == {"component_port", "part_port"}
                 elif connector_type == "assembly":
                     connector_is_valid = source.kind == "part_port" and target.kind == "part_port"
+                elif connector_type == "interfaceAssembly":
+                    if source.kind == "interface_role" and target.kind == "interface_role":
+                        connector_is_valid = (
+                            source.role == "required"
+                            and target.role == "provided"
+                            and source.interface_id == target.interface_id
+                        )
+                        if (
+                            source.role == "required"
+                            and target.role == "provided"
+                            and source.interface_id != target.interface_id
+                        ):
+                            errors.append(
+                                f"{connector_path} interfaceAssembly connector must connect matching interface ids"
+                            )
+                            connector_error_reported = True
 
                 if connector_is_valid:
                     mark_connected_port(source, connected_component_ports, connected_part_ports)
                     mark_connected_port(target, connected_component_ports, connected_part_ports)
-                elif connector_type in CONNECTOR_TYPES:
+                elif connector_type in CONNECTOR_TYPES and not connector_error_reported:
                     errors.append(connector_endpoint_error(connector_type, connector_path))
 
             if "evidence" not in connector:
@@ -485,6 +693,7 @@ def model_index(
     dict[str, object],
     dict[str, dict[str, object]],
     dict[str, dict[str, object]],
+    dict[str, dict[str, object]],
     dict[tuple[str, str], dict[str, object]],
     dict[str, dict[str, object]],
 ]:
@@ -494,6 +703,11 @@ def model_index(
         str(port["id"]): port
         for port in component.get("ports", [])
         if isinstance(port, dict) and "id" in port
+    }
+    interfaces = {
+        str(interface["id"]): interface
+        for interface in model.get("interfaces", [])
+        if isinstance(interface, dict) and "id" in interface
     }
     parts = {
         str(part["id"]): part
@@ -510,11 +724,13 @@ def model_index(
         for external in model.get("externals", [])
         if isinstance(external, dict) and "id" in external
     }
-    return component, ports, parts, part_ports, externals
+    return component, interfaces, ports, parts, part_ports, externals
 
 
 def endpoint_label(
     endpoint: dict[str, object],
+    component: dict[str, object],
+    interfaces: dict[str, dict[str, object]],
     ports: dict[str, dict[str, object]],
     parts: dict[str, dict[str, object]],
     part_ports: dict[tuple[str, str], dict[str, object]],
@@ -528,14 +744,42 @@ def endpoint_label(
         part_id = str(part_port["part"])
         port_id = str(part_port["port"])
         return f'{parts[part_id]["label"]}.{part_ports[(part_id, port_id)]["label"]}'
+    if "interface_role" in endpoint:
+        interface_role = endpoint["interface_role"]
+        assert isinstance(interface_role, dict)
+        owner_id = str(interface_role["owner"])
+        port_id = str(interface_role["port"])
+        interface_id = str(interface_role["interface"])
+        role = str(interface_role["role"])
+        if owner_id == str(component["id"]):
+            owner_label = str(component["label"])
+            port_label = str(ports[port_id]["label"])
+        else:
+            owner_label = str(parts[owner_id]["label"])
+            port_label = str(part_ports[(owner_id, port_id)]["label"])
+        interface_label = str(interfaces[interface_id]["label"])
+        return f"{owner_label}.{port_label} {role} {interface_label}"
     return str(ports[str(endpoint["port"])]["label"])
 
 
+def port_interface_ids(port: dict[str, object], field: str) -> list[str]:
+    value = port.get(field, [])
+    if not isinstance(value, list):
+        return []
+    return [str(interface_id) for interface_id in value if isinstance(interface_id, str)]
+
+
+def port_interface_count(port: dict[str, object]) -> int:
+    return len(port_interface_ids(port, "provides")) + len(port_interface_ids(port, "requires"))
+
+
 def render_svg(model: dict[str, object]) -> str:
-    component, ports, parts, part_ports, externals = model_index(model)
+    component, interfaces, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
     assert isinstance(connectors, list)
 
+    max_component_interface_count = max((port_interface_count(port) for port in ports.values()), default=0)
+    component_port_gap = max(70, 58 + max(0, max_component_interface_count - 1) * 26)
     rows = max(len(ports), len(externals), 1)
     has_parts = bool(parts)
     part_columns = 2
@@ -547,14 +791,16 @@ def render_svg(model: dict[str, object]) -> str:
         ),
         default=0,
     )
+    max_part_interface_count = max((port_interface_count(port) for port in part_ports.values()), default=0)
+    part_port_slot_height = max(48, 34 + max(0, max_part_interface_count - 1) * 26)
     part_width = 190
-    part_height = max(118, 72 + max_part_port_count * 48)
+    part_height = max(118, 72 + max_part_port_count * part_port_slot_height)
     part_gap_x = 80
     part_gap_y = 48
     canvas_width = 960 if has_parts else 720
     canvas_height = max(
         360,
-        290 + (rows - 1) * 70,
+        290 + (rows - 1) * component_port_gap,
         170 + part_rows * part_height + (part_rows - 1) * part_gap_y if has_parts else 360,
     )
     component_x = 250
@@ -572,11 +818,11 @@ def render_svg(model: dict[str, object]) -> str:
 
     port_positions: dict[str, tuple[int, int]] = {}
     for index, port_id in enumerate(ports):
-        port_positions[port_id] = (port_x, 160 + index * 70)
+        port_positions[port_id] = (port_x, 160 + index * component_port_gap)
 
     external_positions: dict[str, tuple[int, int]] = {}
     for index, external_id in enumerate(externals):
-        external_positions[external_id] = (external_x, 150 + index * 70)
+        external_positions[external_id] = (external_x, 150 + index * component_port_gap)
 
     part_positions: dict[str, tuple[int, int]] = {}
     part_port_positions: dict[tuple[str, str], tuple[int, int]] = {}
@@ -591,15 +837,23 @@ def render_svg(model: dict[str, object]) -> str:
         ]
         for port_index, port in enumerate(part_ports_for_part):
             port_x_in_part = part_x + (part_width - part_port_width) // 2
-            port_y_in_part = part_y + 54 + port_index * 44
+            port_y_in_part = part_y + 54 + port_index * part_port_slot_height
             part_port_positions[(part_id, str(port["id"]))] = (port_x_in_part, port_y_in_part)
 
     direction_labels = [
-        f"{endpoint_label(connector['source'], ports, parts, part_ports, externals)} -> "
-        f"{endpoint_label(connector['target'], ports, parts, part_ports, externals)}"
+        f"{endpoint_label(connector['source'], component, interfaces, ports, parts, part_ports, externals)} -> "
+        f"{endpoint_label(connector['target'], component, interfaces, ports, parts, part_ports, externals)}"
         for connector in connectors
         if isinstance(connector, dict)
     ]
+
+    interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]] = {}
+
+    def role_offsets(count: int) -> list[int]:
+        if count <= 0:
+            return []
+        first_offset = -((count - 1) * 26) // 2
+        return [first_offset + index * 26 for index in range(count)]
 
     def endpoint_box(endpoint: dict[str, object]) -> tuple[int, int, int, int]:
         if "external" in endpoint:
@@ -613,6 +867,16 @@ def render_svg(model: dict[str, object]) -> str:
             port_id = str(part_port["port"])
             x, y = part_port_positions[(part_id, port_id)]
             return x, y, part_port_width, part_port_height
+        if "interface_role" in endpoint:
+            interface_role = endpoint["interface_role"]
+            assert isinstance(interface_role, dict)
+            key = (
+                str(interface_role["owner"]),
+                str(interface_role["port"]),
+                str(interface_role["interface"]),
+                str(interface_role["role"]),
+            )
+            return interface_role_positions[key]
         port_id = str(endpoint["port"])
         x, y = port_positions[port_id]
         return x, y, port_width, port_height
@@ -644,6 +908,75 @@ def render_svg(model: dict[str, object]) -> str:
         f'  <text x="{component_x + component_width // 2}" y="{component_y + 34}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">{html.escape(str(component["label"]))}</text>',
     ]
 
+    def render_interface_role(
+        owner_id: str,
+        port_id: str,
+        interface_id: str,
+        role: str,
+        side: str,
+        port_box: tuple[int, int, int, int],
+        offset_y: int,
+    ) -> None:
+        x, y, width, height = port_box
+        role_y = y + height // 2 + offset_y
+        if side == "right":
+            stem_start_x = x + width
+            symbol_x = x + width + 30
+            stem_end_x = symbol_x - 10
+            label_x = symbol_x + 16
+            text_anchor = "start"
+        else:
+            stem_start_x = x
+            symbol_x = x - 30
+            stem_end_x = symbol_x + 10
+            label_x = symbol_x - 16
+            text_anchor = "end"
+
+        interface_label = html.escape(str(interfaces[interface_id]["label"]))
+        escaped_owner = html.escape(owner_id)
+        escaped_port = html.escape(port_id)
+        escaped_interface = html.escape(interface_id)
+        interface_role_positions[(owner_id, port_id, interface_id, role)] = (symbol_x - 10, role_y - 10, 20, 20)
+        lines.append(
+            f'  <line x1="{stem_start_x}" y1="{role_y}" x2="{stem_end_x}" y2="{role_y}" stroke="#6b7280" stroke-width="2" />'
+        )
+        if role == "provided":
+            lines.append(
+                f'  <circle data-interface-role="provided" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" cx="{symbol_x}" cy="{role_y}" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />'
+            )
+        else:
+            if side == "right":
+                socket_path = f"M {symbol_x - 10} {role_y - 10} A 10 10 0 0 1 {symbol_x - 10} {role_y + 10}"
+            else:
+                socket_path = f"M {symbol_x + 10} {role_y - 10} A 10 10 0 0 0 {symbol_x + 10} {role_y + 10}"
+            lines.append(
+                f'  <path data-interface-role="required" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" d="{socket_path}" fill="none" stroke="#b45309" stroke-width="2" />'
+            )
+        lines.append(
+            f'  <text x="{label_x}" y="{role_y + 4}" text-anchor="{text_anchor}" font-family="Arial, sans-serif" font-size="11" fill="#374151">{interface_label}</text>'
+        )
+
+    def render_port_interface_roles(
+        owner_id: str,
+        owner_kind: str,
+        port_id: str,
+        port: dict[str, object],
+        port_box: tuple[int, int, int, int],
+    ) -> None:
+        provided_ids = port_interface_ids(port, "provides")
+        required_ids = port_interface_ids(port, "requires")
+        if owner_kind == "component":
+            roles = [("provided", interface_id) for interface_id in provided_ids]
+            roles.extend(("required", interface_id) for interface_id in required_ids)
+            for (role, interface_id), offset_y in zip(roles, role_offsets(len(roles))):
+                render_interface_role(owner_id, port_id, interface_id, role, "right", port_box, offset_y)
+            return
+
+        for interface_id, offset_y in zip(required_ids, role_offsets(len(required_ids))):
+            render_interface_role(owner_id, port_id, interface_id, "required", "left", port_box, offset_y)
+        for interface_id, offset_y in zip(provided_ids, role_offsets(len(provided_ids))):
+            render_interface_role(owner_id, port_id, interface_id, "provided", "right", port_box, offset_y)
+
     for port_id, port in ports.items():
         x, y = port_positions[port_id]
         lines.extend(
@@ -651,6 +984,13 @@ def render_svg(model: dict[str, object]) -> str:
                 f'  <rect x="{x}" y="{y}" width="{port_width}" height="{port_height}" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />',
                 f'  <text x="{x + port_width // 2}" y="{y + 27}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">{html.escape(str(port["label"]))}</text>',
             ]
+        )
+        render_port_interface_roles(
+            str(component["id"]),
+            "component",
+            port_id,
+            port,
+            (x, y, port_width, port_height),
         )
 
     for part_id, part in parts.items():
@@ -672,6 +1012,13 @@ def render_svg(model: dict[str, object]) -> str:
                     f'  <text x="{port_x_in_part + part_port_width // 2}" y="{port_y_in_part + 22}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">{html.escape(str(port["label"]))}</text>',
                 ]
             )
+            render_port_interface_roles(
+                part_id,
+                "part",
+                port_id,
+                port,
+                (port_x_in_part, port_y_in_part, part_port_width, part_port_height),
+            )
 
     for external_id, external in externals.items():
         x, y = external_positions[external_id]
@@ -688,8 +1035,8 @@ def render_svg(model: dict[str, object]) -> str:
         target = connector["target"]
         assert isinstance(source, dict)
         assert isinstance(target, dict)
-        source_label = endpoint_label(source, ports, parts, part_ports, externals)
-        target_label = endpoint_label(target, ports, parts, part_ports, externals)
+        source_label = endpoint_label(source, component, interfaces, ports, parts, part_ports, externals)
+        target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
         direction_label = f"{source_label} -> {target_label}"
         start_x, start_y, end_x, end_y = endpoint_anchors(source, target)
 
@@ -732,19 +1079,28 @@ def check_valid_fixture(path: Path) -> list[str]:
     elif svg != read_text(expected_svg_path):
         errors.append(f"{rel(path)} rendered SVG differs from {rel(expected_svg_path)}")
 
-    component, ports, parts, part_ports, externals = model_index(model)
+    component, interfaces, ports, parts, part_ports, externals = model_index(model)
     required_text = [str(component["label"])]
     required_text.extend(str(port["label"]) for port in ports.values())
     required_text.extend(str(part["label"]) for part in parts.values())
     required_text.extend(str(port["label"]) for port in part_ports.values())
     required_text.extend(str(external["label"]) for external in externals.values())
+    provided_role_count = 0
+    required_role_count = 0
+    for port in list(ports.values()) + list(part_ports.values()):
+        for interface_id in port_interface_ids(port, "provides"):
+            required_text.append(str(interfaces[interface_id]["label"]))
+            provided_role_count += 1
+        for interface_id in port_interface_ids(port, "requires"):
+            required_text.append(str(interfaces[interface_id]["label"]))
+            required_role_count += 1
     for connector in model["connectors"]:
         assert isinstance(connector, dict)
         assert isinstance(connector["source"], dict)
         assert isinstance(connector["target"], dict)
         required_text.append(
-            f"{endpoint_label(connector['source'], ports, parts, part_ports, externals)} -> "
-            f"{endpoint_label(connector['target'], ports, parts, part_ports, externals)}"
+            f"{endpoint_label(connector['source'], component, interfaces, ports, parts, part_ports, externals)} -> "
+            f"{endpoint_label(connector['target'], component, interfaces, ports, parts, part_ports, externals)}"
         )
         label = connector.get("label")
         if isinstance(label, str) and label.strip():
@@ -757,6 +1113,10 @@ def check_valid_fixture(path: Path) -> list[str]:
     connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
     if svg.count('marker-end="url(#arrowhead)"') < connector_count:
         errors.append(f"{rel(path)} SVG must contain a direction marker for every connector")
+    if svg.count('data-interface-role="provided"') < provided_role_count:
+        errors.append(f"{rel(path)} SVG must contain a lollipop marker for every provided interface")
+    if svg.count('data-interface-role="required"') < required_role_count:
+        errors.append(f"{rel(path)} SVG must contain a socket marker for every required interface")
 
     return errors
 

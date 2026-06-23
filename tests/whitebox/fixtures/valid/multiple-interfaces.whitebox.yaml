@@ -1,0 +1,40 @@
+kind: whitebox_component_diagram
+version: 1
+interfaces:
+  - id: order_submission
+    label: Order Submission
+  - id: order_status
+    label: Order Status
+  - id: payment_authorization
+    label: Payment Authorization
+  - id: inventory_reservation
+    label: Inventory Reservation
+component:
+  id: checkout_module
+  label: Checkout Module
+  evidence:
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this diagram fact.
+  ports:
+    - id: submit_order
+      label: Submit Order
+      provides:
+        - order_submission
+        - order_status
+      requires:
+        - payment_authorization
+        - inventory_reservation
+externals:
+  - id: external_actor
+    label: External Actor
+connectors:
+  - id: actor_submits_order
+    type: external
+    source:
+      external: external_actor
+    target:
+      port: submit_order
+    label: submits order
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.

@@ -1,0 +1,131 @@
+kind: whitebox_component_diagram
+version: 1
+interfaces:
+  - id: payment_authorization
+    label: Payment Authorization
+    operations:
+      - authorize
+component:
+  id: checkout_module
+  label: Checkout Module
+  evidence:
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this diagram fact.
+  ports:
+    - id: submit_order
+      label: Submit Order
+      requires:
+        - missing_interface
+parts:
+  - id: order_processor
+    label: Order Processor
+    ports:
+      - id: payment_need
+        label: Payment Need
+        requires:
+          - payment_authorization
+  - id: payment_client
+    label: Payment Client
+    ports:
+      - id: payment_api
+        label: Payment API
+        provides:
+          - payment_authorization
+externals:
+  - id: external_actor
+    label: External Actor
+connectors:
+  - id: actor_submits_order
+    type: external
+    source:
+      external: external_actor
+    target:
+      port: submit_order
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
+  - id: unknown_owner_role
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: missing_part
+        port: payment_need
+        interface: payment_authorization
+        role: required
+    target:
+      interface_role:
+        owner: payment_client
+        port: payment_api
+        interface: payment_authorization
+        role: provided
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
+  - id: unknown_port_interface_and_role
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: order_processor
+        port: missing_port
+        interface: missing_interface
+        role: consumer
+    target:
+      interface_role:
+        owner: payment_client
+        port: payment_api
+        interface: payment_authorization
+        role: provided
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
+  - id: unknown_interface_role
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: order_processor
+        port: payment_need
+        interface: missing_interface
+        role: required
+    target:
+      interface_role:
+        owner: payment_client
+        port: payment_api
+        interface: payment_authorization
+        role: provided
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
+  - id: invalid_role_name
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: order_processor
+        port: payment_need
+        interface: payment_authorization
+        role: consumer
+    target:
+      interface_role:
+        owner: payment_client
+        port: payment_api
+        interface: payment_authorization
+        role: provided
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.
+  - id: undeclared_role
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: order_processor
+        port: payment_need
+        interface: payment_authorization
+        role: provided
+    target:
+      interface_role:
+        owner: payment_client
+        port: payment_api
+        interface: payment_authorization
+        role: provided
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this diagram fact.

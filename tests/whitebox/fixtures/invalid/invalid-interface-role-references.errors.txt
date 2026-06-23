@@ -1,0 +1,7 @@
+interfaces[0] unsupported field: operations
+component.ports[0].requires[0] references unknown interface: missing_interface
+connectors[1].source.interface_role.owner references unknown owner: missing_part
+connectors[2].source.interface_role.port references unknown port on part order_processor: missing_port
+connectors[3].source.interface_role.interface references unknown interface: missing_interface
+connectors[4].source.interface_role.role must be provided or required
+connectors[5].source.interface_role references undeclared provided interface role: order_processor.payment_need.payment_authorization

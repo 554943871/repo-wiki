@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" role="img" aria-labelledby="title desc">
+  <title id="title">Whitebox Component Diagram: Checkout Module</title>
+  <desc id="desc">Payment Gateway -&gt; Payment Provider</desc>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="250" y="70" width="390" height="220" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text x="445" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Checkout Module</text>
+  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Payment Gateway</text>
+  <line x1="340" y1="182" x2="360" y2="182" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="checkout_module" data-port="payment_gateway" data-interface="payment_authorization" d="M 360 172 A 10 10 0 0 1 360 192" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="386" y="186" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
+  <rect x="60" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Payment Provider</text>
+  <line x1="220" y1="182" x2="190" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Payment Gateway -&gt; Payment Provider</text>
+  <text x="205" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">requests authorization</text>
+</svg>

@@ -1,0 +1,4 @@
+connectors[1] interfaceAssembly connector must connect a required interface role to a provided interface role
+connectors[2].source.component cannot target a whole component; use a component port endpoint
+connectors[2].target.part cannot target a whole part; use a part_port endpoint
+connectors[3] interfaceAssembly connector must connect matching interface ids
