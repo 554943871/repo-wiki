@@ -4,21 +4,19 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_to_component
-    type: external
-    source:
-      external: external_actor
-    target:
-      component: checkout_module
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_to_component
+  type: external
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module

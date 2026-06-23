@@ -4,22 +4,20 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      lines: "1,4"
-      note: Lines must use a single-line or start-end string.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    lines: 1,4
+    note: Lines must use a single-line or start-end string.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_submits_order
-    type: external
-    source:
-      external: external_actor
-    target:
-      port: submit_order
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_submits_order
+  type: external
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module.submit_order

@@ -1,73 +1,65 @@
 kind: whitebox_component_diagram
 version: 1
 interfaces:
-  - id: payment_authorization
-    label: Payment Authorization
+- id: payment_authorization
+  label: Payment Authorization
 component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: payment_need
-        label: Payment Need
-        requires:
-          - payment_authorization
-  - id: payment_client
-    label: Payment Client
-    ports:
-      - id: payment_api
-        label: Payment API
-        provides:
-          - payment_authorization
+- id: order_processor
+  label: Order Processor
+  ports:
+  - id: payment_need
+    label: Payment Need
+    requires:
+    - payment_authorization
+- id: payment_client
+  label: Payment Client
+  ports:
+  - id: payment_api
+    label: Payment API
+    provides:
+    - payment_authorization
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_submits_order
-    type: external
-    source:
-      external: external_actor
-    target:
-      port: submit_order
-    label: submits order
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: submit_order_to_processor
-    type: delegation
-    source:
-      port: submit_order
-    target:
-      part_port:
-        part: order_processor
-        port: payment_need
-    label: delegates processing
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: processor_uses_payment
-    type: interfaceAssembly
-    source:
-      interface_role:
-        owner: order_processor
-        port: payment_need
-        interface: payment_authorization
-        role: required
-    target:
-      interface_role:
-        owner: payment_client
-        port: payment_api
-        interface: payment_authorization
-        role: provided
-    label: satisfies payment need
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_submits_order
+  type: external
+  label: submits order
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module.submit_order
+- id: submit_order_to_processor
+  type: delegation
+  label: delegates processing
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module.submit_order
+  to: order_processor.payment_need
+- id: processor_uses_payment
+  type: interfaceAssembly
+  label: satisfies payment need
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from:
+    owner: order_processor
+    port: payment_need
+    interface: payment_authorization
+    role: required
+  to:
+    owner: payment_client
+    port: payment_api
+    interface: payment_authorization
+    role: provided

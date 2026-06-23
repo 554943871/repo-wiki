@@ -4,40 +4,34 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: accept_order
-        label: Accept Order
+- id: order_processor
+  label: Order Processor
+  ports:
+  - id: accept_order
+    label: Accept Order
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_submits_order
-    type: external
-    source:
-      external: external_actor
-    target:
-      port: submit_order
-    label: submits order
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: submit_order_to_processor
-    type: delegation
-    source:
-      port: submit_order
-    target:
-      part_port:
-        part: order_processor
-        port: accept_order
-    label: delegates submission
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_submits_order
+  type: external
+  label: submits order
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module.submit_order
+- id: submit_order_to_processor
+  type: delegation
+  label: delegates submission
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module.submit_order
+  to: order_processor.accept_order

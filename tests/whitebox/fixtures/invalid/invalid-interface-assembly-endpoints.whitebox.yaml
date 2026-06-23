@@ -1,84 +1,72 @@
 kind: whitebox_component_diagram
 version: 1
 interfaces:
-  - id: payment_authorization
-    label: Payment Authorization
-  - id: inventory_reservation
-    label: Inventory Reservation
+- id: payment_authorization
+  label: Payment Authorization
+- id: inventory_reservation
+  label: Inventory Reservation
 component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: payment_need
-        label: Payment Need
-        requires:
-          - payment_authorization
-  - id: payment_client
-    label: Payment Client
-    ports:
-      - id: payment_api
-        label: Payment API
-        provides:
-          - payment_authorization
-          - inventory_reservation
+- id: order_processor
+  label: Order Processor
+  ports:
+  - id: payment_need
+    label: Payment Need
+    requires:
+    - payment_authorization
+- id: payment_client
+  label: Payment Client
+  ports:
+  - id: payment_api
+    label: Payment API
+    provides:
+    - payment_authorization
+    - inventory_reservation
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_submits_order
-    type: external
-    source:
-      external: external_actor
-    target:
-      port: submit_order
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: port_to_port_interface_assembly
-    type: interfaceAssembly
-    source:
-      part_port:
-        part: order_processor
-        port: payment_need
-    target:
-      part_port:
-        part: payment_client
-        port: payment_api
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: whole_component_interface_assembly
-    type: interfaceAssembly
-    source:
-      component: checkout_module
-    target:
-      part: payment_client
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: mismatched_interface_assembly
-    type: interfaceAssembly
-    source:
-      interface_role:
-        owner: order_processor
-        port: payment_need
-        interface: payment_authorization
-        role: required
-    target:
-      interface_role:
-        owner: payment_client
-        port: payment_api
-        interface: inventory_reservation
-        role: provided
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_submits_order
+  type: external
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module.submit_order
+- id: port_to_port_interface_assembly
+  type: interfaceAssembly
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: order_processor.payment_need
+  to: payment_client.payment_api
+- id: whole_component_interface_assembly
+  type: interfaceAssembly
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module
+  to: payment_client
+- id: mismatched_interface_assembly
+  type: interfaceAssembly
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from:
+    owner: order_processor
+    port: payment_need
+    interface: payment_authorization
+    role: required
+  to:
+    owner: payment_client
+    port: payment_api
+    interface: inventory_reservation
+    role: provided

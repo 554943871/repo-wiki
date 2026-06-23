@@ -62,10 +62,9 @@ ALLOWED_COMPONENT_FIELDS = {"id", "label", "evidence", "ports"}
 ALLOWED_PART_FIELDS = {"id", "label", "evidence", "ports"}
 ALLOWED_PORT_FIELDS = {"id", "label", "evidence", "provides", "requires"}
 ALLOWED_EXTERNAL_FIELDS = {"id", "label", "evidence"}
-ALLOWED_CONNECTOR_FIELDS = {"id", "type", "source", "target", "label", "evidence"}
+ALLOWED_CONNECTOR_FIELDS = {"id", "type", "from", "to", "label", "evidence"}
 ALLOWED_FILE_EVIDENCE_FIELDS = {"path", "note", "lines", "symbol"}
 ALLOWED_USER_EVIDENCE_FIELDS = {"source", "note"}
-ALLOWED_PART_PORT_ENDPOINT_FIELDS = {"part", "port"}
 ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS = {"owner", "port", "interface", "role"}
 CONNECTOR_TYPES = {"external", "delegation", "assembly", "interfaceAssembly"}
 INTERFACE_ROLES = {"provided", "required"}
@@ -342,115 +341,91 @@ def parse_endpoint(
     interface_roles: set[tuple[str, str, str, str]],
     errors: list[str],
 ) -> Endpoint | None:
-    endpoint = expect_mapping(value, field_path, errors)
-    if endpoint is None:
-        return None
-    if len(endpoint) != 1:
-        errors.append(f"{field_path} must name exactly one endpoint")
-        return None
-
-    endpoint_type, endpoint_value = next(iter(endpoint.items()))
-    if endpoint_type == "part_port":
-        part_port = expect_mapping(endpoint_value, f"{field_path}.part_port", errors)
-        if part_port is None:
-            return None
-        check_allowed_fields(part_port, ALLOWED_PART_PORT_ENDPOINT_FIELDS, f"{field_path}.part_port", errors)
-        part_id = require_string(part_port, "part", f"{field_path}.part_port", errors)
-        port_id = require_string(part_port, "port", f"{field_path}.part_port", errors)
-        if part_id and part_id not in part_ids:
-            errors.append(f"{field_path}.part_port.part references unknown part: {part_id}")
-            return None
-        if part_id and port_id and (part_id, port_id) not in part_port_ids:
-            errors.append(f"{field_path}.part_port.port references unknown port on part {part_id}: {port_id}")
-            return None
-        if part_id and port_id:
-            return Endpoint(kind="part_port", owner_id=part_id, port_id=port_id)
-        return None
-
-    if endpoint_type == "interface_role":
-        interface_role = expect_mapping(endpoint_value, f"{field_path}.interface_role", errors)
-        if interface_role is None:
-            return None
-        check_allowed_fields(
-            interface_role,
-            ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS,
-            f"{field_path}.interface_role",
-            errors,
-        )
-        owner_id = require_string(interface_role, "owner", f"{field_path}.interface_role", errors)
-        port_id = require_string(interface_role, "port", f"{field_path}.interface_role", errors)
-        interface_id = require_string(interface_role, "interface", f"{field_path}.interface_role", errors)
-        role = require_string(interface_role, "role", f"{field_path}.interface_role", errors)
-
-        owner_kind: str | None = None
-        if owner_id:
-            if owner_id == component_id:
-                owner_kind = "component"
-                if port_id and port_id not in component_port_ids:
-                    errors.append(
-                        f"{field_path}.interface_role.port references unknown port on component {owner_id}: {port_id}"
-                    )
-                    return None
-            elif owner_id in part_ids:
-                owner_kind = "part"
-                if port_id and (owner_id, port_id) not in part_port_ids:
-                    errors.append(
-                        f"{field_path}.interface_role.port references unknown port on part {owner_id}: {port_id}"
-                    )
-                    return None
-            else:
-                errors.append(f"{field_path}.interface_role.owner references unknown owner: {owner_id}")
+    if isinstance(value, str) and value.strip():
+        endpoint_value = value
+        if "." not in endpoint_value:
+            if endpoint_value in external_ids:
+                return Endpoint(kind="external", owner_id=endpoint_value)
+            if endpoint_value == component_id:
+                errors.append(f"{field_path} cannot target a whole component; use an owner.port endpoint")
                 return None
-
-        if interface_id:
-            check_snake_case(interface_id, f"{field_path}.interface_role.interface", errors)
-            if interface_id not in interface_ids:
-                errors.append(f"{field_path}.interface_role.interface references unknown interface: {interface_id}")
+            if endpoint_value in part_ids:
+                errors.append(f"{field_path} cannot target a whole part; use an owner.port endpoint")
                 return None
-
-        if role and role not in INTERFACE_ROLES:
-            errors.append(f"{field_path}.interface_role.role must be provided or required")
+            errors.append(f"{field_path} references unknown external or owner.port endpoint: {endpoint_value}")
             return None
 
-        if owner_id and port_id and interface_id and role:
-            role_key = (owner_id, port_id, interface_id, role)
-            if role_key not in interface_roles:
-                errors.append(
-                    f"{field_path}.interface_role references undeclared {role} interface role: "
-                    f"{owner_id}.{port_id}.{interface_id}"
-                )
+        owner_id, port_id = endpoint_value.split(".", 1)
+        if owner_id == component_id:
+            if port_id not in component_port_ids:
+                errors.append(f"{field_path} references unknown port on component {owner_id}: {port_id}")
                 return None
-            return Endpoint(
-                kind="interface_role",
-                owner_id=owner_id,
-                port_id=port_id,
-                owner_kind=owner_kind,
-                interface_id=interface_id,
-                role=role,
+            return Endpoint(kind="component_port", owner_id=owner_id, port_id=port_id, owner_kind="component")
+        if owner_id in part_ids:
+            if (owner_id, port_id) not in part_port_ids:
+                errors.append(f"{field_path} references unknown port on part {owner_id}: {port_id}")
+                return None
+            return Endpoint(kind="part_port", owner_id=owner_id, port_id=port_id, owner_kind="part")
+        if owner_id in external_ids:
+            errors.append(f"{field_path} cannot target a port on external {owner_id}")
+            return None
+        errors.append(f"{field_path} references unknown owner: {owner_id}")
+        return None
+
+    interface_role = expect_mapping(value, field_path, errors)
+    if interface_role is None:
+        return None
+    check_allowed_fields(interface_role, ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS, field_path, errors)
+    owner_id = require_string(interface_role, "owner", field_path, errors)
+    port_id = require_string(interface_role, "port", field_path, errors)
+    interface_id = require_string(interface_role, "interface", field_path, errors)
+    role = require_string(interface_role, "role", field_path, errors)
+
+    owner_kind: str | None = None
+    if owner_id:
+        if owner_id == component_id:
+            owner_kind = "component"
+            if port_id and port_id not in component_port_ids:
+                errors.append(f"{field_path}.port references unknown port on component {owner_id}: {port_id}")
+                return None
+        elif owner_id in part_ids:
+            owner_kind = "part"
+            if port_id and (owner_id, port_id) not in part_port_ids:
+                errors.append(f"{field_path}.port references unknown port on part {owner_id}: {port_id}")
+                return None
+        elif owner_id in external_ids:
+            errors.append(f"{field_path}.owner cannot reference external {owner_id}")
+            return None
+        else:
+            errors.append(f"{field_path}.owner references unknown owner: {owner_id}")
+            return None
+
+    if interface_id:
+        check_snake_case(interface_id, f"{field_path}.interface", errors)
+        if interface_id not in interface_ids:
+            errors.append(f"{field_path}.interface references unknown interface: {interface_id}")
+            return None
+
+    if role and role not in INTERFACE_ROLES:
+        errors.append(f"{field_path}.role must be provided or required")
+        return None
+
+    if owner_id and port_id and interface_id and role:
+        role_key = (owner_id, port_id, interface_id, role)
+        if role_key not in interface_roles:
+            errors.append(
+                f"{field_path} references undeclared {role} interface role: "
+                f"{owner_id}.{port_id}.{interface_id}"
             )
-        return None
-
-    if not isinstance(endpoint_value, str) or not endpoint_value.strip():
-        errors.append(f"{field_path}.{endpoint_type} is required")
-        return None
-    if endpoint_type == "external":
-        if endpoint_value not in external_ids:
-            errors.append(f"{field_path}.external references unknown external: {endpoint_value}")
             return None
-        return Endpoint(kind="external", owner_id=endpoint_value)
-    if endpoint_type == "port":
-        if endpoint_value not in component_port_ids:
-            errors.append(f"{field_path}.port references unknown component port: {endpoint_value}")
-            return None
-        return Endpoint(kind="component_port", owner_id=endpoint_value)
-    if endpoint_type == "component":
-        errors.append(f"{field_path}.component cannot target a whole component; use a component port endpoint")
-        return None
-    if endpoint_type == "part":
-        errors.append(f"{field_path}.part cannot target a whole part; use a part_port endpoint")
-        return None
-
-    errors.append(f"{field_path} uses unsupported endpoint type: {endpoint_type}")
+        return Endpoint(
+            kind="interface_role",
+            owner_id=owner_id,
+            port_id=port_id,
+            owner_kind=owner_kind,
+            interface_id=interface_id,
+            role=role,
+        )
     return None
 
 
@@ -459,8 +434,8 @@ def mark_connected_port(
     connected_component_ports: set[str],
     connected_part_ports: set[tuple[str, str]],
 ) -> None:
-    if endpoint.kind == "component_port":
-        connected_component_ports.add(endpoint.owner_id)
+    if endpoint.kind == "component_port" and endpoint.port_id is not None:
+        connected_component_ports.add(endpoint.port_id)
     elif endpoint.kind == "part_port" and endpoint.port_id is not None:
         connected_part_ports.add((endpoint.owner_id, endpoint.port_id))
     elif endpoint.kind == "interface_role" and endpoint.port_id is not None:
@@ -658,8 +633,8 @@ def validate_source_model(model: object) -> list[str]:
                 errors.append(connector_endpoint_error(connector_type, connector_path))
 
             source = parse_endpoint(
-                connector.get("source"),
-                f"{connector_path}.source",
+                connector.get("from"),
+                f"{connector_path}.from",
                 external_ids,
                 component_id,
                 component_port_ids,
@@ -670,8 +645,8 @@ def validate_source_model(model: object) -> list[str]:
                 errors,
             )
             target = parse_endpoint(
-                connector.get("target"),
-                f"{connector_path}.target",
+                connector.get("to"),
+                f"{connector_path}.to",
                 external_ids,
                 component_id,
                 component_port_ids,
@@ -768,7 +743,7 @@ def model_index(
 
 
 def endpoint_label(
-    endpoint: dict[str, object],
+    endpoint: object,
     component: dict[str, object],
     interfaces: dict[str, dict[str, object]],
     ports: dict[str, dict[str, object]],
@@ -776,30 +751,37 @@ def endpoint_label(
     part_ports: dict[tuple[str, str], dict[str, object]],
     externals: dict[str, dict[str, object]],
 ) -> str:
-    if "external" in endpoint:
-        return str(externals[str(endpoint["external"])]["label"])
-    if "part_port" in endpoint:
-        part_port = endpoint["part_port"]
-        assert isinstance(part_port, dict)
-        part_id = str(part_port["part"])
-        port_id = str(part_port["port"])
-        return f'{parts[part_id]["label"]}.{part_ports[(part_id, port_id)]["label"]}'
-    if "interface_role" in endpoint:
-        interface_role = endpoint["interface_role"]
-        assert isinstance(interface_role, dict)
-        owner_id = str(interface_role["owner"])
-        port_id = str(interface_role["port"])
-        interface_id = str(interface_role["interface"])
-        role = str(interface_role["role"])
+    if isinstance(endpoint, str):
+        if "." not in endpoint:
+            return str(externals[endpoint]["label"])
+        owner_id, port_id = endpoint.split(".", 1)
         if owner_id == str(component["id"]):
-            owner_label = str(component["label"])
-            port_label = str(ports[port_id]["label"])
-        else:
-            owner_label = str(parts[owner_id]["label"])
-            port_label = str(part_ports[(owner_id, port_id)]["label"])
-        interface_label = str(interfaces[interface_id]["label"])
-        return f"{owner_label}.{port_label} {role} {interface_label}"
-    return str(ports[str(endpoint["port"])]["label"])
+            return str(ports[port_id]["label"])
+        return f'{parts[owner_id]["label"]}.{part_ports[(owner_id, port_id)]["label"]}'
+
+    assert isinstance(endpoint, dict)
+    owner_id = str(endpoint["owner"])
+    port_id = str(endpoint["port"])
+    interface_id = str(endpoint["interface"])
+    role = str(endpoint["role"])
+    if owner_id == str(component["id"]):
+        owner_label = str(component["label"])
+        port_label = str(ports[port_id]["label"])
+    else:
+        owner_label = str(parts[owner_id]["label"])
+        port_label = str(part_ports[(owner_id, port_id)]["label"])
+    interface_label = str(interfaces[interface_id]["label"])
+    return f"{owner_label}.{port_label} {role} {interface_label}"
+
+
+def endpoint_role_key(endpoint: object) -> tuple[str, str, str, str]:
+    assert isinstance(endpoint, dict)
+    return (
+        str(endpoint["owner"]),
+        str(endpoint["port"]),
+        str(endpoint["interface"]),
+        str(endpoint["role"]),
+    )
 
 
 def port_interface_ids(port: dict[str, object], field: str) -> list[str]:
@@ -965,8 +947,8 @@ def render_svg(model: dict[str, object]) -> str:
             part_port_positions[(part_id, str(port["id"]))] = (port_x_in_part, port_y_in_part)
 
     direction_labels = [
-        f"{endpoint_label(connector['source'], component, interfaces, ports, parts, part_ports, externals)} -> "
-        f"{endpoint_label(connector['target'], component, interfaces, ports, parts, part_ports, externals)}"
+        f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
+        f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
         for connector in connectors
         if isinstance(connector, dict)
     ]
@@ -979,35 +961,23 @@ def render_svg(model: dict[str, object]) -> str:
         first_offset = -((count - 1) * 26) // 2
         return [first_offset + index * 26 for index in range(count)]
 
-    def endpoint_box(endpoint: dict[str, object]) -> tuple[int, int, int, int]:
-        if "external" in endpoint:
-            external_id = str(endpoint["external"])
-            x, y = external_positions[external_id]
-            return x, y, external_width, external_height
-        if "part_port" in endpoint:
-            part_port = endpoint["part_port"]
-            assert isinstance(part_port, dict)
-            part_id = str(part_port["part"])
-            port_id = str(part_port["port"])
-            x, y = part_port_positions[(part_id, port_id)]
+    def endpoint_box(endpoint: object) -> tuple[int, int, int, int]:
+        if isinstance(endpoint, str):
+            if "." not in endpoint:
+                x, y = external_positions[endpoint]
+                return x, y, external_width, external_height
+            owner_id, port_id = endpoint.split(".", 1)
+            if owner_id == str(component["id"]):
+                x, y = port_positions[port_id]
+                return x, y, port_width, port_height
+            x, y = part_port_positions[(owner_id, port_id)]
             return x, y, part_port_width, part_port_height
-        if "interface_role" in endpoint:
-            interface_role = endpoint["interface_role"]
-            assert isinstance(interface_role, dict)
-            key = (
-                str(interface_role["owner"]),
-                str(interface_role["port"]),
-                str(interface_role["interface"]),
-                str(interface_role["role"]),
-            )
-            return interface_role_positions[key]
-        port_id = str(endpoint["port"])
-        x, y = port_positions[port_id]
-        return x, y, port_width, port_height
+
+        return interface_role_positions[endpoint_role_key(endpoint)]
 
     def endpoint_anchors(
-        source: dict[str, object],
-        target: dict[str, object],
+        source: object,
+        target: object,
     ) -> tuple[int, int, int, int]:
         source_x, source_y, source_width, source_height = endpoint_box(source)
         target_x, target_y, target_width, target_height = endpoint_box(target)
@@ -1161,10 +1131,8 @@ def render_svg(model: dict[str, object]) -> str:
 
     for connector_index, connector in enumerate(connectors):
         assert isinstance(connector, dict)
-        source = connector["source"]
-        target = connector["target"]
-        assert isinstance(source, dict)
-        assert isinstance(target, dict)
+        source = connector["from"]
+        target = connector["to"]
         source_label = endpoint_label(source, component, interfaces, ports, parts, part_ports, externals)
         target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
         direction_label = f"{source_label} -> {target_label}"
@@ -1230,11 +1198,9 @@ def check_valid_fixture(path: Path) -> list[str]:
             required_role_count += 1
     for connector in model["connectors"]:
         assert isinstance(connector, dict)
-        assert isinstance(connector["source"], dict)
-        assert isinstance(connector["target"], dict)
         required_text.append(
-            f"{endpoint_label(connector['source'], component, interfaces, ports, parts, part_ports, externals)} -> "
-            f"{endpoint_label(connector['target'], component, interfaces, ports, parts, part_ports, externals)}"
+            f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
+            f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
         )
         label = connector.get("label")
         if isinstance(label, str) and label.strip():

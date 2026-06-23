@@ -1,1 +1,1 @@
-connectors[1].target.part cannot target a whole part; use a part_port endpoint
+connectors[1].to cannot target a whole part; use an owner.port endpoint

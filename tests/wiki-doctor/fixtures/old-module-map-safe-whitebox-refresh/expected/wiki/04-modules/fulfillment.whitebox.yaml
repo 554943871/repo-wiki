@@ -1,79 +1,72 @@
 kind: whitebox_component_diagram
 version: 1
 interfaces:
-  - id: stock_reservation
-    label: Stock Reservation
+- id: stock_reservation
+  label: Stock Reservation
 component:
   id: fulfillment_module
   label: Fulfillment Module
   evidence:
-    - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-      lines: "1-19"
-      note: The old module map names Fulfillment Module as the enclosing module boundary.
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: 1-19
+    note: The old module map names Fulfillment Module as the enclosing module boundary.
   ports:
-    - id: submit_fulfillment
-      label: Submit Fulfillment
+  - id: submit_fulfillment
+    label: Submit Fulfillment
 parts:
-  - id: order_intake
-    label: Order Intake
-    ports:
-      - id: accept_request
-        label: Accept Request
-      - id: stock_need
-        label: Stock Need
-        requires:
-          - stock_reservation
-  - id: inventory_client
-    label: Inventory Client
-    ports:
-      - id: reservation_api
-        label: Reservation API
-        provides:
-          - stock_reservation
+- id: order_intake
+  label: Order Intake
+  ports:
+  - id: accept_request
+    label: Accept Request
+  - id: stock_need
+    label: Stock Need
+    requires:
+    - stock_reservation
+- id: inventory_client
+  label: Inventory Client
+  ports:
+  - id: reservation_api
+    label: Reservation API
+    provides:
+    - stock_reservation
 externals:
-  - id: checkout_flow
-    label: Checkout Flow
+- id: checkout_flow
+  label: Checkout Flow
 connectors:
-  - id: checkout_submits_fulfillment
-    type: external
-    source:
-      external: checkout_flow
-    target:
-      port: submit_fulfillment
-    label: submits fulfillment
-    evidence:
-      - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-        lines: "10"
-        note: The old map states Checkout flow starts fulfillment through Submit Fulfillment.
-  - id: submit_fulfillment_delegates_to_intake
-    type: delegation
-    source:
-      port: submit_fulfillment
-    target:
-      part_port:
-        part: order_intake
-        port: accept_request
-    label: delegates request
-    evidence:
-      - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-        lines: "11"
-        note: The old map states Submit Fulfillment is delegated to Order Intake.
-  - id: intake_uses_inventory_reservation
-    type: interfaceAssembly
-    source:
-      interface_role:
-        owner: order_intake
-        port: stock_need
-        interface: stock_reservation
-        role: required
-    target:
-      interface_role:
-        owner: inventory_client
-        port: reservation_api
-        interface: stock_reservation
-        role: provided
-    label: satisfies stock reservation
-    evidence:
-      - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-        lines: "12"
-        note: The old map states Order Intake delegates stock reservation needs to Inventory Client.
+- id: checkout_submits_fulfillment
+  type: external
+  label: submits fulfillment
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '10'
+    note: The old map states Checkout flow starts fulfillment through Submit Fulfillment.
+  from: checkout_flow
+  to: fulfillment_module.submit_fulfillment
+- id: submit_fulfillment_delegates_to_intake
+  type: delegation
+  label: delegates request
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '11'
+    note: The old map states Submit Fulfillment is delegated to Order Intake.
+  from: fulfillment_module.submit_fulfillment
+  to: order_intake.accept_request
+- id: intake_uses_inventory_reservation
+  type: interfaceAssembly
+  label: satisfies stock reservation
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '12'
+    note: The old map states Order Intake delegates stock reservation needs to Inventory
+      Client.
+  from:
+    owner: order_intake
+    port: stock_need
+    interface: stock_reservation
+    role: required
+  to:
+    owner: inventory_client
+    port: reservation_api
+    interface: stock_reservation
+    role: provided

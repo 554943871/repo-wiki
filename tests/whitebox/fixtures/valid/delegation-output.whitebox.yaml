@@ -4,43 +4,37 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: order_events
-      label: Order Events
+  - id: order_events
+    label: Order Events
 parts:
-  - id: event_publisher
-    label: Event Publisher
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-    ports:
-      - id: publish_event
-        label: Publish Event
+- id: event_publisher
+  label: Event Publisher
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  ports:
+  - id: publish_event
+    label: Publish Event
 externals:
-  - id: event_bus
-    label: Event Bus
+- id: event_bus
+  label: Event Bus
 connectors:
-  - id: module_publishes_events
-    type: external
-    source:
-      port: order_events
-    target:
-      external: event_bus
-    label: publishes events
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: publisher_to_order_events
-    type: delegation
-    source:
-      part_port:
-        part: event_publisher
-        port: publish_event
-    target:
-      port: order_events
-    label: exposes events
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: module_publishes_events
+  type: external
+  label: publishes events
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module.order_events
+  to: event_bus
+- id: publisher_to_order_events
+  type: delegation
+  label: exposes events
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: event_publisher.publish_event
+  to: checkout_module.order_events

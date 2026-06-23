@@ -40,12 +40,12 @@ Use the current Whitebox Component Diagram source model:
 
 Connector types:
 
-- `external`: connects an external node and an enclosing boundary port. The connector `source` and `target` express the interaction direction.
+- `external`: connects an external node and an enclosing boundary port. The connector `from` and `to` fields express the interaction direction.
 - `delegation`: connects an enclosing boundary port and an internal part port. The connector direction shows whether the boundary capability is delegated inward or an internal capability is exposed outward.
 - `assembly`: connects one internal part port and another internal part port.
 - `interfaceAssembly`: connects a required interface role to a provided interface role.
 
-Connectors must terminate at legal endpoints. Do not connect whole components, whole parts, arbitrary files, packages, helpers, DTOs, SQL objects, or prose-only concepts. `interfaceAssembly` connects interface roles, not ports themselves.
+Connectors must terminate at legal endpoints. Ordinary endpoints are strings: use the external id for an external node, and use `owner.port` for an enclosing component port or internal part port. Interface-role endpoints are structured objects with `owner`, `port`, `interface`, and `role`. Do not connect whole components, whole parts, arbitrary files, packages, helpers, DTOs, SQL objects, or prose-only concepts. `interfaceAssembly` connects interface roles, not ports themselves.
 
 ## Evidence Expectations
 

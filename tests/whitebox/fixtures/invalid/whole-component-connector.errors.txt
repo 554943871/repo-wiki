@@ -1,1 +1,1 @@
-connectors[0].target.component cannot target a whole component; use a component port endpoint
+connectors[0].to cannot target a whole component; use an owner.port endpoint

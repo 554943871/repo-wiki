@@ -4,59 +4,47 @@ component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: submit_order
-      label: Submit Order
+  - id: submit_order
+    label: Submit Order
 parts:
-  - id: order_processor
-    label: Order Processor
-    ports:
-      - id: accept_order
-        label: Accept Order
-  - id: payment_client
-    label: Payment Client
-    ports:
-      - id: charge_payment
-        label: Charge Payment
+- id: order_processor
+  label: Order Processor
+  ports:
+  - id: accept_order
+    label: Accept Order
+- id: payment_client
+  label: Payment Client
+  ports:
+  - id: charge_payment
+    label: Charge Payment
 externals:
-  - id: external_actor
-    label: External Actor
+- id: external_actor
+  label: External Actor
 connectors:
-  - id: actor_submits_order
-    type: external
-    source:
-      external: external_actor
-    target:
-      port: submit_order
-    label: submits order
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: submit_order_to_processor
-    type: delegation
-    source:
-      port: submit_order
-    target:
-      part_port:
-        part: order_processor
-        port: accept_order
-    label: delegates submission
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
-  - id: processor_charges_payment
-    type: assembly
-    source:
-      part_port:
-        part: order_processor
-        port: accept_order
-    target:
-      part_port:
-        part: payment_client
-        port: charge_payment
-    label: charges payment
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: actor_submits_order
+  type: external
+  label: submits order
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: external_actor
+  to: checkout_module.submit_order
+- id: submit_order_to_processor
+  type: delegation
+  label: delegates submission
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module.submit_order
+  to: order_processor.accept_order
+- id: processor_charges_payment
+  type: assembly
+  label: charges payment
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: order_processor.accept_order
+  to: payment_client.charge_payment

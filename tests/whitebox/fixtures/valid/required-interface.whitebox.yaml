@@ -1,30 +1,28 @@
 kind: whitebox_component_diagram
 version: 1
 interfaces:
-  - id: payment_authorization
-    label: Payment Authorization
+- id: payment_authorization
+  label: Payment Authorization
 component:
   id: checkout_module
   label: Checkout Module
   evidence:
-    - path: tests/whitebox/fixtures/evidence/minimal-module.md
-      note: Fixture evidence anchors this diagram fact.
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
   ports:
-    - id: payment_gateway
-      label: Payment Gateway
-      requires:
-        - payment_authorization
+  - id: payment_gateway
+    label: Payment Gateway
+    requires:
+    - payment_authorization
 externals:
-  - id: payment_provider
-    label: Payment Provider
+- id: payment_provider
+  label: Payment Provider
 connectors:
-  - id: module_uses_payment_provider
-    type: external
-    source:
-      port: payment_gateway
-    target:
-      external: payment_provider
-    label: requests authorization
-    evidence:
-      - path: tests/whitebox/fixtures/evidence/minimal-module.md
-        note: Fixture evidence anchors this diagram fact.
+- id: module_uses_payment_provider
+  type: external
+  label: requests authorization
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this diagram fact.
+  from: checkout_module.payment_gateway
+  to: payment_provider
