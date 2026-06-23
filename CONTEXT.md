@@ -158,6 +158,40 @@ _Avoid_: database ER dump, runtime call graph, vague dependency table
 A module-detail writing block for stable responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and current module rules. It explains what neighboring flows, pages, modules, or systems can rely on without turning private helpers or package trees into contracts.
 _Avoid_: package tree, helper list, deployment inventory, unconfirmed ownership
 
+**Whitebox Component Diagram**:
+A module-boundary diagram that shows one enclosing component's boundary ports, internal components, internal ports, interface roles, and connector semantics so readers can see how exposed capabilities are delegated and assembled inside the boundary.
+_Avoid_: UML-complete model, package dependency map, image-only architecture sketch
+
+**Diagram Complexity Signal**:
+The reader-facing interpretation that a dense or tangled Whitebox Component Diagram may indicate genuinely complex module logic or a potential refactoring opportunity, not merely a rendering failure. It is a review signal for human judgment, not a mechanical score.
+_Avoid_: automatic refactor verdict, renderer defect by default, complexity metric
+
+**Diagram Source Model**:
+The structured YAML or JSON file that acts as the only modifiable fact source for an agent-owned diagram. It records only topology and semantic relationships; renderer-owned layout algorithms decide grouping, ordering, coordinates, and routing, while generated SVG, PNG, Mermaid, PlantUML, or draw.io files remain derived renderings unless explicitly promoted.
+It contains only explicit facts confirmed by code, documentation, or the user; unresolved questions must be resolved by further inspection or user clarification before entering the model.
+_Avoid_: generated image as truth, draw.io XML as truth, Markdown prose as truth, source-level coordinates, source-level layout hints, question backlog
+
+**Component Port**:
+A named interaction point on a component boundary. It identifies where a component interacts, while interface roles identify the contracts available or needed at that point.
+Port direction is not a port attribute in the Diagram Source Model; interaction direction is expressed only by connectors.
+_Avoid_: interface, method, required port, provided port, port direction
+
+**Interface Role**:
+A provided or required interface contract attached to a component port. Interface assembly connects interface roles, not ports themselves.
+_Avoid_: port, required port, provided port
+
+**Delegation Connector**:
+A connector from an enclosing component's boundary port to an internal component port, meaning the enclosing boundary capability is delegated inward.
+_Avoid_: generic dependency, internal assembly
+
+**Assembly Connector**:
+A connector between internal component ports, meaning internal components collaborate through those ports.
+_Avoid_: delegation connector, interface role connector, generic dependency
+
+**Interface Assembly Connector**:
+A connector from a required interface role to a provided interface role, meaning one component's required contract is satisfied by another component's provided contract.
+_Avoid_: required port to provided port, generic dependency
+
 **Stable Anchor**:
 A reader-facing stable name, short alias, or local node label used to keep diagrams, tables, drill-down notes, evidence, and related pages pointing to the same concept.
 _Avoid_: machine ID requirement, invented numbering, throwaway label drift

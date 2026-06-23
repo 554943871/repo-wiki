@@ -1,0 +1,7 @@
+# Whitebox Component Diagram Source Model
+
+Module pages use Whitebox Component Diagrams as their required module-boundary diagram, with a topology-only Diagram Source Model as the modifiable fact source and generated SVG as the reader-facing rendering. The source model records only confirmed components, parts, ports, interface roles, connectors, externals, and evidence; it does not record coordinates, layout hints, unresolved questions, confidence states, or generated image details.
+
+This deliberately avoids treating Mermaid, PlantUML, draw.io XML, or Markdown prose as the diagram truth. Those formats can be useful renderings or sketches, but the wiki skill suite needs diagrams that agents can regenerate and understand from explicit semantics, while renderer-owned layout algorithms handle grouping, ordering, routing, canvas size, UML port/interface notation, and complexity warnings.
+
+Consequences: every module page must include a Whitebox Component Diagram, and even an empty whitebox must show at least one confirmed boundary port connected to an external node. Connectors are directed and typed as `external`, `delegation`, `assembly`, or `interfaceAssembly`; connectors must terminate at legal endpoints rather than whole components, and `interfaceAssembly` connects required/provided interface roles instead of ports themselves. Dense or tangled renderings are preserved as complete views and may be noted as a Diagram Complexity Signal, but they are not automatic refactor verdicts.
