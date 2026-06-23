@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and render minimal Whitebox Component Diagram fixtures."""
+"""Validate and render Whitebox Component Diagram fixtures."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ FIXTURE_ROOT = ROOT / "tests" / "whitebox" / "fixtures"
 
 REQUIRED_VALID_FIXTURES = {
     "both-interface-roles.whitebox.yaml",
+    "dense-complexity-signal.whitebox.yaml",
     "delegation-input.whitebox.yaml",
     "delegation-output.whitebox.yaml",
     "file-evidence-lines-symbol.whitebox.yaml",
@@ -49,6 +50,7 @@ REQUIRED_INVALID_FIXTURES = {
     "non-snake-case-id.whitebox.yaml",
     "nonexistent-evidence-path.whitebox.yaml",
     "source-layout-hint.whitebox.yaml",
+    "source-complexity-conclusion.whitebox.yaml",
     "unconnected-port.whitebox.yaml",
     "unsupported-top-level-field.whitebox.yaml",
     "whole-component-connector.whitebox.yaml",
@@ -82,8 +84,24 @@ LAYOUT_HINT_FIELDS = {
     "x",
     "y",
 }
+COMPLEXITY_CONCLUSION_FIELDS = {
+    "complexity",
+    "complexity_score",
+    "complexity_signal",
+    "diagram_complexity",
+    "diagram_complexity_signal",
+    "refactor",
+    "refactor_conclusion",
+    "refactor_verdict",
+    "refactoring",
+}
 SNAKE_CASE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 LINE_RANGE = re.compile(r"^([1-9][0-9]*)(?:-([1-9][0-9]*))?$")
+DENSE_PORT_THRESHOLD = 10
+DENSE_INTERFACE_ROLE_THRESHOLD = 8
+DENSE_CONNECTOR_THRESHOLD = 10
+DENSE_PART_THRESHOLD = 6
+APPROX_TEXT_CHAR_WIDTH = 7
 
 
 @dataclass(frozen=True)
@@ -94,6 +112,26 @@ class Endpoint:
     owner_kind: str | None = None
     interface_id: str | None = None
     role: str | None = None
+
+
+@dataclass(frozen=True)
+class DiagramComplexity:
+    component_ports: int
+    part_ports: int
+    parts: int
+    externals: int
+    interfaces: int
+    interface_roles: int
+    connectors: int
+    warnings: tuple[str, ...]
+
+    @property
+    def total_ports(self) -> int:
+        return self.component_ports + self.part_ports
+
+    @property
+    def dense(self) -> bool:
+        return bool(self.warnings)
 
 
 def rel(path: Path) -> str:
@@ -154,16 +192,18 @@ def check_allowed_fields(
             errors.append(f"{field_path} unsupported field: {key}")
 
 
-def check_layout_hints(value: object, field_path: str, errors: list[str]) -> None:
+def check_source_model_forbidden_fields(value: object, field_path: str, errors: list[str]) -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             child_path = f"{field_path}.{key}" if field_path else str(key)
             if key in LAYOUT_HINT_FIELDS:
                 errors.append(f"source model must not contain layout hint field: {child_path}")
-            check_layout_hints(child, child_path, errors)
+            if key in COMPLEXITY_CONCLUSION_FIELDS:
+                errors.append(f"source model must not contain complexity or refactor conclusion field: {child_path}")
+            check_source_model_forbidden_fields(child, child_path, errors)
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            check_layout_hints(child, f"{field_path}[{index}]", errors)
+            check_source_model_forbidden_fields(child, f"{field_path}[{index}]", errors)
 
 
 def check_snake_case(value: str | None, field_path: str, errors: list[str]) -> None:
@@ -448,7 +488,7 @@ def validate_source_model(model: object) -> list[str]:
     if root is None:
         return errors
 
-    check_layout_hints(root, "", errors)
+    check_source_model_forbidden_fields(root, "", errors)
 
     for key in sorted(root):
         if key not in ALLOWED_TOP_LEVEL:
@@ -773,13 +813,81 @@ def port_interface_count(port: dict[str, object]) -> int:
     return len(port_interface_ids(port, "provides")) + len(port_interface_ids(port, "requires"))
 
 
+def diagram_complexity(model: dict[str, object]) -> DiagramComplexity:
+    _, interfaces, ports, parts, part_ports, externals = model_index(model)
+    connectors = model.get("connectors", [])
+    connector_count = len([connector for connector in connectors if isinstance(connector, dict)])
+    interface_role_count = sum(
+        port_interface_count(port)
+        for port in list(ports.values()) + list(part_ports.values())
+    )
+    total_ports = len(ports) + len(part_ports)
+    warnings: list[str] = []
+    if total_ports >= DENSE_PORT_THRESHOLD:
+        warnings.append(f"ports>={DENSE_PORT_THRESHOLD}")
+    if interface_role_count >= DENSE_INTERFACE_ROLE_THRESHOLD:
+        warnings.append(f"interface_roles>={DENSE_INTERFACE_ROLE_THRESHOLD}")
+    if connector_count >= DENSE_CONNECTOR_THRESHOLD:
+        warnings.append(f"connectors>={DENSE_CONNECTOR_THRESHOLD}")
+    if len(parts) >= DENSE_PART_THRESHOLD:
+        warnings.append(f"parts>={DENSE_PART_THRESHOLD}")
+    return DiagramComplexity(
+        component_ports=len(ports),
+        part_ports=len(part_ports),
+        parts=len(parts),
+        externals=len(externals),
+        interfaces=len(interfaces),
+        interface_roles=interface_role_count,
+        connectors=connector_count,
+        warnings=tuple(warnings),
+    )
+
+
+def format_complexity_metrics(complexity: DiagramComplexity) -> str:
+    return (
+        f"ports={complexity.total_ports}; "
+        f"component_ports={complexity.component_ports}; "
+        f"part_ports={complexity.part_ports}; "
+        f"parts={complexity.parts}; "
+        f"externals={complexity.externals}; "
+        f"interfaces={complexity.interfaces}; "
+        f"interface_roles={complexity.interface_roles}; "
+        f"connectors={complexity.connectors}"
+    )
+
+
+def format_complexity_signal(complexity: DiagramComplexity) -> str:
+    warnings = ",".join(complexity.warnings) if complexity.warnings else "none"
+    return f"Diagram Complexity Signal raw metrics: {format_complexity_metrics(complexity)}; warnings={warnings}"
+
+
+def svg_dimensions(svg: str) -> tuple[int, int] | None:
+    match = re.search(r'<svg\b[^>]*\bwidth="([0-9]+)"\s+height="([0-9]+)"', svg)
+    if match is None:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
 def render_svg(model: dict[str, object]) -> str:
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
     assert isinstance(connectors, list)
 
+    complexity = diagram_complexity(model)
+    connector_count = complexity.connectors
+    total_ports = complexity.total_ports
+    interface_role_count = complexity.interface_roles
+    max_interface_label_length = max(
+        (len(str(interface["label"])) for interface in interfaces.values()),
+        default=0,
+    )
+    dense_interface_label_padding = max(60, max_interface_label_length * APPROX_TEXT_CHAR_WIDTH + 48)
+    interface_label_padding = dense_interface_label_padding if complexity.dense else 60
+    dense_connector_extra = max(0, connector_count - 8)
+    dense_port_extra = max(0, total_ports - 10)
+    dense_interface_extra = max(0, interface_role_count - 8)
     max_component_interface_count = max((port_interface_count(port) for port in ports.values()), default=0)
-    component_port_gap = max(70, 58 + max(0, max_component_interface_count - 1) * 26)
+    component_port_gap = max(70, 58 + max(0, max_component_interface_count - 1) * 26 + dense_connector_extra * 3)
     rows = max(len(ports), len(externals), 1)
     has_parts = bool(parts)
     part_columns = 2
@@ -792,21 +900,37 @@ def render_svg(model: dict[str, object]) -> str:
         default=0,
     )
     max_part_interface_count = max((port_interface_count(port) for port in part_ports.values()), default=0)
-    part_port_slot_height = max(48, 34 + max(0, max_part_interface_count - 1) * 26)
+    part_port_slot_height = max(48, 34 + max(0, max_part_interface_count - 1) * 26 + dense_interface_extra * 2)
     part_width = 190
     part_height = max(118, 72 + max_part_port_count * part_port_slot_height)
-    part_gap_x = 80
-    part_gap_y = 48
-    canvas_width = 960 if has_parts else 720
-    canvas_height = max(
-        360,
-        290 + (rows - 1) * component_port_gap,
-        170 + part_rows * part_height + (part_rows - 1) * part_gap_y if has_parts else 360,
+    part_gap_x = 80 + dense_connector_extra * 8
+    part_gap_y = 48 + dense_port_extra * 4
+    if complexity.dense and has_parts:
+        connector_label_top_stack = connector_count * 18
+        connector_label_bottom_stack = connector_count * 16
+    else:
+        connector_label_top_stack = max(0, connector_count - 4) * 18 if has_parts else 0
+        connector_label_bottom_stack = max(0, connector_count - 4) * 16 if has_parts else 0
+    top_margin = 70 + connector_label_top_stack
+    bottom_margin = 70 + connector_label_bottom_stack
+    body_height = max(
+        220,
+        220 + (rows - 1) * component_port_gap,
+        100 + part_rows * part_height + (part_rows - 1) * part_gap_y if has_parts else 220,
     )
     component_x = 250
-    component_y = 70
-    component_width = 650 if has_parts else 390
-    component_height = canvas_height - 140
+    component_y = top_margin
+    part_grid_right = 410 + (part_columns - 1) * (part_width + part_gap_x) + part_width if has_parts else 0
+    component_width = max(
+        650 if has_parts else 390,
+        part_grid_right - component_x + max(0, interface_label_padding - 60) if has_parts else 390,
+    )
+    canvas_width = max(
+        960 if has_parts else 720,
+        component_x + component_width + interface_label_padding,
+    )
+    canvas_height = top_margin + body_height + bottom_margin
+    component_height = body_height
     port_x = 220
     external_x = 60
     port_width = 120
@@ -818,11 +942,11 @@ def render_svg(model: dict[str, object]) -> str:
 
     port_positions: dict[str, tuple[int, int]] = {}
     for index, port_id in enumerate(ports):
-        port_positions[port_id] = (port_x, 160 + index * component_port_gap)
+        port_positions[port_id] = (port_x, top_margin + 90 + index * component_port_gap)
 
     external_positions: dict[str, tuple[int, int]] = {}
     for index, external_id in enumerate(externals):
-        external_positions[external_id] = (external_x, 150 + index * component_port_gap)
+        external_positions[external_id] = (external_x, top_margin + 80 + index * component_port_gap)
 
     part_positions: dict[str, tuple[int, int]] = {}
     part_port_positions: dict[tuple[str, str], tuple[int, int]] = {}
@@ -830,7 +954,7 @@ def render_svg(model: dict[str, object]) -> str:
         row = index // part_columns
         column = index % part_columns
         part_x = 410 + column * (part_width + part_gap_x)
-        part_y = 135 + row * (part_height + part_gap_y)
+        part_y = top_margin + 65 + row * (part_height + part_gap_y)
         part_positions[part_id] = (part_x, part_y)
         part_ports_for_part = [
             port for port in part.get("ports", []) if isinstance(port, dict) and "id" in port
@@ -899,6 +1023,12 @@ def render_svg(model: dict[str, object]) -> str:
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}" role="img" aria-labelledby="title desc">',
         f'  <title id="title">Whitebox Component Diagram: {html.escape(str(component["label"]))}</title>',
         f'  <desc id="desc">{html.escape("; ".join(direction_labels))}</desc>',
+    ]
+    if complexity.dense:
+        lines.append(
+            f'  <metadata data-diagram-complexity-signal="dense">{html.escape(format_complexity_signal(complexity))}</metadata>'
+        )
+    lines.extend([
         "  <defs>",
         '    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">',
         '      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />',
@@ -906,7 +1036,7 @@ def render_svg(model: dict[str, object]) -> str:
         "  </defs>",
         f'  <rect x="{component_x}" y="{component_y}" width="{component_width}" height="{component_height}" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />',
         f'  <text x="{component_x + component_width // 2}" y="{component_y + 34}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">{html.escape(str(component["label"]))}</text>',
-    ]
+    ])
 
     def render_interface_role(
         owner_id: str,
@@ -1041,10 +1171,14 @@ def render_svg(model: dict[str, object]) -> str:
         start_x, start_y, end_x, end_y = endpoint_anchors(source, target)
 
         label_x = (start_x + end_x) // 2
-        label_offset = connector_index * 18 if has_parts else 0
-        connector_label_offset = connector_index * 16 if has_parts else 0
-        label_y = min(start_y, end_y) - 37 - label_offset
-        connector_label_y = max(start_y, end_y) + 50 + connector_label_offset
+        if complexity.dense and has_parts:
+            label_y = 36 + connector_index * 16
+            connector_label_y = component_y + component_height + 32 + connector_index * 16
+        else:
+            label_offset = connector_index * 18 if has_parts else 0
+            connector_label_offset = connector_index * 16 if has_parts else 0
+            label_y = min(start_y, end_y) - 37 - label_offset
+            connector_label_y = max(start_y, end_y) + 50 + connector_label_offset
         lines.extend(
             [
                 f'  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
@@ -1118,6 +1252,25 @@ def check_valid_fixture(path: Path) -> list[str]:
     if svg.count('data-interface-role="required"') < required_role_count:
         errors.append(f"{rel(path)} SVG must contain a socket marker for every required interface")
 
+    complexity = diagram_complexity(model)
+    if complexity.dense:
+        if 'data-diagram-complexity-signal="dense"' not in svg:
+            errors.append(f"{rel(path)} SVG must emit raw Diagram Complexity Signal metrics")
+        complexity_signal = format_complexity_signal(complexity)
+        for fragment in (format_complexity_metrics(complexity), f"warnings={','.join(complexity.warnings)}"):
+            if html.escape(fragment) not in svg:
+                errors.append(f"{rel(path)} SVG complexity metrics must contain {fragment!r}")
+        dimensions = svg_dimensions(svg)
+        if dimensions is None:
+            errors.append(f"{rel(path)} SVG must expose numeric width and height")
+        else:
+            width, height = dimensions
+            base_width = 960 if parts else 720
+            if width <= base_width and height <= 360:
+                errors.append(f"{rel(path)} dense SVG must expand canvas instead of compacting semantics")
+        if "refactor" in complexity_signal.lower():
+            errors.append(f"{rel(path)} SVG complexity signal must not write refactor conclusions")
+
     return errors
 
 
@@ -1171,7 +1324,7 @@ def check_fixtures() -> int:
 
     print(f"Checked {len(valid_paths)} valid Whitebox fixture(s).")
     print(f"Checked {len(invalid_paths)} invalid Whitebox fixture(s).")
-    print("Validated minimal topology-only source models and SVG rendering.")
+    print("Validated topology-only source models and SVG rendering.")
     return 0
 
 
@@ -1197,11 +1350,14 @@ def render_command(source_path: Path, output_path: Path) -> int:
         return 1
     assert isinstance(model, dict)
     svg = render_svg(model)
+    complexity = diagram_complexity(model)
     if str(output_path) == "-":
         sys.stdout.write(svg)
     else:
         output_path.write_text(svg, encoding="utf-8")
         print(f"Wrote {rel(output_path)}")
+    if complexity.dense:
+        print(f"{rel(source_path)}: {format_complexity_signal(complexity)}", file=sys.stderr)
     return 0
 
 

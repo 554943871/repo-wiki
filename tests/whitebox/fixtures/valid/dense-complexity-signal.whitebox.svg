@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="2506" viewBox="0 0 1240 2506" role="img" aria-labelledby="title desc">
+  <title id="title">Whitebox Component Diagram: Checkout Orchestrator</title>
+  <desc id="desc">Buyer App -&gt; Order Entry; Payment Gateway -&gt; Payment Status; Fulfillment Dispatch -&gt; Fulfillment Platform; Operations Console -&gt; Support Console; Order Entry -&gt; Request Router.Inbound Orders; Support Console -&gt; Order Writer.Audit Need; Request Router.Inbound Orders -&gt; Order Writer.Persistence API; Request Router.Quote Request required Pricing Quote -&gt; Pricing Adapter.Quote API provided Pricing Quote; Request Router.Reserve Request required Inventory Reservation -&gt; Inventory Adapter.Reserve API provided Inventory Reservation; Request Router.Payment Request required Payment Authorization -&gt; Payment Adapter.Authorization API provided Payment Authorization; Request Router.Fraud Request required Fraud Screening -&gt; Fraud Policy.Screening API provided Fraud Screening; Order Writer.Audit Need required Audit Event -&gt; Audit Logger.Audit API provided Audit Event; Request Router.Notify Request required Notification Dispatch -&gt; Notifier.Notification API provided Notification Dispatch</desc>
+  <metadata data-diagram-complexity-signal="dense">Diagram Complexity Signal raw metrics: ports=18; component_ports=4; part_ports=14; parts=8; externals=4; interfaces=9; interface_roles=18; connectors=13; warnings=ports&gt;=10,interface_roles&gt;=8,connectors&gt;=10,parts&gt;=6</metadata>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="250" y="304" width="795" height="1924" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text x="647" y="338" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Checkout Orchestrator</text>
+  <rect x="220" y="394" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="421" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Order Entry</text>
+  <line x1="340" y1="403" x2="360" y2="403" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="checkout_orchestrator" data-port="order_entry" data-interface="order_submission" cx="370" cy="403" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="386" y="407" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Order Submission</text>
+  <line x1="340" y1="429" x2="360" y2="429" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="checkout_orchestrator" data-port="order_entry" data-interface="customer_profile" d="M 360 419 A 10 10 0 0 1 360 439" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="386" y="433" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Customer Profile</text>
+  <rect x="220" y="493" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Payment Status</text>
+  <line x1="340" y1="515" x2="360" y2="515" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="checkout_orchestrator" data-port="payment_status" data-interface="payment_authorization" cx="370" cy="515" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="386" y="519" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
+  <rect x="220" y="592" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="619" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Fulfillment Dispatch</text>
+  <line x1="340" y1="614" x2="360" y2="614" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="checkout_orchestrator" data-port="fulfillment_dispatch" data-interface="fulfillment_command" d="M 360 604 A 10 10 0 0 1 360 624" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="386" y="618" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Fulfillment Command</text>
+  <rect x="220" y="691" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="718" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Support Console</text>
+  <line x1="340" y1="713" x2="360" y2="713" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="checkout_orchestrator" data-port="support_console" data-interface="audit_event" d="M 360 703 A 10 10 0 0 1 360 723" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="386" y="717" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Audit Event</text>
+  <rect x="410" y="369" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Request Router</text>
+  <rect x="436" y="423" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="445" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Inbound Orders</text>
+  <line x1="436" y1="440" x2="416" y2="440" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="inbound_orders" data-interface="order_submission" d="M 416 430 A 10 10 0 0 0 416 450" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="444" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Order Submission</text>
+  <rect x="436" y="477" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="499" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Quote Request</text>
+  <line x1="436" y1="494" x2="416" y2="494" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="quote_request" data-interface="pricing_quote" d="M 416 484 A 10 10 0 0 0 416 504" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="498" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Pricing Quote</text>
+  <rect x="436" y="531" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="553" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Reserve Request</text>
+  <line x1="436" y1="548" x2="416" y2="548" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="reserve_request" data-interface="inventory_reservation" d="M 416 538 A 10 10 0 0 0 416 558" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="552" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Inventory Reservation</text>
+  <rect x="436" y="585" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="607" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Payment Request</text>
+  <line x1="436" y1="602" x2="416" y2="602" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="payment_request" data-interface="payment_authorization" d="M 416 592 A 10 10 0 0 0 416 612" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="606" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
+  <rect x="436" y="639" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="661" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Fraud Request</text>
+  <line x1="436" y1="656" x2="416" y2="656" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="fraud_request" data-interface="fraud_screening" d="M 416 646 A 10 10 0 0 0 416 666" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="660" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Fraud Screening</text>
+  <rect x="436" y="693" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="715" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notify Request</text>
+  <line x1="436" y1="710" x2="416" y2="710" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="request_router" data-port="notify_request" data-interface="notification_dispatch" d="M 416 700 A 10 10 0 0 0 416 720" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="390" y="714" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
+  <rect x="720" y="369" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="815" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Pricing Adapter</text>
+  <rect x="746" y="423" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="815" y="445" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Quote API</text>
+  <line x1="884" y1="440" x2="904" y2="440" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="pricing_adapter" data-port="quote_api" data-interface="pricing_quote" cx="914" cy="440" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="930" y="444" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Pricing Quote</text>
+  <rect x="410" y="845" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="876" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Inventory Adapter</text>
+  <rect x="436" y="899" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="921" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Reserve API</text>
+  <line x1="574" y1="916" x2="594" y2="916" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="inventory_adapter" data-port="reserve_api" data-interface="inventory_reservation" cx="604" cy="916" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="620" y="920" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Inventory Reservation</text>
+  <rect x="720" y="845" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="815" y="876" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Payment Adapter</text>
+  <rect x="746" y="899" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="815" y="921" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Authorization API</text>
+  <line x1="884" y1="916" x2="904" y2="916" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="payment_adapter" data-port="authorization_api" data-interface="payment_authorization" cx="914" cy="916" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="930" y="920" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
+  <rect x="410" y="1321" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="1352" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Fraud Policy</text>
+  <rect x="436" y="1375" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="1397" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Screening API</text>
+  <line x1="574" y1="1392" x2="594" y2="1392" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="fraud_policy" data-port="screening_api" data-interface="fraud_screening" cx="604" cy="1392" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="620" y="1396" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Fraud Screening</text>
+  <rect x="720" y="1321" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="815" y="1352" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Order Writer</text>
+  <rect x="746" y="1375" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="815" y="1397" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Persistence API</text>
+  <rect x="746" y="1429" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="815" y="1451" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Audit Need</text>
+  <line x1="746" y1="1446" x2="726" y2="1446" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="order_writer" data-port="audit_need" data-interface="audit_event" d="M 726 1436 A 10 10 0 0 0 726 1456" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="700" y="1450" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Audit Event</text>
+  <rect x="410" y="1797" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="1828" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Audit Logger</text>
+  <rect x="436" y="1851" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="1873" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Audit API</text>
+  <line x1="574" y1="1868" x2="594" y2="1868" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="audit_logger" data-port="audit_api" data-interface="audit_event" cx="604" cy="1868" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="620" y="1872" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Audit Event</text>
+  <rect x="720" y="1797" width="190" height="396" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="815" y="1828" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Notifier</text>
+  <rect x="746" y="1851" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="815" y="1873" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notification API</text>
+  <line x1="884" y1="1868" x2="904" y2="1868" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="notifier" data-port="notification_api" data-interface="notification_dispatch" cx="914" cy="1868" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="930" y="1872" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
+  <rect x="60" y="384" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="421" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Buyer App</text>
+  <rect x="60" y="483" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Payment Gateway</text>
+  <rect x="60" y="582" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="619" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Fulfillment Platform</text>
+  <rect x="60" y="681" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="718" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Operations Console</text>
+  <line x1="190" y1="416" x2="220" y2="416" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Buyer App -&gt; Order Entry</text>
+  <text x="205" y="2260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits order</text>
+  <line x1="190" y1="515" x2="220" y2="515" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Payment Gateway -&gt; Payment Status</text>
+  <text x="205" y="2276" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">posts payment status</text>
+  <line x1="220" y1="614" x2="190" y2="614" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Fulfillment Dispatch -&gt; Fulfillment Platform</text>
+  <text x="205" y="2292" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">dispatches fulfillment</text>
+  <line x1="190" y1="713" x2="220" y2="713" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Operations Console -&gt; Support Console</text>
+  <text x="205" y="2308" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">reads support state</text>
+  <line x1="340" y1="416" x2="436" y2="440" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="388" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Entry -&gt; Request Router.Inbound Orders</text>
+  <text x="388" y="2324" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">delegates inbound order</text>
+  <line x1="340" y1="713" x2="746" y2="1446" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="543" y="116" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Support Console -&gt; Order Writer.Audit Need</text>
+  <text x="543" y="2340" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">delegates audit lookup</text>
+  <line x1="574" y1="440" x2="746" y2="1392" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="660" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Inbound Orders -&gt; Order Writer.Persistence API</text>
+  <text x="660" y="2356" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">persists accepted order</text>
+  <line x1="416" y1="494" x2="904" y2="440" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="660" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Quote Request required Pricing Quote -&gt; Pricing Adapter.Quote API provided Pricing Quote</text>
+  <text x="660" y="2372" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies pricing quote</text>
+  <line x1="416" y1="548" x2="594" y2="916" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="505" y="164" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Reserve Request required Inventory Reservation -&gt; Inventory Adapter.Reserve API provided Inventory Reservation</text>
+  <text x="505" y="2388" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies inventory reservation</text>
+  <line x1="416" y1="602" x2="904" y2="916" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="660" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Payment Request required Payment Authorization -&gt; Payment Adapter.Authorization API provided Payment Authorization</text>
+  <text x="660" y="2404" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies payment authorization</text>
+  <line x1="416" y1="656" x2="594" y2="1392" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="505" y="196" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Fraud Request required Fraud Screening -&gt; Fraud Policy.Screening API provided Fraud Screening</text>
+  <text x="505" y="2420" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies fraud screening</text>
+  <line x1="706" y1="1446" x2="614" y2="1868" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="660" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Writer.Audit Need required Audit Event -&gt; Audit Logger.Audit API provided Audit Event</text>
+  <text x="660" y="2436" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies audit recording</text>
+  <line x1="416" y1="710" x2="904" y2="1868" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="660" y="228" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Request Router.Notify Request required Notification Dispatch -&gt; Notifier.Notification API provided Notification Dispatch</text>
+  <text x="660" y="2452" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies notification dispatch</text>
+</svg>
