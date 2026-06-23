@@ -1,0 +1,2 @@
+source model must not contain complexity or refactor conclusion field: component.ports[0].complexity_score
+component.ports[0] unsupported field: complexity_score

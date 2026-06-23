@@ -14,5 +14,5 @@ python3 scripts/check_whitebox_fixtures.py
 The checker validates `.whitebox.yaml` source models and compares the generated
 SVG for valid fixtures with the committed expected SVG. It covers internal parts,
 port-level connectors, global interface definitions, provided/required interface
-roles, interface assembly, and UML lollipop/socket notation. Dense-diagram
-warnings and guidance integration belong to later issues.
+roles, interface assembly, UML lollipop/socket notation, and dense-diagram raw
+complexity metrics. Guidance integration belongs to later issues.

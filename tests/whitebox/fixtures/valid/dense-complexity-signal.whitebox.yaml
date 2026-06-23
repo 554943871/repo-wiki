@@ -1,0 +1,321 @@
+kind: whitebox_component_diagram
+version: 1
+interfaces:
+  - id: order_submission
+    label: Order Submission
+  - id: pricing_quote
+    label: Pricing Quote
+  - id: inventory_reservation
+    label: Inventory Reservation
+  - id: payment_authorization
+    label: Payment Authorization
+  - id: fraud_screening
+    label: Fraud Screening
+  - id: fulfillment_command
+    label: Fulfillment Command
+  - id: notification_dispatch
+    label: Notification Dispatch
+  - id: audit_event
+    label: Audit Event
+  - id: customer_profile
+    label: Customer Profile
+component:
+  id: checkout_orchestrator
+  label: Checkout Orchestrator
+  evidence:
+    - path: tests/whitebox/fixtures/evidence/minimal-module.md
+      note: Fixture evidence anchors this dense diagram fact.
+  ports:
+    - id: order_entry
+      label: Order Entry
+      provides:
+        - order_submission
+      requires:
+        - customer_profile
+    - id: payment_status
+      label: Payment Status
+      provides:
+        - payment_authorization
+    - id: fulfillment_dispatch
+      label: Fulfillment Dispatch
+      requires:
+        - fulfillment_command
+    - id: support_console
+      label: Support Console
+      requires:
+        - audit_event
+parts:
+  - id: request_router
+    label: Request Router
+    ports:
+      - id: inbound_orders
+        label: Inbound Orders
+        requires:
+          - order_submission
+      - id: quote_request
+        label: Quote Request
+        requires:
+          - pricing_quote
+      - id: reserve_request
+        label: Reserve Request
+        requires:
+          - inventory_reservation
+      - id: payment_request
+        label: Payment Request
+        requires:
+          - payment_authorization
+      - id: fraud_request
+        label: Fraud Request
+        requires:
+          - fraud_screening
+      - id: notify_request
+        label: Notify Request
+        requires:
+          - notification_dispatch
+  - id: pricing_adapter
+    label: Pricing Adapter
+    ports:
+      - id: quote_api
+        label: Quote API
+        provides:
+          - pricing_quote
+  - id: inventory_adapter
+    label: Inventory Adapter
+    ports:
+      - id: reserve_api
+        label: Reserve API
+        provides:
+          - inventory_reservation
+  - id: payment_adapter
+    label: Payment Adapter
+    ports:
+      - id: authorization_api
+        label: Authorization API
+        provides:
+          - payment_authorization
+  - id: fraud_policy
+    label: Fraud Policy
+    ports:
+      - id: screening_api
+        label: Screening API
+        provides:
+          - fraud_screening
+  - id: order_writer
+    label: Order Writer
+    ports:
+      - id: persistence_api
+        label: Persistence API
+      - id: audit_need
+        label: Audit Need
+        requires:
+          - audit_event
+  - id: audit_logger
+    label: Audit Logger
+    ports:
+      - id: audit_api
+        label: Audit API
+        provides:
+          - audit_event
+  - id: notifier
+    label: Notifier
+    ports:
+      - id: notification_api
+        label: Notification API
+        provides:
+          - notification_dispatch
+externals:
+  - id: buyer_app
+    label: Buyer App
+  - id: payment_gateway
+    label: Payment Gateway
+  - id: fulfillment_platform
+    label: Fulfillment Platform
+  - id: operations_console
+    label: Operations Console
+connectors:
+  - id: buyer_submits_order
+    type: external
+    source:
+      external: buyer_app
+    target:
+      port: order_entry
+    label: submits order
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: gateway_updates_payment
+    type: external
+    source:
+      external: payment_gateway
+    target:
+      port: payment_status
+    label: posts payment status
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: orchestrator_dispatches_fulfillment
+    type: external
+    source:
+      port: fulfillment_dispatch
+    target:
+      external: fulfillment_platform
+    label: dispatches fulfillment
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: console_reads_support_state
+    type: external
+    source:
+      external: operations_console
+    target:
+      port: support_console
+    label: reads support state
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: entry_delegates_to_router
+    type: delegation
+    source:
+      port: order_entry
+    target:
+      part_port:
+        part: request_router
+        port: inbound_orders
+    label: delegates inbound order
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: support_delegates_audit_lookup
+    type: delegation
+    source:
+      port: support_console
+    target:
+      part_port:
+        part: order_writer
+        port: audit_need
+    label: delegates audit lookup
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_persists_order
+    type: assembly
+    source:
+      part_port:
+        part: request_router
+        port: inbound_orders
+    target:
+      part_port:
+        part: order_writer
+        port: persistence_api
+    label: persists accepted order
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_gets_pricing
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: request_router
+        port: quote_request
+        interface: pricing_quote
+        role: required
+    target:
+      interface_role:
+        owner: pricing_adapter
+        port: quote_api
+        interface: pricing_quote
+        role: provided
+    label: satisfies pricing quote
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_reserves_inventory
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: request_router
+        port: reserve_request
+        interface: inventory_reservation
+        role: required
+    target:
+      interface_role:
+        owner: inventory_adapter
+        port: reserve_api
+        interface: inventory_reservation
+        role: provided
+    label: satisfies inventory reservation
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_authorizes_payment
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: request_router
+        port: payment_request
+        interface: payment_authorization
+        role: required
+    target:
+      interface_role:
+        owner: payment_adapter
+        port: authorization_api
+        interface: payment_authorization
+        role: provided
+    label: satisfies payment authorization
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_screens_fraud
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: request_router
+        port: fraud_request
+        interface: fraud_screening
+        role: required
+    target:
+      interface_role:
+        owner: fraud_policy
+        port: screening_api
+        interface: fraud_screening
+        role: provided
+    label: satisfies fraud screening
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: writer_records_audit
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: order_writer
+        port: audit_need
+        interface: audit_event
+        role: required
+    target:
+      interface_role:
+        owner: audit_logger
+        port: audit_api
+        interface: audit_event
+        role: provided
+    label: satisfies audit recording
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
+  - id: router_sends_notification
+    type: interfaceAssembly
+    source:
+      interface_role:
+        owner: request_router
+        port: notify_request
+        interface: notification_dispatch
+        role: required
+    target:
+      interface_role:
+        owner: notifier
+        port: notification_api
+        interface: notification_dispatch
+        role: provided
+    label: satisfies notification dispatch
+    evidence:
+      - path: tests/whitebox/fixtures/evidence/minimal-module.md
+        note: Fixture evidence anchors this dense connector.
