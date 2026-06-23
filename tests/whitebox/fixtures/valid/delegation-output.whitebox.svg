@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">Whitebox Component Diagram: Checkout Module</title>
+  <desc id="desc">Order Events -&gt; Event Bus; Event Publisher.Publish Event -&gt; Order Events</desc>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="250" y="70" width="650" height="220" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text x="575" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Checkout Module</text>
+  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Order Events</text>
+  <rect x="410" y="135" width="190" height="120" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Event Publisher</text>
+  <rect x="436" y="189" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="211" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Publish Event</text>
+  <rect x="60" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Event Bus</text>
+  <line x1="220" y1="182" x2="190" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Events -&gt; Event Bus</text>
+  <text x="205" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">publishes events</text>
+  <line x1="436" y1="206" x2="340" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="388" y="127" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Event Publisher.Publish Event -&gt; Order Events</text>
+  <text x="388" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">exposes events</text>
+</svg>

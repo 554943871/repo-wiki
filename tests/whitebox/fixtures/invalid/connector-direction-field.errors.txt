@@ -1,0 +1,2 @@
+connectors[0] unsupported field: bidirectional
+connectors[0] unsupported field: direction

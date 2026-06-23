@@ -1,0 +1,1 @@
+connectors[1] assembly connector must connect two part ports

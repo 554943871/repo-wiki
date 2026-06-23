@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import html
 import re
 import sys
@@ -18,8 +19,17 @@ except ModuleNotFoundError:  # pragma: no cover - exercised only on lean hosts.
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "tests" / "whitebox" / "fixtures"
 
-REQUIRED_VALID_FIXTURES = {"minimal-empty.whitebox.yaml"}
+REQUIRED_VALID_FIXTURES = {
+    "delegation-input.whitebox.yaml",
+    "delegation-output.whitebox.yaml",
+    "internal-assembly.whitebox.yaml",
+    "minimal-empty.whitebox.yaml",
+}
 REQUIRED_INVALID_FIXTURES = {
+    "assembly-boundary-port.whitebox.yaml",
+    "connector-direction-field.whitebox.yaml",
+    "delegation-external-to-part.whitebox.yaml",
+    "external-to-internal.whitebox.yaml",
     "missing-component-evidence.whitebox.yaml",
     "missing-connector-evidence.whitebox.yaml",
     "missing-required-label.whitebox.yaml",
@@ -27,12 +37,17 @@ REQUIRED_INVALID_FIXTURES = {
     "source-layout-hint.whitebox.yaml",
     "unconnected-port.whitebox.yaml",
     "unsupported-top-level-field.whitebox.yaml",
+    "whole-component-connector.whitebox.yaml",
+    "whole-part-connector.whitebox.yaml",
 }
-ALLOWED_TOP_LEVEL = {"kind", "version", "component", "externals", "connectors"}
+ALLOWED_TOP_LEVEL = {"kind", "version", "component", "parts", "externals", "connectors"}
 ALLOWED_COMPONENT_FIELDS = {"id", "label", "evidence", "ports"}
+ALLOWED_PART_FIELDS = {"id", "label", "evidence", "ports"}
 ALLOWED_PORT_FIELDS = {"id", "label", "evidence"}
 ALLOWED_EXTERNAL_FIELDS = {"id", "label", "evidence"}
 ALLOWED_CONNECTOR_FIELDS = {"id", "type", "source", "target", "label", "evidence"}
+ALLOWED_PART_PORT_ENDPOINT_FIELDS = {"part", "port"}
+CONNECTOR_TYPES = {"external", "delegation", "assembly"}
 LAYOUT_HINT_FIELDS = {
     "canvas",
     "coordinate",
@@ -49,6 +64,13 @@ LAYOUT_HINT_FIELDS = {
     "y",
 }
 SNAKE_CASE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
+
+
+@dataclass(frozen=True)
+class Endpoint:
+    kind: str
+    owner_id: str
+    port_id: str | None = None
 
 
 def rel(path: Path) -> str:
@@ -158,9 +180,11 @@ def parse_endpoint(
     value: object,
     field_path: str,
     external_ids: set[str],
-    port_ids: set[str],
+    component_port_ids: set[str],
+    part_ids: set[str],
+    part_port_ids: set[tuple[str, str]],
     errors: list[str],
-) -> tuple[str, str] | None:
+) -> Endpoint | None:
     endpoint = expect_mapping(value, field_path, errors)
     if endpoint is None:
         return None
@@ -168,23 +192,67 @@ def parse_endpoint(
         errors.append(f"{field_path} must name exactly one endpoint")
         return None
 
-    endpoint_type, endpoint_id = next(iter(endpoint.items()))
-    if not isinstance(endpoint_id, str) or not endpoint_id.strip():
+    endpoint_type, endpoint_value = next(iter(endpoint.items()))
+    if endpoint_type == "part_port":
+        part_port = expect_mapping(endpoint_value, f"{field_path}.part_port", errors)
+        if part_port is None:
+            return None
+        check_allowed_fields(part_port, ALLOWED_PART_PORT_ENDPOINT_FIELDS, f"{field_path}.part_port", errors)
+        part_id = require_string(part_port, "part", f"{field_path}.part_port", errors)
+        port_id = require_string(part_port, "port", f"{field_path}.part_port", errors)
+        if part_id and part_id not in part_ids:
+            errors.append(f"{field_path}.part_port.part references unknown part: {part_id}")
+            return None
+        if part_id and port_id and (part_id, port_id) not in part_port_ids:
+            errors.append(f"{field_path}.part_port.port references unknown port on part {part_id}: {port_id}")
+            return None
+        if part_id and port_id:
+            return Endpoint("part_port", part_id, port_id)
+        return None
+
+    if not isinstance(endpoint_value, str) or not endpoint_value.strip():
         errors.append(f"{field_path}.{endpoint_type} is required")
         return None
     if endpoint_type == "external":
-        if endpoint_id not in external_ids:
-            errors.append(f"{field_path}.external references unknown external: {endpoint_id}")
+        if endpoint_value not in external_ids:
+            errors.append(f"{field_path}.external references unknown external: {endpoint_value}")
             return None
-        return ("external", endpoint_id)
+        return Endpoint("external", endpoint_value)
     if endpoint_type == "port":
-        if endpoint_id not in port_ids:
-            errors.append(f"{field_path}.port references unknown component port: {endpoint_id}")
+        if endpoint_value not in component_port_ids:
+            errors.append(f"{field_path}.port references unknown component port: {endpoint_value}")
             return None
-        return ("port", endpoint_id)
+        return Endpoint("component_port", endpoint_value)
+    if endpoint_type == "component":
+        errors.append(f"{field_path}.component cannot target a whole component; use a component port endpoint")
+        return None
+    if endpoint_type == "part":
+        errors.append(f"{field_path}.part cannot target a whole part; use a part_port endpoint")
+        return None
 
     errors.append(f"{field_path} uses unsupported endpoint type: {endpoint_type}")
     return None
+
+
+def mark_connected_port(
+    endpoint: Endpoint,
+    connected_component_ports: set[str],
+    connected_part_ports: set[tuple[str, str]],
+) -> None:
+    if endpoint.kind == "component_port":
+        connected_component_ports.add(endpoint.owner_id)
+    elif endpoint.kind == "part_port" and endpoint.port_id is not None:
+        connected_part_ports.add((endpoint.owner_id, endpoint.port_id))
+
+
+def connector_endpoint_error(connector_type: object, connector_path: str) -> str:
+    if connector_type == "external":
+        return f"{connector_path} external connector must connect one external and one component port"
+    if connector_type == "delegation":
+        return f"{connector_path} delegation connector must connect one component port and one part port"
+    if connector_type == "assembly":
+        return f"{connector_path} assembly connector must connect two part ports"
+    return f"{connector_path}.type must be external, delegation, or assembly in this slice"
 
 
 def validate_source_model(model: object) -> list[str]:
@@ -205,7 +273,7 @@ def validate_source_model(model: object) -> list[str]:
         errors.append("version must be 1")
 
     component = expect_mapping(root.get("component"), "component", errors)
-    port_ids: set[str] = set()
+    component_port_ids: set[str] = set()
     if component is not None:
         check_allowed_fields(component, ALLOWED_COMPONENT_FIELDS, "component", errors)
         component_id = require_string(component, "id", "component", errors)
@@ -230,9 +298,52 @@ def validate_source_model(model: object) -> list[str]:
                 check_snake_case(port_id, f"{port_path}.id", errors)
                 require_string(port, "label", port_path, errors)
                 if port_id:
-                    if port_id in port_ids:
+                    if port_id in component_port_ids:
                         errors.append(f"{port_path}.id duplicates component port: {port_id}")
-                    port_ids.add(port_id)
+                    component_port_ids.add(port_id)
+
+    part_ids: set[str] = set()
+    part_port_ids: set[tuple[str, str]] = set()
+    if "parts" in root:
+        parts = expect_list(root.get("parts"), "parts", errors)
+        if parts is not None:
+            if not parts:
+                errors.append("parts must include at least one internal part")
+            for index, part_value in enumerate(parts):
+                part_path = f"parts[{index}]"
+                part = expect_mapping(part_value, part_path, errors)
+                if part is None:
+                    continue
+                check_allowed_fields(part, ALLOWED_PART_FIELDS, part_path, errors)
+                part_id = require_string(part, "id", part_path, errors)
+                check_snake_case(part_id, f"{part_path}.id", errors)
+                require_string(part, "label", part_path, errors)
+                if part_id:
+                    if part_id in part_ids:
+                        errors.append(f"{part_path}.id duplicates part: {part_id}")
+                    part_ids.add(part_id)
+                if "evidence" in part:
+                    check_evidence(part.get("evidence"), f"{part_path}.evidence", errors)
+
+                ports = expect_list(part.get("ports"), f"{part_path}.ports", errors)
+                if ports is not None:
+                    if not ports:
+                        errors.append(f"{part_path}.ports must include at least one part port")
+                    part_local_port_ids: set[str] = set()
+                    for port_index, port_value in enumerate(ports):
+                        port_path = f"{part_path}.ports[{port_index}]"
+                        port = expect_mapping(port_value, port_path, errors)
+                        if port is None:
+                            continue
+                        check_allowed_fields(port, ALLOWED_PORT_FIELDS, port_path, errors)
+                        port_id = require_string(port, "id", port_path, errors)
+                        check_snake_case(port_id, f"{port_path}.id", errors)
+                        require_string(port, "label", port_path, errors)
+                        if part_id and port_id:
+                            if port_id in part_local_port_ids:
+                                errors.append(f"{port_path}.id duplicates port on part {part_id}: {port_id}")
+                            part_local_port_ids.add(port_id)
+                            part_port_ids.add((part_id, port_id))
 
     externals = expect_list(root.get("externals"), "externals", errors)
     external_ids: set[str] = set()
@@ -254,11 +365,12 @@ def validate_source_model(model: object) -> list[str]:
                 external_ids.add(external_id)
 
     connectors = expect_list(root.get("connectors"), "connectors", errors)
-    connected_ports: set[str] = set()
+    connected_component_ports: set[str] = set()
+    connected_part_ports: set[tuple[str, str]] = set()
     connector_ids: set[str] = set()
     if connectors is not None:
         if not connectors:
-            errors.append("connectors must include at least one directed external connector")
+            errors.append("connectors must include at least one directed connector")
         for index, connector_value in enumerate(connectors):
             connector_path = f"connectors[{index}]"
             connector = expect_mapping(connector_value, connector_path, errors)
@@ -273,31 +385,65 @@ def validate_source_model(model: object) -> list[str]:
                 connector_ids.add(connector_id)
 
             connector_type = connector.get("type")
-            if connector_type != "external":
-                errors.append(f"{connector_path}.type must be external in this minimal slice")
+            if connector_type not in CONNECTOR_TYPES:
+                errors.append(connector_endpoint_error(connector_type, connector_path))
 
-            source = parse_endpoint(connector.get("source"), f"{connector_path}.source", external_ids, port_ids, errors)
-            target = parse_endpoint(connector.get("target"), f"{connector_path}.target", external_ids, port_ids, errors)
+            source = parse_endpoint(
+                connector.get("source"),
+                f"{connector_path}.source",
+                external_ids,
+                component_port_ids,
+                part_ids,
+                part_port_ids,
+                errors,
+            )
+            target = parse_endpoint(
+                connector.get("target"),
+                f"{connector_path}.target",
+                external_ids,
+                component_port_ids,
+                part_ids,
+                part_port_ids,
+                errors,
+            )
             if source is not None and target is not None:
-                endpoint_types = {source[0], target[0]}
-                if endpoint_types != {"external", "port"}:
-                    errors.append(f"{connector_path} must connect one external and one component port")
-                for endpoint_type, endpoint_id in (source, target):
-                    if endpoint_type == "port":
-                        connected_ports.add(endpoint_id)
+                endpoint_kinds = {source.kind, target.kind}
+                connector_is_valid = False
+                if connector_type == "external":
+                    connector_is_valid = endpoint_kinds == {"external", "component_port"}
+                elif connector_type == "delegation":
+                    connector_is_valid = endpoint_kinds == {"component_port", "part_port"}
+                elif connector_type == "assembly":
+                    connector_is_valid = source.kind == "part_port" and target.kind == "part_port"
+
+                if connector_is_valid:
+                    mark_connected_port(source, connected_component_ports, connected_part_ports)
+                    mark_connected_port(target, connected_component_ports, connected_part_ports)
+                elif connector_type in CONNECTOR_TYPES:
+                    errors.append(connector_endpoint_error(connector_type, connector_path))
 
             if "evidence" not in connector:
                 errors.append(f"{connector_path}.evidence is required")
             else:
                 check_evidence(connector.get("evidence"), f"{connector_path}.evidence", errors)
 
-    for port_id in sorted(port_ids - connected_ports):
+    for port_id in sorted(component_port_ids - connected_component_ports):
         errors.append(f"component port {port_id} must participate in a connector")
+    for part_id, port_id in sorted(part_port_ids - connected_part_ports):
+        errors.append(f"part port {part_id}.{port_id} must participate in a connector")
 
     return errors
 
 
-def model_index(model: dict[str, object]) -> tuple[dict[str, object], dict[str, dict[str, object]], dict[str, dict[str, object]]]:
+def model_index(
+    model: dict[str, object],
+) -> tuple[
+    dict[str, object],
+    dict[str, dict[str, object]],
+    dict[str, dict[str, object]],
+    dict[tuple[str, str], dict[str, object]],
+    dict[str, dict[str, object]],
+]:
     component = model["component"]
     assert isinstance(component, dict)
     ports = {
@@ -305,35 +451,71 @@ def model_index(model: dict[str, object]) -> tuple[dict[str, object], dict[str, 
         for port in component.get("ports", [])
         if isinstance(port, dict) and "id" in port
     }
+    parts = {
+        str(part["id"]): part
+        for part in model.get("parts", [])
+        if isinstance(part, dict) and "id" in part
+    }
+    part_ports: dict[tuple[str, str], dict[str, object]] = {}
+    for part_id, part in parts.items():
+        for port in part.get("ports", []):
+            if isinstance(port, dict) and "id" in port:
+                part_ports[(part_id, str(port["id"]))] = port
     externals = {
         str(external["id"]): external
         for external in model.get("externals", [])
         if isinstance(external, dict) and "id" in external
     }
-    return component, ports, externals
+    return component, ports, parts, part_ports, externals
 
 
 def endpoint_label(
     endpoint: dict[str, object],
     ports: dict[str, dict[str, object]],
+    parts: dict[str, dict[str, object]],
+    part_ports: dict[tuple[str, str], dict[str, object]],
     externals: dict[str, dict[str, object]],
 ) -> str:
     if "external" in endpoint:
         return str(externals[str(endpoint["external"])]["label"])
+    if "part_port" in endpoint:
+        part_port = endpoint["part_port"]
+        assert isinstance(part_port, dict)
+        part_id = str(part_port["part"])
+        port_id = str(part_port["port"])
+        return f'{parts[part_id]["label"]}.{part_ports[(part_id, port_id)]["label"]}'
     return str(ports[str(endpoint["port"])]["label"])
 
 
 def render_svg(model: dict[str, object]) -> str:
-    component, ports, externals = model_index(model)
+    component, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
     assert isinstance(connectors, list)
 
     rows = max(len(ports), len(externals), 1)
-    canvas_width = 720
-    canvas_height = max(360, 290 + (rows - 1) * 70)
+    has_parts = bool(parts)
+    part_columns = 2
+    part_rows = max((len(parts) + part_columns - 1) // part_columns, 1)
+    max_part_port_count = max(
+        (
+            len([port for port in part.get("ports", []) if isinstance(port, dict)])
+            for part in parts.values()
+        ),
+        default=0,
+    )
+    part_width = 190
+    part_height = max(118, 72 + max_part_port_count * 48)
+    part_gap_x = 80
+    part_gap_y = 48
+    canvas_width = 960 if has_parts else 720
+    canvas_height = max(
+        360,
+        290 + (rows - 1) * 70,
+        170 + part_rows * part_height + (part_rows - 1) * part_gap_y if has_parts else 360,
+    )
     component_x = 250
     component_y = 70
-    component_width = 390
+    component_width = 650 if has_parts else 390
     component_height = canvas_height - 140
     port_x = 220
     external_x = 60
@@ -341,6 +523,8 @@ def render_svg(model: dict[str, object]) -> str:
     port_height = 44
     external_width = 130
     external_height = 64
+    part_port_width = 138
+    part_port_height = 34
 
     port_positions: dict[str, tuple[int, int]] = {}
     for index, port_id in enumerate(ports):
@@ -350,12 +534,58 @@ def render_svg(model: dict[str, object]) -> str:
     for index, external_id in enumerate(externals):
         external_positions[external_id] = (external_x, 150 + index * 70)
 
+    part_positions: dict[str, tuple[int, int]] = {}
+    part_port_positions: dict[tuple[str, str], tuple[int, int]] = {}
+    for index, (part_id, part) in enumerate(parts.items()):
+        row = index // part_columns
+        column = index % part_columns
+        part_x = 410 + column * (part_width + part_gap_x)
+        part_y = 135 + row * (part_height + part_gap_y)
+        part_positions[part_id] = (part_x, part_y)
+        part_ports_for_part = [
+            port for port in part.get("ports", []) if isinstance(port, dict) and "id" in port
+        ]
+        for port_index, port in enumerate(part_ports_for_part):
+            port_x_in_part = part_x + (part_width - part_port_width) // 2
+            port_y_in_part = part_y + 54 + port_index * 44
+            part_port_positions[(part_id, str(port["id"]))] = (port_x_in_part, port_y_in_part)
+
     direction_labels = [
-        f"{endpoint_label(connector['source'], ports, externals)} -> "
-        f"{endpoint_label(connector['target'], ports, externals)}"
+        f"{endpoint_label(connector['source'], ports, parts, part_ports, externals)} -> "
+        f"{endpoint_label(connector['target'], ports, parts, part_ports, externals)}"
         for connector in connectors
         if isinstance(connector, dict)
     ]
+
+    def endpoint_box(endpoint: dict[str, object]) -> tuple[int, int, int, int]:
+        if "external" in endpoint:
+            external_id = str(endpoint["external"])
+            x, y = external_positions[external_id]
+            return x, y, external_width, external_height
+        if "part_port" in endpoint:
+            part_port = endpoint["part_port"]
+            assert isinstance(part_port, dict)
+            part_id = str(part_port["part"])
+            port_id = str(part_port["port"])
+            x, y = part_port_positions[(part_id, port_id)]
+            return x, y, part_port_width, part_port_height
+        port_id = str(endpoint["port"])
+        x, y = port_positions[port_id]
+        return x, y, port_width, port_height
+
+    def endpoint_anchors(
+        source: dict[str, object],
+        target: dict[str, object],
+    ) -> tuple[int, int, int, int]:
+        source_x, source_y, source_width, source_height = endpoint_box(source)
+        target_x, target_y, target_width, target_height = endpoint_box(target)
+        if source_x < target_x:
+            start_x = source_x + source_width
+            end_x = target_x
+        else:
+            start_x = source_x
+            end_x = target_x + target_width
+        return start_x, source_y + source_height // 2, end_x, target_y + target_height // 2
 
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}" role="img" aria-labelledby="title desc">',
@@ -379,6 +609,26 @@ def render_svg(model: dict[str, object]) -> str:
             ]
         )
 
+    for part_id, part in parts.items():
+        x, y = part_positions[part_id]
+        lines.extend(
+            [
+                f'  <rect x="{x}" y="{y}" width="{part_width}" height="{part_height}" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />',
+                f'  <text x="{x + part_width // 2}" y="{y + 31}" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">{html.escape(str(part["label"]))}</text>',
+            ]
+        )
+        for port in part.get("ports", []):
+            if not isinstance(port, dict) or "id" not in port:
+                continue
+            port_id = str(port["id"])
+            port_x_in_part, port_y_in_part = part_port_positions[(part_id, port_id)]
+            lines.extend(
+                [
+                    f'  <rect x="{port_x_in_part}" y="{port_y_in_part}" width="{part_port_width}" height="{part_port_height}" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />',
+                    f'  <text x="{port_x_in_part + part_port_width // 2}" y="{port_y_in_part + 22}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">{html.escape(str(port["label"]))}</text>',
+                ]
+            )
+
     for external_id, external in externals.items():
         x, y = external_positions[external_id]
         lines.extend(
@@ -388,34 +638,22 @@ def render_svg(model: dict[str, object]) -> str:
             ]
         )
 
-    for connector in connectors:
+    for connector_index, connector in enumerate(connectors):
         assert isinstance(connector, dict)
         source = connector["source"]
         target = connector["target"]
         assert isinstance(source, dict)
         assert isinstance(target, dict)
-        source_label = endpoint_label(source, ports, externals)
-        target_label = endpoint_label(target, ports, externals)
+        source_label = endpoint_label(source, ports, parts, part_ports, externals)
+        target_label = endpoint_label(target, ports, parts, part_ports, externals)
         direction_label = f"{source_label} -> {target_label}"
-
-        if "external" in source:
-            external_id = str(source["external"])
-            port_id = str(target["port"])
-            start_x = external_positions[external_id][0] + external_width
-            start_y = external_positions[external_id][1] + external_height // 2
-            end_x = port_positions[port_id][0]
-            end_y = port_positions[port_id][1] + port_height // 2
-        else:
-            port_id = str(source["port"])
-            external_id = str(target["external"])
-            start_x = port_positions[port_id][0]
-            start_y = port_positions[port_id][1] + port_height // 2
-            end_x = external_positions[external_id][0] + external_width
-            end_y = external_positions[external_id][1] + external_height // 2
+        start_x, start_y, end_x, end_y = endpoint_anchors(source, target)
 
         label_x = (start_x + end_x) // 2
-        label_y = min(start_y, end_y) - 37
-        connector_label_y = max(start_y, end_y) + 50
+        label_offset = connector_index * 18 if has_parts else 0
+        connector_label_offset = connector_index * 16 if has_parts else 0
+        label_y = min(start_y, end_y) - 37 - label_offset
+        connector_label_y = max(start_y, end_y) + 50 + connector_label_offset
         lines.extend(
             [
                 f'  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
@@ -450,22 +688,31 @@ def check_valid_fixture(path: Path) -> list[str]:
     elif svg != read_text(expected_svg_path):
         errors.append(f"{rel(path)} rendered SVG differs from {rel(expected_svg_path)}")
 
-    component, ports, externals = model_index(model)
+    component, ports, parts, part_ports, externals = model_index(model)
     required_text = [str(component["label"])]
     required_text.extend(str(port["label"]) for port in ports.values())
+    required_text.extend(str(part["label"]) for part in parts.values())
+    required_text.extend(str(port["label"]) for port in part_ports.values())
     required_text.extend(str(external["label"]) for external in externals.values())
     for connector in model["connectors"]:
         assert isinstance(connector, dict)
         assert isinstance(connector["source"], dict)
         assert isinstance(connector["target"], dict)
         required_text.append(
-            f"{endpoint_label(connector['source'], ports, externals)} -> "
-            f"{endpoint_label(connector['target'], ports, externals)}"
+            f"{endpoint_label(connector['source'], ports, parts, part_ports, externals)} -> "
+            f"{endpoint_label(connector['target'], ports, parts, part_ports, externals)}"
         )
+        label = connector.get("label")
+        if isinstance(label, str) and label.strip():
+            required_text.append(label)
 
     for text in required_text:
         if html.escape(text) not in svg:
             errors.append(f"{rel(path)} SVG must contain reader-visible text {text!r}")
+
+    connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
+    if svg.count('marker-end="url(#arrowhead)"') < connector_count:
+        errors.append(f"{rel(path)} SVG must contain a direction marker for every connector")
 
     return errors
 

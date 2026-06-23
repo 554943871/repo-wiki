@@ -1,0 +1,1 @@
+connectors[0] delegation connector must connect one component port and one part port

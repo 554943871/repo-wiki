@@ -1,0 +1,1 @@
+connectors[0] external connector must connect one external and one component port

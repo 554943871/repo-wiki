@@ -1,0 +1,1 @@
+connectors[1].target.part cannot target a whole part; use a part_port endpoint
