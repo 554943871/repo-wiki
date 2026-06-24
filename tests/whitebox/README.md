@@ -11,19 +11,30 @@ Run from the repository root:
 python3 scripts/check_whitebox_fixtures.py
 ```
 
-The checker validates `.whitebox.yaml` source models and compares the generated
-SVG for valid fixtures with the committed expected SVG through the explicit
-`simple` render backend. Backend selection is a renderer/runtime concern, so it
-is passed to the checker or render command and is not represented in
-`.whitebox.yaml`.
+The checker validates `.whitebox.yaml` source models and renders valid fixtures
+through the default `elk` backend. Backend selection is a renderer/runtime
+concern, so it is passed to the checker or render command and is not represented
+in `.whitebox.yaml`.
 
-The checker also renders every valid complete-view fixture through the explicit
-`elk` backend. ELK fixture checks are structural rather than snapshot-based:
-they verify deterministic SVG output, reader-visible semantic text, connector
-markers, provided/required interface-role symbols, numeric canvas dimensions,
-nonnegative geometry, and dense-diagram complexity metadata. The ELK backend
-uses the repo-declared `elkjs` dependency and fails fast if `npm ci` has not
-installed dependencies during repo-wiki skill suite development or upgrade.
+ELK fixture checks are structural and geometry-aware rather than
+pixel-perfect. They verify deterministic SVG output, reader-visible semantic
+text, connector markers, provided/required interface-role symbols, numeric
+canvas dimensions, nonnegative geometry, dense-diagram complexity metadata,
+reasonable aspect ratios, peer node non-overlap, node-label fit, and routed
+connector polylines. The ELK backend uses the repo-declared `elkjs` dependency
+and fails fast if `npm ci` has not installed dependencies during repo-wiki skill
+suite development or upgrade.
+
+The legacy `simple` backend remains available only through explicit backend
+selection for diagnostics or migration comparison. The fixture suite still
+compares committed simple SVG snapshots through explicit `--backend simple`
+coverage, but ordinary render commands use ELK unless a backend is selected:
+
+```sh
+python3 scripts/check_whitebox_fixtures.py render --backend simple \
+  tests/whitebox/fixtures/valid/minimal-empty.whitebox.yaml \
+  /tmp/minimal-empty.simple.svg
+```
 
 Dense fixtures also exercise renderer-owned Derived Whitebox Views generated
 from the same `.whitebox.yaml` source model:

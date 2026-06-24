@@ -114,9 +114,13 @@ DENSE_PART_THRESHOLD = 6
 APPROX_TEXT_CHAR_WIDTH = 7
 SIMPLE_RENDER_BACKEND = "simple"
 ELK_RENDER_BACKEND = "elk"
+DEFAULT_RENDER_BACKEND = ELK_RENDER_BACKEND
 AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND, ELK_RENDER_BACKEND})
 ELK_LAYOUT_HELPER = ROOT / "scripts" / "elk_whitebox_layout.mjs"
 ELK_PACKAGE_ENTRY = ROOT / "node_modules" / "elkjs" / "lib" / "elk.bundled.js"
+MAX_ELK_CANVAS_ASPECT_RATIO = 6.0
+SVG_LABEL_WIDTH_FACTOR = 0.52
+SVG_LABEL_OVERFLOW_TOLERANCE = 8
 DERIVED_VIEW_NAMES = ("boundary", "delegation", "assembly", "interfaces")
 DERIVED_VIEW_LABELS = {
     "boundary": "Boundary Derived Whitebox View",
@@ -177,6 +181,24 @@ class DiagramComplexity:
 @dataclass(frozen=True)
 class RenderBackend:
     name: str
+
+
+@dataclass(frozen=True)
+class SvgNodeBox:
+    key: str
+    kind: str
+    parent: str
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+@dataclass(frozen=True)
+class SvgNodeLabel:
+    node_key: str
+    text: str
+    font_size: int
 
 
 @dataclass(frozen=True)
@@ -1225,6 +1247,26 @@ def derived_view_metadata_lines(view: WhiteboxView | None, canvas_width: int) ->
     ]
 
 
+def svg_attr(value: object) -> str:
+    return html.escape(str(value), quote=True)
+
+
+def svg_node_key(kind: str, *ids: str) -> str:
+    return f"{kind}:{'.'.join(ids)}"
+
+
+def svg_node_attrs(kind: str, key: str, parent: str) -> str:
+    return (
+        f'data-node-kind="{svg_attr(kind)}" '
+        f'data-node-key="{svg_attr(key)}" '
+        f'data-node-parent="{svg_attr(parent)}"'
+    )
+
+
+def svg_label_attrs(node_key: str) -> str:
+    return f'data-label-for="{svg_attr(node_key)}"'
+
+
 def svg_dimensions(svg: str) -> tuple[int, int] | None:
     match = re.search(r'<svg\b[^>]*\bwidth="([0-9]+)"\s+height="([0-9]+)"', svg)
     if match is None:
@@ -1232,7 +1274,7 @@ def svg_dimensions(svg: str) -> tuple[int, int] | None:
     return int(match.group(1)), int(match.group(2))
 
 
-def select_render_backend(backend: str = SIMPLE_RENDER_BACKEND) -> RenderBackend:
+def select_render_backend(backend: str = DEFAULT_RENDER_BACKEND) -> RenderBackend:
     if backend not in AVAILABLE_RENDER_BACKENDS:
         available = ", ".join(sorted(AVAILABLE_RENDER_BACKENDS))
         raise ValueError(f"unsupported Whitebox render backend: {backend}; available backends: {available}")
@@ -1241,7 +1283,7 @@ def select_render_backend(backend: str = SIMPLE_RENDER_BACKEND) -> RenderBackend
 
 def render_svg(
     model: dict[str, object],
-    backend: str = SIMPLE_RENDER_BACKEND,
+    backend: str = DEFAULT_RENDER_BACKEND,
     view: WhiteboxView | None = None,
 ) -> str:
     selected_backend = select_render_backend(backend)
@@ -1252,7 +1294,7 @@ def render_svg(
     raise AssertionError(f"unhandled Whitebox render backend: {selected_backend.name}")
 
 
-def render_derived_svgs(model: dict[str, object], backend: str = SIMPLE_RENDER_BACKEND) -> dict[str, str]:
+def render_derived_svgs(model: dict[str, object], backend: str = DEFAULT_RENDER_BACKEND) -> dict[str, str]:
     selected_backend = select_render_backend(backend)
     return {
         view_name: render_svg(derived_model, backend=selected_backend.name, view=whitebox_view(view_name))
@@ -1260,16 +1302,28 @@ def render_derived_svgs(model: dict[str, object], backend: str = SIMPLE_RENDER_B
     }
 
 
-def require_elk_runtime() -> None:
+def elk_runtime_errors(
+    layout_helper: Path = ELK_LAYOUT_HELPER,
+    package_entry: Path = ELK_PACKAGE_ENTRY,
+) -> list[str]:
     missing: list[str] = []
-    if not ELK_LAYOUT_HELPER.exists():
-        missing.append(f"ELK layout helper is missing: {rel(ELK_LAYOUT_HELPER)}")
+    if not layout_helper.exists():
+        missing.append(f"ELK layout helper is missing: {rel(layout_helper)}")
     if shutil.which("node") is None:
         missing.append("Node.js is required for the elk Whitebox render backend")
-    if not ELK_PACKAGE_ENTRY.exists():
+    if not package_entry.exists():
         missing.append(
-            "elkjs dependency is not installed; run npm ci during repo-wiki skill suite development or upgrade before rendering with --backend elk"
+            "elkjs dependency is not installed; run npm ci during repo-wiki skill suite development or "
+            "upgrade before using the default elk Whitebox render backend or explicit --backend elk"
         )
+    return missing
+
+
+def require_elk_runtime(
+    layout_helper: Path = ELK_LAYOUT_HELPER,
+    package_entry: Path = ELK_PACKAGE_ENTRY,
+) -> None:
+    missing = elk_runtime_errors(layout_helper=layout_helper, package_entry=package_entry)
     if missing:
         raise WhiteboxRenderError("; ".join(missing))
 
@@ -1429,9 +1483,10 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
     ])
 
     component_x, component_y, component_width, component_height = component_box
+    component_key = svg_node_key("component", str(component["id"]))
     lines.extend([
-        f'  <rect x="{component_x}" y="{component_y}" width="{component_width}" height="{component_height}" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />',
-        f'  <text x="{component_x + component_width // 2}" y="{component_y + 34}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">{html.escape(str(component["label"]))}</text>',
+        f'  <rect {svg_node_attrs("component", component_key, "root")} x="{component_x}" y="{component_y}" width="{component_width}" height="{component_height}" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />',
+        f'  <text {svg_label_attrs(component_key)} x="{component_x + component_width // 2}" y="{component_y + 34}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">{html.escape(str(component["label"]))}</text>',
     ])
 
     def role_offsets(count: int) -> list[int]:
@@ -1527,18 +1582,20 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
 
     for port_id, port in ports.items():
         x, y, width, height = layout_box(layout, f"componentPorts.{port_id}")
+        port_key = svg_node_key("component_port", port_id)
         lines.extend([
-            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />',
-            f'  <text x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">{html.escape(str(port["label"]))}</text>',
+            f'  <rect {svg_node_attrs("component_port", port_key, component_key)} x="{x}" y="{y}" width="{width}" height="{height}" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />',
+            f'  <text {svg_label_attrs(port_key)} x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">{html.escape(str(port["label"]))}</text>',
         ])
         render_port_interface_roles(str(component["id"]), "component", port_id, port, (x, y, width, height), component_box)
 
     for part_id, part in parts.items():
         part_box = layout_box(layout, f"parts.{part_id}")
         x, y, width, height = part_box
+        part_key = svg_node_key("part", part_id)
         lines.extend([
-            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />',
-            f'  <text x="{x + width // 2}" y="{y + 31}" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">{html.escape(str(part["label"]))}</text>',
+            f'  <rect {svg_node_attrs("part", part_key, component_key)} x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />',
+            f'  <text {svg_label_attrs(part_key)} x="{x + width // 2}" y="{y + 31}" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">{html.escape(str(part["label"]))}</text>',
         ])
         for port in part.get("ports", []):
             if not isinstance(port, dict) or "id" not in port:
@@ -1546,17 +1603,19 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
             port_id = str(port["id"])
             port_box = layout_box(layout, f"partPorts.{part_id}.{port_id}")
             port_x, port_y, port_width, port_height = port_box
+            port_key = svg_node_key("part_port", part_id, port_id)
             lines.extend([
-                f'  <rect x="{port_x}" y="{port_y}" width="{port_width}" height="{port_height}" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />',
-                f'  <text x="{port_x + port_width // 2}" y="{port_y + port_height // 2 + 4}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">{html.escape(str(port["label"]))}</text>',
+                f'  <rect {svg_node_attrs("part_port", port_key, part_key)} x="{port_x}" y="{port_y}" width="{port_width}" height="{port_height}" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />',
+                f'  <text {svg_label_attrs(port_key)} x="{port_x + port_width // 2}" y="{port_y + port_height // 2 + 4}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">{html.escape(str(port["label"]))}</text>',
             ])
             render_port_interface_roles(part_id, "part", port_id, port, port_box, part_box)
 
     for external_id, external in externals.items():
         x, y, width, height = layout_box(layout, f"externals.{external_id}")
+        external_key = svg_node_key("external", external_id)
         lines.extend([
-            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />',
-            f'  <text x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">{html.escape(str(external["label"]))}</text>',
+            f'  <rect {svg_node_attrs("external", external_key, "root")} x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />',
+            f'  <text {svg_label_attrs(external_key)} x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">{html.escape(str(external["label"]))}</text>',
         ])
 
     for connector_index, connector in enumerate(connectors):
@@ -1568,15 +1627,15 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
         target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
         direction_label = f"{source_label} -> {target_label}"
         routed_points = layout_edge_points(layout, connector_id)
-        if (
-            len(routed_points) >= 2
-            and all(0 <= x <= canvas_width and 0 <= y <= canvas_height for x, y in routed_points)
-        ):
-            points = routed_points
-        else:
-            start = connector_endpoint_point(source, component, layout, interface_role_positions)
-            end = connector_endpoint_point(target, component, layout, interface_role_positions)
-            points = [start, end]
+        if len(routed_points) < 2:
+            raise WhiteboxRenderError(
+                f"ELK Whitebox layout did not return routed edge points for connector {connector_id}"
+            )
+        if not all(0 <= x <= canvas_width and 0 <= y <= canvas_height for x, y in routed_points):
+            raise WhiteboxRenderError(
+                f"ELK Whitebox layout returned out-of-canvas edge points for connector {connector_id}"
+            )
+        points = routed_points
         if isinstance(source, dict):
             points[0] = connector_endpoint_point(source, component, layout, interface_role_positions)
         if isinstance(target, dict):
@@ -1626,6 +1685,171 @@ def svg_polyline_points(points: str) -> list[tuple[int, int]]:
         except ValueError:
             continue
     return parsed
+
+
+def parse_int_attribute(attributes: dict[str, str], key: str) -> int | None:
+    try:
+        return int(round(float(attributes[key])))
+    except (KeyError, ValueError):
+        return None
+
+
+def svg_node_boxes(svg: str) -> dict[str, SvgNodeBox]:
+    boxes: dict[str, SvgNodeBox] = {}
+    for tag_match in re.finditer(r"<rect\b[^>]*/>", svg):
+        attributes = svg_attributes(tag_match.group(0))
+        node_key = attributes.get("data-node-key")
+        node_kind = attributes.get("data-node-kind")
+        node_parent = attributes.get("data-node-parent")
+        if not node_key or not node_kind or node_parent is None:
+            continue
+        x = parse_int_attribute(attributes, "x")
+        y = parse_int_attribute(attributes, "y")
+        width = parse_int_attribute(attributes, "width")
+        height = parse_int_attribute(attributes, "height")
+        if x is None or y is None or width is None or height is None:
+            continue
+        boxes[node_key] = SvgNodeBox(
+            key=node_key,
+            kind=node_kind,
+            parent=node_parent,
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+        )
+    return boxes
+
+
+def svg_node_labels(svg: str) -> list[SvgNodeLabel]:
+    labels: list[SvgNodeLabel] = []
+    for tag_match in re.finditer(r"<text\b([^>]*)>(.*?)</text>", svg):
+        attributes = svg_attributes(tag_match.group(0))
+        node_key = attributes.get("data-label-for")
+        if not node_key:
+            continue
+        font_size = parse_int_attribute(attributes, "font-size") or 12
+        text = html.unescape(re.sub(r"<[^>]+>", "", tag_match.group(2))).strip()
+        labels.append(SvgNodeLabel(node_key=node_key, text=text, font_size=font_size))
+    return labels
+
+
+def boxes_overlap(left: SvgNodeBox, right: SvgNodeBox) -> bool:
+    return (
+        left.x < right.x + right.width
+        and left.x + left.width > right.x
+        and left.y < right.y + right.height
+        and left.y + left.height > right.y
+    )
+
+
+def connector_ids_in_model(model: dict[str, object]) -> set[str]:
+    connectors = model.get("connectors", [])
+    if not isinstance(connectors, list):
+        return set()
+    return {
+        str(connector["id"])
+        for connector in connectors
+        if isinstance(connector, dict) and "id" in connector
+    }
+
+
+def svg_connector_points(svg: str) -> dict[str, list[tuple[int, int]]]:
+    connector_points: dict[str, list[tuple[int, int]]] = {}
+    for tag_match in re.finditer(r"<polyline\b[^>]*/>", svg):
+        attributes = svg_attributes(tag_match.group(0))
+        connector_id = attributes.get("data-connector")
+        points = attributes.get("points")
+        if connector_id and points:
+            connector_points[connector_id] = svg_polyline_points(points)
+    return connector_points
+
+
+def expected_svg_node_keys(model: dict[str, object]) -> set[str]:
+    component, _, ports, parts, part_ports, externals = model_index(model)
+    return {
+        svg_node_key("component", str(component["id"])),
+        *(svg_node_key("component_port", port_id) for port_id in ports),
+        *(svg_node_key("part", part_id) for part_id in parts),
+        *(svg_node_key("part_port", part_id, port_id) for part_id, port_id in part_ports),
+        *(svg_node_key("external", external_id) for external_id in externals),
+    }
+
+
+def check_elk_layout_quality(
+    path: Path,
+    model: dict[str, object],
+    svg: str,
+    view_name: str | None = None,
+) -> list[str]:
+    errors: list[str] = []
+    svg_label = f"elk {view_name} derived SVG" if view_name is not None else "elk SVG"
+    dimensions = svg_dimensions(svg)
+    if dimensions is None:
+        return errors
+
+    canvas_width, canvas_height = dimensions
+    aspect_ratio = max(canvas_width, canvas_height) / max(1, min(canvas_width, canvas_height))
+    if aspect_ratio > MAX_ELK_CANVAS_ASPECT_RATIO:
+        errors.append(
+            f"{rel(path)} {svg_label} canvas aspect ratio {aspect_ratio:.2f} exceeds "
+            f"{MAX_ELK_CANVAS_ASPECT_RATIO:.1f}"
+        )
+
+    boxes = svg_node_boxes(svg)
+    expected_keys = expected_svg_node_keys(model)
+    missing_keys = expected_keys - set(boxes)
+    for node_key in sorted(missing_keys):
+        errors.append(f"{rel(path)} {svg_label} must expose geometry metadata for node {node_key}")
+
+    boxes_by_parent: dict[str, list[SvgNodeBox]] = {}
+    for box in boxes.values():
+        boxes_by_parent.setdefault(box.parent, []).append(box)
+    for parent, peer_boxes in boxes_by_parent.items():
+        for index, left in enumerate(peer_boxes):
+            if left.width <= 0 or left.height <= 0:
+                errors.append(f"{rel(path)} {svg_label} node {left.key} must have positive geometry")
+                continue
+            for right in peer_boxes[index + 1:]:
+                if right.width <= 0 or right.height <= 0:
+                    continue
+                if boxes_overlap(left, right):
+                    errors.append(
+                        f"{rel(path)} {svg_label} peer nodes {left.key} and {right.key} overlap under {parent}"
+                    )
+
+    for label in svg_node_labels(svg):
+        box = boxes.get(label.node_key)
+        if box is None:
+            errors.append(f"{rel(path)} {svg_label} label for {label.node_key} has no matching node box")
+            continue
+        estimated_width = len(label.text) * label.font_size * SVG_LABEL_WIDTH_FACTOR
+        if estimated_width > box.width + SVG_LABEL_OVERFLOW_TOLERANCE:
+            errors.append(
+                f"{rel(path)} {svg_label} label {label.text!r} overflows node {label.node_key} "
+                f"(estimated {estimated_width:.0f}px for {box.width}px box)"
+            )
+
+    expected_connectors = connector_ids_in_model(model)
+    connector_points = svg_connector_points(svg)
+    missing_connectors = expected_connectors - set(connector_points)
+    extra_connectors = set(connector_points) - expected_connectors
+    for connector_id in sorted(missing_connectors):
+        errors.append(f"{rel(path)} {svg_label} must expose routed polyline for connector {connector_id}")
+    for connector_id in sorted(extra_connectors):
+        errors.append(f"{rel(path)} {svg_label} exposes unexpected routed polyline for connector {connector_id}")
+    for connector_id, points in sorted(connector_points.items()):
+        if len(points) < 2:
+            errors.append(f"{rel(path)} {svg_label} connector {connector_id} must have at least two routed points")
+            continue
+        if points[0] == points[-1]:
+            errors.append(f"{rel(path)} {svg_label} connector {connector_id} must not collapse to one point")
+        for x, y in points:
+            if x < 0 or y < 0 or x > canvas_width or y > canvas_height:
+                errors.append(f"{rel(path)} {svg_label} connector {connector_id} has out-of-canvas routed point")
+                break
+
+    return errors
 
 
 def interface_role_key_from_endpoint(endpoint: object) -> tuple[str, str, str, str] | None:
@@ -1763,6 +1987,7 @@ def check_rendered_svg_semantics(
 
     if backend == ELK_RENDER_BACKEND:
         errors.extend(check_elk_interface_assembly_symbol_endpoints(path, model, svg))
+        errors.extend(check_elk_layout_quality(path, model, svg, view_name=view_name))
 
     return errors
 
@@ -2261,6 +2486,33 @@ def render_simple_svg(model: dict[str, object], view: WhiteboxView | None = None
     return "\n".join(lines) + "\n"
 
 
+def check_default_backend_contract() -> list[str]:
+    errors: list[str] = []
+    if DEFAULT_RENDER_BACKEND != ELK_RENDER_BACKEND:
+        errors.append("default Whitebox render backend must be elk")
+    if select_render_backend().name != ELK_RENDER_BACKEND:
+        errors.append("select_render_backend() must select elk when no backend is explicit")
+    return errors
+
+
+def check_missing_elk_dependency_failure_message() -> list[str]:
+    missing_package = ROOT / "node_modules" / "__missing_elkjs_for_fixture_check__" / "elk.bundled.js"
+    errors = elk_runtime_errors(package_entry=missing_package)
+    diagnostic = "; ".join(errors)
+    if "elkjs dependency is not installed" not in diagnostic:
+        return ["missing elkjs fixture check must report a missing elkjs dependency"]
+    if "default elk Whitebox render backend" not in diagnostic:
+        return ["missing elkjs fixture check must identify the default elk backend"]
+    try:
+        require_elk_runtime(package_entry=missing_package)
+    except WhiteboxRenderError as exc:
+        if "elkjs dependency is not installed" not in str(exc):
+            return ["missing elkjs fixture check must fail loudly through WhiteboxRenderError"]
+    else:
+        return ["missing elkjs fixture check should fail before rendering"]
+    return []
+
+
 def check_valid_fixture(path: Path) -> list[str]:
     errors: list[str] = []
     model, load_errors = load_source_model(path)
@@ -2272,26 +2524,26 @@ def check_valid_fixture(path: Path) -> list[str]:
         return [f"{rel(path)} should be valid but failed: {error}" for error in validation_errors]
 
     assert isinstance(model, dict)
-    svg = render_svg(model, backend=SIMPLE_RENDER_BACKEND)
+    simple_svg = render_svg(model, backend=SIMPLE_RENDER_BACKEND)
     expected_svg_path = path.with_suffix(".svg")
     if not expected_svg_path.exists():
         errors.append(f"{rel(expected_svg_path)} is missing")
-    elif svg != read_text(expected_svg_path):
+    elif simple_svg != read_text(expected_svg_path):
         errors.append(f"{rel(path)} rendered SVG differs from {rel(expected_svg_path)}")
 
-    errors.extend(check_rendered_svg_semantics(path, model, svg, SIMPLE_RENDER_BACKEND))
+    errors.extend(check_rendered_svg_semantics(path, model, simple_svg, SIMPLE_RENDER_BACKEND))
     errors.extend(check_derived_fixture_outputs(path, model, SIMPLE_RENDER_BACKEND, snapshot=True))
     try:
-        elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
-        second_elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
+        default_svg = render_svg(model)
+        second_default_svg = render_svg(model)
     except WhiteboxRenderError as exc:
-        errors.append(f"{rel(path)} elk backend failed: {exc}")
+        errors.append(f"{rel(path)} default elk backend failed: {exc}")
     else:
-        errors.extend(check_rendered_svg_semantics(path, model, elk_svg, ELK_RENDER_BACKEND))
-        errors.extend(check_derived_fixture_outputs(path, model, ELK_RENDER_BACKEND, snapshot=False))
-        errors.extend(check_derived_determinism(path, model, ELK_RENDER_BACKEND))
-        if elk_svg != second_elk_svg:
-            errors.append(f"{rel(path)} elk backend must produce deterministic SVG for stable input")
+        errors.extend(check_rendered_svg_semantics(path, model, default_svg, DEFAULT_RENDER_BACKEND))
+        errors.extend(check_derived_fixture_outputs(path, model, DEFAULT_RENDER_BACKEND, snapshot=False))
+        errors.extend(check_derived_determinism(path, model, DEFAULT_RENDER_BACKEND))
+        if default_svg != second_default_svg:
+            errors.append(f"{rel(path)} default elk backend must produce deterministic SVG for stable input")
 
     return errors
 
@@ -2332,6 +2584,8 @@ def check_fixtures() -> int:
         errors.append(f"missing required valid Whitebox fixture: {fixture_name}")
     for fixture_name in sorted(REQUIRED_INVALID_FIXTURES - invalid_names):
         errors.append(f"missing required invalid Whitebox fixture: {fixture_name}")
+    errors.extend(check_default_backend_contract())
+    errors.extend(check_missing_elk_dependency_failure_message())
 
     for path in valid_paths:
         errors.extend(check_valid_fixture(path))
@@ -2348,7 +2602,8 @@ def check_fixtures() -> int:
     print(f"Checked {len(invalid_paths)} invalid Whitebox fixture(s).")
     print(
         "Validated topology-only source models and SVG rendering with "
-        f"{SIMPLE_RENDER_BACKEND} snapshot checks and {ELK_RENDER_BACKEND} structural checks."
+        f"default {DEFAULT_RENDER_BACKEND} structural/quality checks and explicit "
+        f"{SIMPLE_RENDER_BACKEND} snapshot checks."
     )
     return 0
 
@@ -2365,7 +2620,7 @@ def validate_command(source_path: Path) -> int:
     return 0
 
 
-def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_RENDER_BACKEND) -> int:
+def render_command(source_path: Path, output_path: Path, backend: str = DEFAULT_RENDER_BACKEND) -> int:
     try:
         selected_backend = select_render_backend(backend)
     except ValueError as exc:
@@ -2385,6 +2640,13 @@ def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_R
     except WhiteboxRenderError as exc:
         print(str(exc), file=sys.stderr)
         return 2
+    if selected_backend.name == ELK_RENDER_BACKEND:
+        render_errors = check_rendered_svg_semantics(source_path, model, svg, selected_backend.name)
+        if render_errors:
+            print("Whitebox render quality check failed:", file=sys.stderr)
+            for error in render_errors:
+                print(f"- {error}", file=sys.stderr)
+            return 2
     complexity = diagram_complexity(model)
     if str(output_path) == "-":
         sys.stdout.write(svg)
@@ -2399,7 +2661,7 @@ def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_R
 def render_derived_command(
     source_path: Path,
     output_dir: Path,
-    backend: str = SIMPLE_RENDER_BACKEND,
+    backend: str = DEFAULT_RENDER_BACKEND,
 ) -> int:
     try:
         selected_backend = select_render_backend(backend)
@@ -2415,11 +2677,37 @@ def render_derived_command(
             print(f"- {error}")
         return 1
     assert isinstance(model, dict)
+    derived_models = build_derived_view_models(model)
     try:
-        derived_svgs = render_derived_svgs(model, backend=selected_backend.name)
+        derived_svgs = {
+            view_name: render_svg(
+                derived_model,
+                backend=selected_backend.name,
+                view=whitebox_view(view_name),
+            )
+            for view_name, derived_model in derived_models.items()
+        }
     except WhiteboxRenderError as exc:
         print(str(exc), file=sys.stderr)
         return 2
+    if selected_backend.name == ELK_RENDER_BACKEND:
+        render_errors: list[str] = []
+        for view_name, derived_model in derived_models.items():
+            render_errors.extend(
+                check_derived_svg(
+                    source_path,
+                    model,
+                    view_name,
+                    derived_model,
+                    derived_svgs[view_name],
+                    selected_backend.name,
+                )
+            )
+        if render_errors:
+            print("Derived Whitebox render quality check failed:", file=sys.stderr)
+            for error in render_errors:
+                print(f"- {error}", file=sys.stderr)
+            return 2
 
     if not derived_svgs:
         print(f"No non-empty Derived Whitebox Views generated for {rel(source_path)}")
@@ -2439,7 +2727,8 @@ def usage() -> None:
         "  python3 scripts/check_whitebox_fixtures.py\n"
         "  python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>\n"
         "  python3 scripts/check_whitebox_fixtures.py render [--backend simple|elk] <source.whitebox.yaml> <output.svg|->\n"
-        "  python3 scripts/check_whitebox_fixtures.py render-derived [--backend simple|elk] <source.whitebox.yaml> <output-dir>"
+        "  python3 scripts/check_whitebox_fixtures.py render-derived [--backend simple|elk] <source.whitebox.yaml> <output-dir>\n"
+        f"Default render backend: {DEFAULT_RENDER_BACKEND}. Use --backend simple only for diagnostics or migration comparison."
     )
 
 

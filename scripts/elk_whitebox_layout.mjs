@@ -61,13 +61,13 @@ function endpointTargetId(endpoint, componentId) {
   return partPortId(endpoint.owner, endpoint.port);
 }
 
-function buildPort(ownerId, port, width, height) {
+function buildPort(ownerId, port, minimumWidth, height, padding = 34) {
   const roleCount = portInterfaceCount(port);
   return {
     id: ownerId.includes(":")
       ? partPortId(ownerId.split(":")[1], port.id)
       : componentPortId(ownerId, port.id),
-    width,
+    width: textWidth(port.label, minimumWidth, padding),
     height,
     labels: [{ text: String(port.label) }],
     layoutOptions: {
@@ -90,12 +90,14 @@ function buildGraph(model) {
   const parts = sortedById(Array.isArray(model.parts) ? model.parts : []);
   const externals = sortedById(Array.isArray(model.externals) ? model.externals : []);
   const connectors = sortedById(Array.isArray(model.connectors) ? model.connectors : []);
+  const componentPortSlotHeight = PORT_HEIGHT + 28;
+  const componentMinimumHeight = Math.max(220, 120 + componentPorts.length * componentPortSlotHeight);
 
   const componentNode = {
     id: nodeId("component", componentId),
     labels: [{ text: String(component.label) }],
     width: Math.max(360, textWidth(component.label, 0, 80)),
-    height: 220,
+    height: componentMinimumHeight,
     ports: componentPorts.map((port) => buildPort(componentId, port, PORT_WIDTH, PORT_HEIGHT)),
     children: parts.map((part) => {
       const ports = sortedById(Array.isArray(part.ports) ? part.ports : []);

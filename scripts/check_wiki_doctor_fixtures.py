@@ -9,9 +9,9 @@ import sys
 from pathlib import Path
 
 from check_whitebox_fixtures import (
+    DEFAULT_RENDER_BACKEND,
     DERIVED_VIEW_LABELS,
     DERIVED_VIEW_NAMES,
-    SIMPLE_RENDER_BACKEND,
     build_derived_view_models,
     derived_svg_file_name,
     load_source_model,
@@ -534,7 +534,7 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
             for error in validation_errors:
                 errors.append(error)
             if not validation_errors and svg_path and svg_path.exists() and isinstance(model, dict):
-                rendered_svg = render_svg(model, backend=SIMPLE_RENDER_BACKEND)
+                rendered_svg = render_svg(model, backend=DEFAULT_RENDER_BACKEND)
                 expected_svg = read_text(svg_path)
                 if rendered_svg != expected_svg:
                     errors.append(f"{rel(svg_path)} must be rendered from {rel(source_path)}")
@@ -556,7 +556,7 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                         continue
                     rendered_derived = render_svg(
                         derived_model,
-                        backend=SIMPLE_RENDER_BACKEND,
+                        backend=DEFAULT_RENDER_BACKEND,
                         view=whitebox_view(view_name),
                     )
                     if rendered_derived != read_text(derived_path):

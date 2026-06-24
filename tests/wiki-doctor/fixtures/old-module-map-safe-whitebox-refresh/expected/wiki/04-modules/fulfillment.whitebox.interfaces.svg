@@ -1,61 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1256" height="858" viewBox="0 0 1256 858" role="img" aria-labelledby="title desc">
   <title id="title">Interfaces Derived Whitebox View: Fulfillment Module</title>
   <desc id="desc">Interfaces Derived Whitebox View generated from the same Diagram Source Model; focuses on provided and required interface roles and interface assembly connectors; Order Intake.Stock Need required Stock Reservation -&gt; Inventory Client.Reservation API provided Stock Reservation; Order Intake.Label Need required Label Purchase -&gt; Carrier Client.Label API provided Label Purchase; Order Intake.Notify Need required Notification Dispatch -&gt; Notifier.Notification API provided Notification Dispatch</desc>
   <metadata data-derived-whitebox-view="interfaces">Interfaces Derived Whitebox View generated from the same Diagram Source Model; focuses on provided and required interface roles and interface assembly connectors</metadata>
-  <text data-derived-view-title="interfaces" x="480" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Interfaces Derived Whitebox View</text>
-  <text data-derived-view-source="interfaces" x="480" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Generated from the same Diagram Source Model</text>
+  <text data-derived-view-title="interfaces" x="628" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Interfaces Derived Whitebox View</text>
+  <text data-derived-view-source="interfaces" x="628" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Generated from the same Diagram Source Model</text>
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
     </marker>
   </defs>
-  <rect x="250" y="70" width="650" height="580" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
-  <text x="575" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Fulfillment Module</text>
-  <rect x="410" y="135" width="190" height="216" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-  <text x="505" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Order Intake</text>
-  <rect x="436" y="189" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="505" y="211" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Stock Need</text>
-  <line x1="436" y1="206" x2="416" y2="206" stroke="#6b7280" stroke-width="2" />
-  <path data-interface-role="required" data-owner="order_intake" data-port="stock_need" data-interface="stock_reservation" d="M 416 196 A 10 10 0 0 0 416 216" fill="none" stroke="#b45309" stroke-width="2" />
-  <text x="390" y="210" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Stock Reservation</text>
-  <rect x="436" y="237" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="505" y="259" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Label Need</text>
-  <line x1="436" y1="254" x2="416" y2="254" stroke="#6b7280" stroke-width="2" />
-  <path data-interface-role="required" data-owner="order_intake" data-port="label_need" data-interface="label_purchase" d="M 416 244 A 10 10 0 0 0 416 264" fill="none" stroke="#b45309" stroke-width="2" />
-  <text x="390" y="258" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Label Purchase</text>
-  <rect x="436" y="285" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="505" y="307" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notify Need</text>
-  <line x1="436" y1="302" x2="416" y2="302" stroke="#6b7280" stroke-width="2" />
-  <path data-interface-role="required" data-owner="order_intake" data-port="notify_need" data-interface="notification_dispatch" d="M 416 292 A 10 10 0 0 0 416 312" fill="none" stroke="#b45309" stroke-width="2" />
-  <text x="390" y="306" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
-  <rect x="680" y="135" width="190" height="216" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-  <text x="775" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Inventory Client</text>
-  <rect x="706" y="189" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="775" y="211" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Reservation API</text>
-  <line x1="844" y1="206" x2="864" y2="206" stroke="#6b7280" stroke-width="2" />
-  <circle data-interface-role="provided" data-owner="inventory_client" data-port="reservation_api" data-interface="stock_reservation" cx="874" cy="206" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
-  <text x="890" y="210" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Stock Reservation</text>
-  <rect x="410" y="399" width="190" height="216" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-  <text x="505" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Carrier Client</text>
-  <rect x="436" y="453" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="505" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Label API</text>
-  <line x1="574" y1="470" x2="594" y2="470" stroke="#6b7280" stroke-width="2" />
-  <circle data-interface-role="provided" data-owner="carrier_client" data-port="label_api" data-interface="label_purchase" cx="604" cy="470" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
-  <text x="620" y="474" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Label Purchase</text>
-  <rect x="680" y="399" width="190" height="216" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-  <text x="775" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Notifier</text>
-  <rect x="706" y="453" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-  <text x="775" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notification API</text>
-  <line x1="844" y1="470" x2="864" y2="470" stroke="#6b7280" stroke-width="2" />
-  <circle data-interface-role="provided" data-owner="notifier" data-port="notification_api" data-interface="notification_dispatch" cx="874" cy="470" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
-  <text x="890" y="474" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
-  <line x1="416" y1="206" x2="864" y2="206" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="640" y="169" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Stock Need required Stock Reservation -&gt; Inventory Client.Reservation API provided Stock Reservation</text>
-  <text x="640" y="256" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies stock reservation</text>
-  <line x1="416" y1="254" x2="594" y2="470" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="505" y="199" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Label Need required Label Purchase -&gt; Carrier Client.Label API provided Label Purchase</text>
-  <text x="505" y="536" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies label purchase</text>
-  <line x1="416" y1="302" x2="864" y2="470" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="640" y="229" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Notify Need required Notification Dispatch -&gt; Notifier.Notification API provided Notification Dispatch</text>
-  <text x="640" y="552" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies notification dispatch</text>
+  <rect data-node-kind="component" data-node-key="component:fulfillment_module" data-node-parent="root" x="80" y="80" width="1016" height="618" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text data-label-for="component:fulfillment_module" x="588" y="114" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Fulfillment Module</text>
+  <rect data-node-kind="part" data-node-key="part:order_intake" data-node-parent="component:fulfillment_module" x="200" y="160" width="190" height="204" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text data-label-for="part:order_intake" x="295" y="191" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Order Intake</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:order_intake.stock_need" data-node-parent="part:order_intake" x="390" y="186" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:order_intake.stock_need" x="459" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Stock Need</text>
+  <line x1="459" y1="186" x2="459" y2="166" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="order_intake" data-port="stock_need" data-interface="stock_reservation" data-symbol-cx="459" data-symbol-cy="156" d="M 449 166 A 10 10 0 0 1 469 166" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="459" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">Stock Reservation</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:order_intake.label_need" data-node-parent="part:order_intake" x="390" y="246" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:order_intake.label_need" x="459" y="267" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Label Need</text>
+  <line x1="528" y1="263" x2="548" y2="263" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="order_intake" data-port="label_need" data-interface="label_purchase" data-symbol-cx="558" data-symbol-cy="263" d="M 548 253 A 10 10 0 0 1 548 273" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="574" y="267" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Label Purchase</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:order_intake.notify_need" data-node-parent="part:order_intake" x="390" y="305" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:order_intake.notify_need" x="459" y="326" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notify Need</text>
+  <line x1="459" y1="339" x2="459" y2="359" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="order_intake" data-port="notify_need" data-interface="notification_dispatch" data-symbol-cx="459" data-symbol-cy="369" d="M 449 359 A 10 10 0 0 0 469 359" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="459" y="394" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
+  <rect data-node-kind="part" data-node-key="part:inventory_client" data-node-parent="component:fulfillment_module" x="766" y="144" width="190" height="118" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text data-label-for="part:inventory_client" x="861" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Inventory Client</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:inventory_client.reservation_api" data-node-parent="part:inventory_client" x="627" y="186" width="139" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:inventory_client.reservation_api" x="696" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Reservation API</text>
+  <line x1="696" y1="186" x2="696" y2="166" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="inventory_client" data-port="reservation_api" data-interface="stock_reservation" data-symbol-cx="696" data-symbol-cy="156" cx="696" cy="156" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="696" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">Stock Reservation</text>
+  <rect data-node-kind="part" data-node-key="part:carrier_client" data-node-parent="component:fulfillment_module" x="766" y="322" width="190" height="118" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text data-label-for="part:carrier_client" x="861" y="353" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Carrier Client</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:carrier_client.label_api" data-node-parent="part:carrier_client" x="628" y="364" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:carrier_client.label_api" x="697" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Label API</text>
+  <line x1="697" y1="364" x2="697" y2="344" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="carrier_client" data-port="label_api" data-interface="label_purchase" data-symbol-cx="697" data-symbol-cy="334" cx="697" cy="334" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="697" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">Label Purchase</text>
+  <rect data-node-kind="part" data-node-key="part:notifier" data-node-parent="component:fulfillment_module" x="766" y="500" width="190" height="118" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text data-label-for="part:notifier" x="861" y="531" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Notifier</text>
+  <rect data-node-kind="part_port" data-node-key="part_port:notifier.notification_api" data-node-parent="part:notifier" x="620" y="542" width="146" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text data-label-for="part_port:notifier.notification_api" x="693" y="563" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Notification API</text>
+  <line x1="693" y1="542" x2="693" y2="522" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="notifier" data-port="notification_api" data-interface="notification_dispatch" data-symbol-cx="693" data-symbol-cy="512" cx="693" cy="512" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="693" y="496" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">Notification Dispatch</text>
+  <polyline data-connector="intake_uses_inventory_reservation" points="459,156 696,156" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="696" y="138" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Stock Need required Stock Reservation -&gt; Inventory Client.Reservation API provided Stock Reservation</text>
+  <text x="696" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies stock reservation</text>
+  <polyline data-connector="intake_uses_carrier_label" points="558,263 549,263 549,381 697,334" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="549" y="349" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Label Need required Label Purchase -&gt; Carrier Client.Label API provided Label Purchase</text>
+  <text x="549" y="423" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies label purchase</text>
+  <polyline data-connector="intake_uses_notification_dispatch" points="459,369 539,322 539,559 693,512" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="539" y="513" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Intake.Notify Need required Notification Dispatch -&gt; Notifier.Notification API provided Notification Dispatch</text>
+  <text x="539" y="615" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">satisfies notification dispatch</text>
 </svg>
