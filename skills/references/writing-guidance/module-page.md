@@ -20,7 +20,7 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
 - 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
-- Module Boundary Map：每个 module 页面都必须包含 Whitebox Component Diagram，并以 `.whitebox.yaml` 作为 diagram fact source、生成的 `.whitebox.svg` 作为 reader-facing rendering。细节见 `skills/references/writing-blocks/whitebox-component.md`。
+- Module Boundary Map：每个 module 页面都必须包含完整的 Whitebox Component Diagram，并以 `.whitebox.yaml` 作为 diagram fact source、生成的 `.whitebox.svg` 作为 reader-facing rendering。Dense 图如果生成非空 Derived Whitebox Views，必须把这些派生阅读视图直接嵌入在完整图和 source model link 之后。细节见 `skills/references/writing-blocks/whitebox-component.md`。
 - 内部重要能力的自然语言说明；当内部能力和 public surfaces 的支撑关系会影响理解时，在 Whitebox Component Diagram 旁补充短段落、Public Surface table 或 Module Boundary block，不要用 prose 代替 diagram fact source。
 - Module rules：当前仍有效的边界约束、必须遵守 / 不应做、owner decision 或非显然约定。
 - 协作关系的方向、类型、稳定性和证据；关系复杂时使用 Dependency Map block。
@@ -47,7 +47,7 @@ Module 页面可以自然组合：
 
 - 模块定位。
 - 负责 / 不负责（Owns / Does not own）。
-- 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 同时链接 `.whitebox.svg` 和 `.whitebox.yaml`，并从 `.whitebox.yaml` 重新渲染 SVG。Dense 图如果生成 Derived Whitebox Views，应在完整图后直接内嵌展示，并用标题说明它们是同一 source model 的派生阅读视图。
+- 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 必须先展示完整 `.whitebox.svg`，紧挨着保留 `.whitebox.yaml` source model link，并从 `.whitebox.yaml` 重新渲染所有 SVG。Dense 图如果生成非空 Derived Whitebox Views，应在完整图和 source model link 后直接内嵌展示；每个派生图使用清楚的 `... Derived Whitebox View` 标题和 alt text，说明它们只是同一 source model 的派生阅读视图。
 - 对外入口（Public Surface table）或关键入口。
 - 协作对象（Collaborates with）。
 - 重要内部能力（Important internal capabilities）。
@@ -65,7 +65,7 @@ Module 页面可以自然组合：
 
 - 页面是否能让读者判断某个责任该不该归这个 module？
 - 是否区分了 module 边界和代码目录结构？
-- 是否包含 Whitebox Component Diagram 作为 Module Boundary Map，并同时链接 generated SVG 和 `.whitebox.yaml` source model？Dense 图的 Derived Whitebox Views 是否在完整图之后直接展示，且没有被写成独立事实源？
+- 是否包含 Whitebox Component Diagram 作为 Module Boundary Map，并同时链接 generated SVG 和 `.whitebox.yaml` source model？完整图是否永远排在第一位、没有被 Derived Whitebox Views 替代？Dense 图的非空 Derived Whitebox Views 是否在完整图和 source model link 之后直接展示，且标题、alt text 和说明都表明它们只是同一 source model 的派生阅读视图？
 - `.whitebox.yaml` 是否是唯一 fact source；SVG、Mermaid、PlantUML、draw.io XML、Markdown prose 或生成图片是否只作为 derived/rendered/sketch material？
 - 图中是否至少有一个 confirmed boundary port 连接到 external node；simple module 是否使用合法 empty whitebox 而不是无事实空盒？
 - 图中的 components、parts、ports、interfaces、externals 和 connectors 是否都有足够 evidence 或用户确认，没有把猜测写成稳定事实？

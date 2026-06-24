@@ -8,7 +8,17 @@ import re
 import sys
 from pathlib import Path
 
-from check_whitebox_fixtures import SIMPLE_RENDER_BACKEND, load_source_model, render_svg, validate_source_model
+from check_whitebox_fixtures import (
+    DERIVED_VIEW_LABELS,
+    DERIVED_VIEW_NAMES,
+    SIMPLE_RENDER_BACKEND,
+    build_derived_view_models,
+    derived_svg_file_name,
+    load_source_model,
+    render_svg,
+    validate_source_model,
+    whitebox_view,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +75,18 @@ BOUNDARY_WORDING_PATTERNS = [
     re.compile(r"\bsemantic correctness\b", re.IGNORECASE),
     re.compile(r"\bproves? wiki meaning\b", re.IGNORECASE),
 ]
+MARKDOWN_IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+
+def markdown_images(markdown: str) -> list[tuple[str, str, int, int]]:
+    return [
+        (match.group(1), match.group(2), match.start(), match.end())
+        for match in MARKDOWN_IMAGE.finditer(markdown)
+    ]
+
+
+def markdown_target_file_name(target: str) -> str:
+    return Path(target.strip("<>")).name
 
 
 def rel(path: Path) -> str:
@@ -211,6 +233,98 @@ def check_no_expected_whitebox_files(case_dir: Path) -> list[str]:
     return errors
 
 
+def check_module_page_whitebox_embeds(
+    module_page_path: Path,
+    module_page: str,
+    source_name: str,
+    complete_svg_name: str,
+    expected_derived_views: dict[str, str],
+    generated_derived_views: set[str],
+) -> list[str]:
+    errors: list[str] = []
+    images = markdown_images(module_page)
+    whitebox_images = [
+        (alt, target, start, end)
+        for alt, target, start, end in images
+        if ".whitebox" in markdown_target_file_name(target) and markdown_target_file_name(target).endswith(".svg")
+    ]
+
+    if not whitebox_images:
+        errors.append(f"{rel(module_page_path)} must embed the complete Whitebox SVG")
+        return errors
+
+    first_alt, first_target, first_start, first_end = whitebox_images[0]
+    if markdown_target_file_name(first_target) != complete_svg_name:
+        errors.append(f"{rel(module_page_path)} must embed the complete Whitebox SVG before derived views")
+
+    complete_images = [
+        (alt, target, start, end)
+        for alt, target, start, end in whitebox_images
+        if markdown_target_file_name(target) == complete_svg_name
+    ]
+    if not complete_images:
+        errors.append(f"{rel(module_page_path)} must link the rendered complete Whitebox SVG")
+        complete_start = first_start
+        complete_end = first_end
+    else:
+        _, _, complete_start, complete_end = complete_images[0]
+
+    source_link = f"[`{source_name}`](./{source_name})"
+    source_index = module_page.find(source_link)
+    if source_index == -1:
+        errors.append(f"{rel(module_page_path)} must link the Whitebox source model")
+    elif source_index < complete_end:
+        errors.append(f"{rel(module_page_path)} must keep the source model link after the complete diagram")
+
+    first_derived_start: int | None = None
+    for view_name, path_value in expected_derived_views.items():
+        derived_name = Path(path_value).name
+        derived_images = [
+            (alt, target, start, end)
+            for alt, target, start, end in whitebox_images
+            if markdown_target_file_name(target) == derived_name
+        ]
+        if not derived_images:
+            errors.append(f"{rel(module_page_path)} must embed the {view_name} Derived Whitebox View")
+            continue
+
+        label = DERIVED_VIEW_LABELS[view_name]
+        alt, _, image_start, _ = derived_images[0]
+        first_derived_start = image_start if first_derived_start is None else min(first_derived_start, image_start)
+        heading = f"### {label}"
+        heading_index = module_page.find(heading)
+        if heading_index == -1:
+            errors.append(f"{rel(module_page_path)} must head the {view_name} derived view as {heading!r}")
+        elif not (complete_start < heading_index < image_start):
+            errors.append(f"{rel(module_page_path)} must place {heading!r} before its derived SVG and after the complete diagram")
+        if label not in alt:
+            errors.append(f"{rel(module_page_path)} {view_name} derived SVG alt text must include {label!r}")
+
+    if source_index != -1 and first_derived_start is not None and first_derived_start < source_index:
+        errors.append(f"{rel(module_page_path)} must keep the source model link visible before derived views")
+
+    previous_position = source_index if source_index != -1 else complete_end
+    for view_name in DERIVED_VIEW_NAMES:
+        if view_name not in expected_derived_views:
+            continue
+        heading = f"### {DERIVED_VIEW_LABELS[view_name]}"
+        position = module_page.find(heading)
+        if position == -1:
+            continue
+        if position < previous_position:
+            errors.append(f"{rel(module_page_path)} must preserve derived view order after the source model link")
+        previous_position = position
+
+    for view_name in DERIVED_VIEW_NAMES:
+        if view_name in generated_derived_views:
+            continue
+        empty_view_file = derived_svg_file_name(Path(source_name), view_name)
+        if empty_view_file in module_page:
+            errors.append(f"{rel(module_page_path)} must not embed empty {view_name} Derived Whitebox View")
+
+    return errors
+
+
 def check_active_drift_gate(case_dir: Path, metadata: dict[str, object]) -> list[str]:
     errors: list[str] = []
     drift_path = case_dir / "input" / "wiki" / "07-drift.md"
@@ -352,7 +466,9 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
 
     source_value = metadata.get("whitebox_source")
     svg_value = metadata.get("whitebox_svg")
+    derived_value = metadata.get("whitebox_derived_svgs", {})
     module_page_value = metadata.get("module_page")
+    derived_paths: dict[str, str] = {}
     if not isinstance(source_value, str) or not source_value.endswith(".whitebox.yaml"):
         errors.append(f"{rel(case_dir / 'case.json')} must set whitebox_source")
         source_path = None
@@ -377,14 +493,32 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
         if not module_page_path.exists():
             errors.append(f"{rel(module_page_path)} must exist")
 
+    if not isinstance(derived_value, dict):
+        errors.append(f"{rel(case_dir / 'case.json')} whitebox_derived_svgs must be an object")
+    else:
+        for view_name, path_value in derived_value.items():
+            if view_name not in DERIVED_VIEW_NAMES:
+                errors.append(f"{rel(case_dir / 'case.json')} has unknown derived view {view_name!r}")
+                continue
+            if not isinstance(path_value, str) or not path_value.endswith(f".whitebox.{view_name}.svg"):
+                errors.append(f"{rel(case_dir / 'case.json')} must set {view_name} derived SVG path")
+                continue
+            derived_paths[view_name] = path_value
+
     if module_page_path and source_value and svg_value and module_page_path.exists():
         module_page = read_text(module_page_path)
         source_name = Path(source_value).name
         svg_name = Path(svg_value).name
-        if source_name not in module_page:
-            errors.append(f"{rel(module_page_path)} must link the Whitebox source model")
-        if svg_name not in module_page:
-            errors.append(f"{rel(module_page_path)} must link the rendered Whitebox SVG")
+        errors.extend(
+            check_module_page_whitebox_embeds(
+                module_page_path,
+                module_page,
+                source_name,
+                svg_name,
+                derived_paths,
+                set(derived_paths),
+            )
+        )
 
     if source_path and source_path.exists():
         source_text = read_text(source_path)
@@ -404,6 +538,49 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                 expected_svg = read_text(svg_path)
                 if rendered_svg != expected_svg:
                     errors.append(f"{rel(svg_path)} must be rendered from {rel(source_path)}")
+
+                derived_models = build_derived_view_models(model)
+                generated_views = set(derived_models)
+                if generated_views and not derived_paths:
+                    errors.append(f"{rel(case_dir / 'case.json')} must list generated Derived Whitebox View SVGs")
+                for view_name in sorted(set(derived_paths) - generated_views):
+                    errors.append(f"{rel(case_dir / 'case.json')} must not list empty {view_name} Derived Whitebox View")
+                for view_name, derived_model in derived_models.items():
+                    path_value = derived_paths.get(view_name)
+                    if path_value is None:
+                        errors.append(f"{rel(case_dir / 'case.json')} must list non-empty {view_name} Derived Whitebox View")
+                        continue
+                    derived_path = case_dir / "expected" / path_value
+                    if not derived_path.exists():
+                        errors.append(f"{rel(derived_path)} must exist")
+                        continue
+                    rendered_derived = render_svg(
+                        derived_model,
+                        backend=SIMPLE_RENDER_BACKEND,
+                        view=whitebox_view(view_name),
+                    )
+                    if rendered_derived != read_text(derived_path):
+                        errors.append(f"{rel(derived_path)} must be rendered from {rel(source_path)}")
+
+                expected_module_page = module_page_path if module_page_path and module_page_path.exists() else None
+                if expected_module_page is not None:
+                    errors.extend(
+                        check_module_page_whitebox_embeds(
+                            expected_module_page,
+                            read_text(expected_module_page),
+                            Path(source_value).name,
+                            Path(svg_value).name,
+                            derived_paths,
+                            generated_views,
+                        )
+                    )
+
+                for view_name in DERIVED_VIEW_NAMES:
+                    if view_name in generated_views:
+                        continue
+                    empty_view_path = source_path.parent / derived_svg_file_name(source_path, view_name)
+                    if empty_view_path.exists():
+                        errors.append(f"{rel(empty_view_path)} must be absent because the {view_name} derived view is empty")
 
     errors.extend(check_expected_text_requirements(case_dir, metadata))
     return errors

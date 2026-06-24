@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="500" viewBox="0 0 720 500" role="img" aria-labelledby="title desc">
+  <title id="title">Boundary Derived Whitebox View: Fulfillment Module</title>
+  <desc id="desc">Boundary Derived Whitebox View generated from the same Diagram Source Model; focuses on external nodes, enclosing component boundary ports, and external connectors; Checkout Flow -&gt; Submit Fulfillment; Returns Flow -&gt; Cancel Fulfillment; Operations Console -&gt; Fulfillment Status</desc>
+  <metadata data-derived-whitebox-view="boundary">Boundary Derived Whitebox View generated from the same Diagram Source Model; focuses on external nodes, enclosing component boundary ports, and external connectors</metadata>
+  <text data-derived-view-title="boundary" x="360" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Boundary Derived Whitebox View</text>
+  <text data-derived-view-source="boundary" x="360" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Generated from the same Diagram Source Model</text>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="250" y="70" width="390" height="360" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text x="445" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Fulfillment Module</text>
+  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Submit Fulfillment</text>
+  <rect x="220" y="230" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Cancel Fulfillment</text>
+  <rect x="220" y="300" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Fulfillment Status</text>
+  <rect x="60" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Checkout Flow</text>
+  <rect x="60" y="220" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Returns Flow</text>
+  <rect x="60" y="290" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="125" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Operations Console</text>
+  <line x1="190" y1="182" x2="220" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Checkout Flow -&gt; Submit Fulfillment</text>
+  <text x="205" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits fulfillment</text>
+  <line x1="190" y1="252" x2="220" y2="252" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Returns Flow -&gt; Cancel Fulfillment</text>
+  <text x="205" y="302" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">cancels fulfillment</text>
+  <line x1="190" y1="322" x2="220" y2="322" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="205" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Operations Console -&gt; Fulfillment Status</text>
+  <text x="205" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">reads fulfillment status</text>
+</svg>

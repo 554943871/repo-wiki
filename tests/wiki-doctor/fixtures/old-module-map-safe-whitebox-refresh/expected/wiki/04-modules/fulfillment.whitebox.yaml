@@ -3,16 +3,24 @@ version: 1
 interfaces:
 - id: stock_reservation
   label: Stock Reservation
+- id: label_purchase
+  label: Label Purchase
+- id: notification_dispatch
+  label: Notification Dispatch
 component:
   id: fulfillment_module
   label: Fulfillment Module
   evidence:
   - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-    lines: 1-19
+    lines: 1-29
     note: The old module map names Fulfillment Module as the enclosing module boundary.
   ports:
   - id: submit_fulfillment
     label: Submit Fulfillment
+  - id: cancel_fulfillment
+    label: Cancel Fulfillment
+  - id: fulfillment_status
+    label: Fulfillment Status
 parts:
 - id: order_intake
   label: Order Intake
@@ -23,6 +31,36 @@ parts:
     label: Stock Need
     requires:
     - stock_reservation
+  - id: label_need
+    label: Label Need
+    requires:
+    - label_purchase
+  - id: notify_need
+    label: Notify Need
+    requires:
+    - notification_dispatch
+- id: cancellation_desk
+  label: Cancellation Desk
+  ports:
+  - id: cancel_request
+    label: Cancel Request
+- id: status_projector
+  label: Status Projector
+  ports:
+  - id: read_status
+    label: Read Status
+- id: order_writer
+  label: Order Writer
+  ports:
+  - id: persistence_api
+    label: Persistence API
+  - id: audit_feed
+    label: Audit Feed
+- id: audit_logger
+  label: Audit Logger
+  ports:
+  - id: audit_api
+    label: Audit API
 - id: inventory_client
   label: Inventory Client
   ports:
@@ -30,9 +68,27 @@ parts:
     label: Reservation API
     provides:
     - stock_reservation
+- id: carrier_client
+  label: Carrier Client
+  ports:
+  - id: label_api
+    label: Label API
+    provides:
+    - label_purchase
+- id: notifier
+  label: Notifier
+  ports:
+  - id: notification_api
+    label: Notification API
+    provides:
+    - notification_dispatch
 externals:
 - id: checkout_flow
   label: Checkout Flow
+- id: returns_flow
+  label: Returns Flow
+- id: operations_console
+  label: Operations Console
 connectors:
 - id: checkout_submits_fulfillment
   type: external
@@ -43,23 +99,76 @@ connectors:
     note: The old map states Checkout flow starts fulfillment through Submit Fulfillment.
   from: checkout_flow
   to: fulfillment_module.submit_fulfillment
+- id: returns_cancel_fulfillment
+  type: external
+  label: cancels fulfillment
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '11'
+    note: The old map states Returns flow asks Fulfillment through Cancel Fulfillment.
+  from: returns_flow
+  to: fulfillment_module.cancel_fulfillment
+- id: operations_reads_status
+  type: external
+  label: reads fulfillment status
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '12'
+    note: The old map states Operations console reads fulfillment through Fulfillment Status.
+  from: operations_console
+  to: fulfillment_module.fulfillment_status
 - id: submit_fulfillment_delegates_to_intake
   type: delegation
   label: delegates request
   evidence:
   - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-    lines: '11'
+    lines: '13'
     note: The old map states Submit Fulfillment is delegated to Order Intake.
   from: fulfillment_module.submit_fulfillment
   to: order_intake.accept_request
+- id: cancel_fulfillment_delegates_to_cancellation
+  type: delegation
+  label: delegates cancellation
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '14'
+    note: The old map states Cancel Fulfillment is delegated to Cancellation Desk.
+  from: fulfillment_module.cancel_fulfillment
+  to: cancellation_desk.cancel_request
+- id: status_delegates_to_projector
+  type: delegation
+  label: delegates status read
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '15'
+    note: The old map states Fulfillment Status is delegated to Status Projector.
+  from: fulfillment_module.fulfillment_status
+  to: status_projector.read_status
+- id: intake_persists_order
+  type: assembly
+  label: persists accepted order
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '16'
+    note: The old map states Order Intake passes accepted orders to Order Writer.
+  from: order_intake.accept_request
+  to: order_writer.persistence_api
+- id: writer_publishes_audit
+  type: assembly
+  label: publishes audit records
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '17'
+    note: The old map states Order Writer publishes audit records to Audit Logger.
+  from: order_writer.audit_feed
+  to: audit_logger.audit_api
 - id: intake_uses_inventory_reservation
   type: interfaceAssembly
   label: satisfies stock reservation
   evidence:
   - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
-    lines: '12'
-    note: The old map states Order Intake delegates stock reservation needs to Inventory
-      Client.
+    lines: '18'
+    note: The old map states Order Intake delegates stock reservation needs to Inventory Client.
   from:
     owner: order_intake
     port: stock_need
@@ -69,4 +178,38 @@ connectors:
     owner: inventory_client
     port: reservation_api
     interface: stock_reservation
+    role: provided
+- id: intake_uses_carrier_label
+  type: interfaceAssembly
+  label: satisfies label purchase
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '19'
+    note: The old map states Order Intake delegates label purchase needs to Carrier Client.
+  from:
+    owner: order_intake
+    port: label_need
+    interface: label_purchase
+    role: required
+  to:
+    owner: carrier_client
+    port: label_api
+    interface: label_purchase
+    role: provided
+- id: intake_uses_notification_dispatch
+  type: interfaceAssembly
+  label: satisfies notification dispatch
+  evidence:
+  - path: tests/wiki-doctor/fixtures/old-module-map-safe-whitebox-refresh/input/wiki/04-modules/fulfillment.md
+    lines: '20'
+    note: The old map states Order Intake delegates notification dispatch needs to Notifier.
+  from:
+    owner: order_intake
+    port: notify_need
+    interface: notification_dispatch
+    role: required
+  to:
+    owner: notifier
+    port: notification_api
+    interface: notification_dispatch
     role: provided

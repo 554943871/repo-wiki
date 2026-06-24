@@ -17,6 +17,8 @@ Each fixture has:
 - `expected/report.md`: the expected final report shape.
 - Optional `expected/wiki/`: snippets that demonstrate required preservation, link updates, or no-write behavior.
 
+Whitebox refresh fixtures may include co-located `.whitebox.yaml`, the complete `.whitebox.svg`, and non-empty Derived Whitebox View SVGs. The module page should show the complete diagram first, keep the source model link visible, and then embed generated derived views as reader aids from the same source model.
+
 The cases intentionally stay small. They are not a replacement for LLM semantic review; they make boundary regressions visible when the skill text changes.
 
 ## Sample Refresh Demonstration

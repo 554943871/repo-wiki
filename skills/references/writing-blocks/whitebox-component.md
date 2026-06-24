@@ -22,26 +22,26 @@ Module 页面在 Module Boundary Map 位置同时链接 SVG 和 source model。�
 
 ![Checkout Module whitebox component diagram](./checkout.whitebox.svg)
 
-Source model: [`checkout.whitebox.yaml`](./checkout.whitebox.yaml)
+Source model: [`checkout.whitebox.yaml`](./checkout.whitebox.yaml) for the complete diagram and any derived views below.
 ```
 
-For dense diagrams, keep the complete view first and embed generated Derived Whitebox Views immediately after it with clear headings:
+For dense diagrams, keep the complete view first, keep the source model link visible beside the generated diagrams, and embed only non-empty generated Derived Whitebox Views immediately after the complete diagram and source model link:
 
 ```md
-### Boundary Derived View
+### Boundary Derived Whitebox View
 
-![Checkout Module boundary derived whitebox view](./checkout.whitebox.boundary.svg)
+![Checkout Module Boundary Derived Whitebox View](./checkout.whitebox.boundary.svg)
 
-### Delegation Derived View
+### Delegation Derived Whitebox View
 
-![Checkout Module delegation derived whitebox view](./checkout.whitebox.delegation.svg)
+![Checkout Module Delegation Derived Whitebox View](./checkout.whitebox.delegation.svg)
 
-### Assembly Derived View
+### Assembly Derived Whitebox View
 
-![Checkout Module assembly derived whitebox view](./checkout.whitebox.assembly.svg)
+![Checkout Module Assembly Derived Whitebox View](./checkout.whitebox.assembly.svg)
 ```
 
-Derived views are reader aids from the same source model. They do not replace the complete diagram and do not introduce additional source models.
+Derived views are reader aids from the same source model. They do not replace the complete diagram, do not introduce additional source models, and must never be treated as fact sources.
 
 The first standard derived views are:
 

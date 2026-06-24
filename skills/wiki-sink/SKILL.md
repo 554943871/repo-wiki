@@ -64,9 +64,11 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - Create or update the co-located `.whitebox.yaml` source model from confirmed repo evidence, existing wiki facts, or user confirmation.
    - Keep `.whitebox.yaml` as the only diagram fact source. Mermaid, PlantUML, draw.io XML, Markdown prose, generated SVG, and other generated images are not the fact source.
    - Include at least one confirmed boundary port connected to an external node. Simple modules may omit internal `parts`, but they still need this external interaction.
-   - Render the derived `.whitebox.svg` from the source model after source changes. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
+   - Render the complete `.whitebox.svg` from the source model after source changes. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
+   - For dense diagrams, render non-empty Derived Whitebox Views from the same source model with `python3 scripts/check_whitebox_fixtures.py render-derived <source.whitebox.yaml> <output-dir>` or the equivalent installed command. Embed only generated non-empty derived SVGs.
    - Validate the source model after edits. When the suite checker is available, use `python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>` or the equivalent installed command.
-   - Link both the generated SVG and the `.whitebox.yaml` source model from the module page Markdown.
+   - Link the complete generated SVG first, keep the `.whitebox.yaml` source model link visible beside it, then embed non-empty Derived Whitebox Views with clear `... Derived Whitebox View` headings and alt text.
+   - Treat every generated SVG, including derived SVGs, as reader-facing output only. Never read facts back out of a derived SVG, and never create extra source models for derived views.
    - If the evidence does not confirm a boundary port, external node, connector direction, internal part, interface role, or ownership boundary, ask the user or leave the fact out instead of filling a placeholder.
 8. Update the owner page and its canonical index together when the name, owner page, and boundary are confirmed. If a name conflict, unclear boundary, or unconfirmed owner would cause meaning loss, ask the user or leave it out instead of canonicalizing it.
 9. Ask the user before writing business intent, design rationale, page names, module names, or boundary decisions when evidence is not enough.
@@ -77,7 +79,7 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
 Report:
 
 - Wiki pages created or updated.
-- Module Whitebox Component Diagram source models and SVGs created, updated, rendered, validated, and linked, or why they were left incomplete.
+- Module Whitebox Component Diagram source models, complete SVGs, and non-empty derived SVGs created, updated, rendered, validated, and linked, or why they were left incomplete.
 - Canonical indexes maintained, or why an index update was skipped.
 - What evidence or confirmation supported the write.
 - Any knowledge intentionally left out because it was unconfirmed or too implementation-local.
