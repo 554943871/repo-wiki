@@ -1,2 +1,4 @@
+source model must not contain layout hint field: aspectRatio
 source model must not contain layout hint field: component.ports[0].x
+unsupported top-level field: aspectRatio
 component.ports[0] unsupported field: x

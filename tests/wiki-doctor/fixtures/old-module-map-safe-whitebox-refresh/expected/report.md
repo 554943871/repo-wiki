@@ -15,11 +15,11 @@ Changed pages:
 Whitebox files refreshed:
 
 - `wiki/04-modules/fulfillment.whitebox.yaml`: source model created from existing module-map facts.
-- `wiki/04-modules/fulfillment.whitebox.svg`: complete diagram rendered from the source model and linked first from the module page.
-- `wiki/04-modules/fulfillment.whitebox.boundary.svg`: non-empty Boundary Derived Whitebox View rendered from the same source model.
-- `wiki/04-modules/fulfillment.whitebox.delegation.svg`: non-empty Delegation Derived Whitebox View rendered from the same source model.
-- `wiki/04-modules/fulfillment.whitebox.assembly.svg`: non-empty Assembly Derived Whitebox View rendered from the same source model.
-- `wiki/04-modules/fulfillment.whitebox.interfaces.svg`: non-empty Interfaces Derived Whitebox View rendered from the same source model.
+- `wiki/04-modules/assets/fulfillment.whitebox.svg`: complete diagram rendered from the source model and linked first from the module page.
+- `wiki/04-modules/assets/fulfillment.whitebox.boundary.svg`: non-empty Boundary Derived Whitebox View rendered from the same source model.
+- `wiki/04-modules/assets/fulfillment.whitebox.delegation.svg`: non-empty Delegation Derived Whitebox View rendered from the same source model.
+- `wiki/04-modules/assets/fulfillment.whitebox.assembly.svg`: non-empty Assembly Derived Whitebox View rendered from the same source model.
+- `wiki/04-modules/assets/fulfillment.whitebox.interfaces.svg`: non-empty Interfaces Derived Whitebox View rendered from the same source model.
 
 Derived Whitebox Views embedded after the complete diagram:
 

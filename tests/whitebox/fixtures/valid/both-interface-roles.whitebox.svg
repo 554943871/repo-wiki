@@ -8,17 +8,16 @@
   </defs>
   <rect x="250" y="70" width="390" height="220" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
   <text x="445" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Checkout Module</text>
-  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Submit Order</text>
-  <line x1="340" y1="169" x2="360" y2="169" stroke="#6b7280" stroke-width="2" />
-  <circle data-interface-role="provided" data-owner="checkout_module" data-port="submit_order" data-interface="order_submission" cx="370" cy="169" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
-  <text x="386" y="173" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Order Submission</text>
-  <line x1="340" y1="195" x2="360" y2="195" stroke="#6b7280" stroke-width="2" />
-  <path data-interface-role="required" data-owner="checkout_module" data-port="submit_order" data-interface="payment_authorization" d="M 360 185 A 10 10 0 0 1 360 205" fill="none" stroke="#b45309" stroke-width="2" />
-  <text x="386" y="199" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
-  <rect x="60" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">External Actor</text>
-  <line x1="190" y1="182" x2="220" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">External Actor -&gt; Submit Order</text>
-  <text x="205" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits order</text>
+  <rect x="190" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Submit Order</text>
+  <line x1="310" y1="169" x2="330" y2="169" stroke="#6b7280" stroke-width="2" />
+  <circle data-interface-role="provided" data-owner="checkout_module" data-port="submit_order" data-interface="order_submission" cx="340" cy="169" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+  <text x="356" y="173" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Order Submission</text>
+  <line x1="310" y1="195" x2="330" y2="195" stroke="#6b7280" stroke-width="2" />
+  <path data-interface-role="required" data-owner="checkout_module" data-port="submit_order" data-interface="payment_authorization" d="M 330 185 A 10 10 0 0 1 330 205" fill="none" stroke="#b45309" stroke-width="2" />
+  <text x="356" y="199" text-anchor="start" font-family="Arial, sans-serif" font-size="11" fill="#374151">Payment Authorization</text>
+  <rect x="40" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">External Actor</text>
+  <line x1="170" y1="182" x2="190" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits order</text>
 </svg>

@@ -89,6 +89,28 @@ def markdown_target_file_name(target: str) -> str:
     return Path(target.strip("<>")).name
 
 
+def markdown_target_path(target: str) -> str:
+    return target.strip("<>")
+
+
+def expected_markdown_target(module_page_value: str, artifact_value: str) -> str:
+    module_parent = Path(module_page_value).parent
+    artifact_path = Path(artifact_value)
+    try:
+        relative_artifact = artifact_path.relative_to(module_parent)
+    except ValueError:
+        relative_artifact = artifact_path
+    return f"./{relative_artifact.as_posix()}"
+
+
+def whitebox_svg_assets_path_error(source_value: str, svg_value: str, field_path: Path) -> str | None:
+    source_parent = Path(source_value).parent
+    svg_parent = Path(svg_value).parent
+    if svg_parent != source_parent / "assets":
+        return f"{rel(field_path)} generated Whitebox SVGs must live under the source model directory's assets/ subdirectory"
+    return None
+
+
 def rel(path: Path) -> str:
     return str(path.relative_to(ROOT))
 
@@ -237,7 +259,7 @@ def check_module_page_whitebox_embeds(
     module_page_path: Path,
     module_page: str,
     source_name: str,
-    complete_svg_name: str,
+    complete_svg_target: str,
     expected_derived_views: dict[str, str],
     generated_derived_views: set[str],
 ) -> list[str]:
@@ -254,13 +276,13 @@ def check_module_page_whitebox_embeds(
         return errors
 
     first_alt, first_target, first_start, first_end = whitebox_images[0]
-    if markdown_target_file_name(first_target) != complete_svg_name:
+    if markdown_target_path(first_target) != complete_svg_target:
         errors.append(f"{rel(module_page_path)} must embed the complete Whitebox SVG before derived views")
 
     complete_images = [
         (alt, target, start, end)
         for alt, target, start, end in whitebox_images
-        if markdown_target_file_name(target) == complete_svg_name
+        if markdown_target_path(target) == complete_svg_target
     ]
     if not complete_images:
         errors.append(f"{rel(module_page_path)} must link the rendered complete Whitebox SVG")
@@ -277,12 +299,11 @@ def check_module_page_whitebox_embeds(
         errors.append(f"{rel(module_page_path)} must keep the source model link after the complete diagram")
 
     first_derived_start: int | None = None
-    for view_name, path_value in expected_derived_views.items():
-        derived_name = Path(path_value).name
+    for view_name, derived_target in expected_derived_views.items():
         derived_images = [
             (alt, target, start, end)
             for alt, target, start, end in whitebox_images
-            if markdown_target_file_name(target) == derived_name
+            if markdown_target_path(target) == derived_target
         ]
         if not derived_images:
             errors.append(f"{rel(module_page_path)} must embed the {view_name} Derived Whitebox View")
@@ -474,6 +495,8 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
         source_path = None
     else:
         source_path = case_dir / "expected" / source_value
+        if Path(source_value).parent.name == "assets":
+            errors.append(f"{rel(case_dir / 'case.json')} whitebox_source must stay beside the module page, not under assets/")
         if not source_path.exists():
             errors.append(f"{rel(source_path)} must exist")
 
@@ -482,6 +505,10 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
         svg_path = None
     else:
         svg_path = case_dir / "expected" / svg_value
+        if isinstance(source_value, str):
+            path_error = whitebox_svg_assets_path_error(source_value, svg_value, case_dir / "case.json")
+            if path_error:
+                errors.append(path_error)
         if not svg_path.exists():
             errors.append(f"{rel(svg_path)} must exist")
 
@@ -503,19 +530,27 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
             if not isinstance(path_value, str) or not path_value.endswith(f".whitebox.{view_name}.svg"):
                 errors.append(f"{rel(case_dir / 'case.json')} must set {view_name} derived SVG path")
                 continue
+            if isinstance(source_value, str):
+                path_error = whitebox_svg_assets_path_error(source_value, path_value, case_dir / "case.json")
+                if path_error:
+                    errors.append(path_error)
             derived_paths[view_name] = path_value
 
     if module_page_path and source_value and svg_value and module_page_path.exists():
         module_page = read_text(module_page_path)
         source_name = Path(source_value).name
-        svg_name = Path(svg_value).name
+        svg_target = expected_markdown_target(module_page_value, svg_value)
+        derived_targets = {
+            view_name: expected_markdown_target(module_page_value, path_value)
+            for view_name, path_value in derived_paths.items()
+        }
         errors.extend(
             check_module_page_whitebox_embeds(
                 module_page_path,
                 module_page,
                 source_name,
-                svg_name,
-                derived_paths,
+                svg_target,
+                derived_targets,
                 set(derived_paths),
             )
         )
@@ -569,8 +604,11 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                             expected_module_page,
                             read_text(expected_module_page),
                             Path(source_value).name,
-                            Path(svg_value).name,
-                            derived_paths,
+                            expected_markdown_target(module_page_value, svg_value),
+                            {
+                                view_name: expected_markdown_target(module_page_value, path_value)
+                                for view_name, path_value in derived_paths.items()
+                            },
                             generated_views,
                         )
                     )

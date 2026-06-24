@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1021" height="592" viewBox="0 0 1021 592" role="img" aria-labelledby="title desc">
   <title id="title">Boundary Derived Whitebox View: Fulfillment Module</title>
   <desc id="desc">Boundary Derived Whitebox View generated from the same Diagram Source Model; focuses on external nodes, enclosing component boundary ports, and external connectors; Checkout Flow -&gt; Submit Fulfillment; Returns Flow -&gt; Cancel Fulfillment; Operations Console -&gt; Fulfillment Status</desc>
+  <metadata data-layout-policy="viewport-readable" data-layout-candidate="right-default" data-layout-direction="RIGHT" data-layout-wrapping="OFF" data-layout-aspect-ratio="1.725" data-layout-score="188.08" data-layout-candidate-count="4" data-layout-rejected-candidate-count="1"></metadata>
   <metadata data-derived-whitebox-view="boundary">Boundary Derived Whitebox View generated from the same Diagram Source Model; focuses on external nodes, enclosing component boundary ports, and external connectors</metadata>
   <text data-derived-view-title="boundary" x="510" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Boundary Derived Whitebox View</text>
   <text data-derived-view-source="boundary" x="510" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Generated from the same Diagram Source Model</text>
@@ -11,25 +12,22 @@
   </defs>
   <rect data-node-kind="component" data-node-key="component:fulfillment_module" data-node-parent="root" x="501" y="88" width="360" height="336" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
   <text data-label-for="component:fulfillment_module" x="681" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Fulfillment Module</text>
-  <rect data-node-kind="component_port" data-node-key="component_port:submit_fulfillment" data-node-parent="component:fulfillment_module" x="341" y="139" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text data-label-for="component_port:submit_fulfillment" x="421" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Submit Fulfillment</text>
-  <rect data-node-kind="component_port" data-node-key="component_port:cancel_fulfillment" data-node-parent="component:fulfillment_module" x="341" y="329" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text data-label-for="component_port:cancel_fulfillment" x="421" y="356" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Cancel Fulfillment</text>
-  <rect data-node-kind="component_port" data-node-key="component_port:fulfillment_status" data-node-parent="component:fulfillment_module" x="341" y="234" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text data-label-for="component_port:fulfillment_status" x="421" y="261" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Fulfillment Status</text>
+  <rect data-node-kind="component_port" data-node-key="component_port:submit_fulfillment" data-node-parent="component:fulfillment_module" x="421" y="139" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text data-label-for="component_port:submit_fulfillment" x="501" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Submit Fulfillment</text>
+  <rect data-node-kind="component_port" data-node-key="component_port:cancel_fulfillment" data-node-parent="component:fulfillment_module" x="421" y="329" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text data-label-for="component_port:cancel_fulfillment" x="501" y="356" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Cancel Fulfillment</text>
+  <rect data-node-kind="component_port" data-node-key="component_port:fulfillment_status" data-node-parent="component:fulfillment_module" x="421" y="234" width="160" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text data-label-for="component_port:fulfillment_status" x="501" y="261" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Fulfillment Status</text>
   <rect data-node-kind="external" data-node-key="external:checkout_flow" data-node-parent="root" x="90" y="80" width="150" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
   <text data-label-for="external:checkout_flow" x="165" y="117" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Checkout Flow</text>
   <rect data-node-kind="external" data-node-key="external:returns_flow" data-node-parent="root" x="90" y="368" width="150" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
   <text data-label-for="external:returns_flow" x="165" y="405" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Returns Flow</text>
   <rect data-node-kind="external" data-node-key="external:operations_console" data-node-parent="root" x="80" y="224" width="160" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
   <text data-label-for="external:operations_console" x="160" y="261" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Operations Console</text>
-  <polyline data-connector="checkout_submits_fulfillment" points="240,112 280,112 280,161 341,161" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="280" y="143" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Checkout Flow -&gt; Submit Fulfillment</text>
-  <text x="280" y="189" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits fulfillment</text>
-  <polyline data-connector="returns_cancel_fulfillment" points="240,400 280,400 280,351 341,351" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="280" y="319" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Returns Flow -&gt; Cancel Fulfillment</text>
-  <text x="280" y="393" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">cancels fulfillment</text>
-  <polyline data-connector="operations_reads_status" points="240,256 341,256" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="341" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Operations Console -&gt; Fulfillment Status</text>
-  <text x="341" y="312" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">reads fulfillment status</text>
+  <polyline data-connector="checkout_submits_fulfillment" points="240,112 280,112 280,161 421,161" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="280" y="143" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">submits fulfillment</text>
+  <polyline data-connector="returns_cancel_fulfillment" points="240,400 280,400 280,351 421,351" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="280" y="319" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">cancels fulfillment</text>
+  <polyline data-connector="operations_reads_status" points="240,256 421,256" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="421" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">reads fulfillment status</text>
 </svg>

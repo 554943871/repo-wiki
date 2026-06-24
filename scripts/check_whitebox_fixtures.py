@@ -74,16 +74,22 @@ ALLOWED_INTERFACE_ROLE_ENDPOINT_FIELDS = {"owner", "port", "interface", "role"}
 CONNECTOR_TYPES = {"external", "delegation", "assembly", "interfaceAssembly"}
 INTERFACE_ROLES = {"provided", "required"}
 LAYOUT_HINT_FIELDS = {
+    "aspect",
+    "aspectRatio",
+    "candidate",
     "canvas",
     "coordinate",
     "coordinates",
+    "direction",
     "height",
     "layout",
+    "layoutCandidate",
     "order",
     "position",
     "rank",
     "route",
     "routing",
+    "wrapping",
     "width",
     "x",
     "y",
@@ -119,6 +125,13 @@ AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND, ELK_RENDER_BACKEND
 ELK_LAYOUT_HELPER = ROOT / "scripts" / "elk_whitebox_layout.mjs"
 ELK_PACKAGE_ENTRY = ROOT / "node_modules" / "elkjs" / "lib" / "elk.bundled.js"
 MAX_ELK_CANVAS_ASPECT_RATIO = 6.0
+VIEWPORT_LAYOUT_POLICY = "viewport-readable"
+ELK_LAYOUT_CANDIDATES = frozenset({
+    "right-default",
+    "right-balanced",
+    "right-wrapped",
+    "down-balanced",
+})
 SVG_LABEL_WIDTH_FACTOR = 0.52
 SVG_LABEL_OVERFLOW_TOLERANCE = 8
 DERIVED_VIEW_NAMES = ("boundary", "delegation", "assembly", "interfaces")
@@ -250,6 +263,15 @@ def load_source_model(path: Path) -> tuple[Any | None, list[str]]:
         return None, [f"{rel(path)} is not valid YAML: {exc}"]
 
 
+def evidence_base_for_source(source_path: Path) -> Path:
+    resolved = source_path.resolve()
+    parts = resolved.parts
+    for index in range(len(parts) - 1, -1, -1):
+        if parts[index] == "wiki":
+            return Path(*parts[:index])
+    return ROOT
+
+
 def type_name(value: object) -> str:
     return type(value).__name__
 
@@ -323,7 +345,12 @@ def check_line_range(value: object, field_path: str, errors: list[str]) -> None:
         errors.append(f"{field_path} must be a line string like '12' or '12-18'")
 
 
-def check_evidence(value: object, field_path: str, errors: list[str]) -> None:
+def check_evidence(
+    value: object,
+    field_path: str,
+    errors: list[str],
+    evidence_base: Path = ROOT,
+) -> None:
     entries = expect_list(value, field_path, errors)
     if entries is None:
         return
@@ -366,7 +393,7 @@ def check_evidence(value: object, field_path: str, errors: list[str]) -> None:
             evidence_path = Path(path_value)
             if evidence_path.is_absolute() or ".." in evidence_path.parts:
                 errors.append(f"{entry_path}.path must be repo-relative")
-            elif not (ROOT / evidence_path).exists():
+            elif not (evidence_base / evidence_path).exists():
                 errors.append(f"{entry_path}.path does not exist: {path_value}")
 
 
@@ -555,7 +582,7 @@ def connector_endpoint_error(connector_type: object, connector_path: str) -> str
     return f"{connector_path}.type must be external, delegation, assembly, or interfaceAssembly"
 
 
-def validate_source_model(model: object) -> list[str]:
+def validate_source_model(model: object, evidence_base: Path = ROOT) -> list[str]:
     errors: list[str] = []
     root = expect_mapping(model, "source model", errors)
     if root is None:
@@ -606,7 +633,7 @@ def validate_source_model(model: object) -> list[str]:
         if "evidence" not in component:
             errors.append("component.evidence is required")
         else:
-            check_evidence(component.get("evidence"), "component.evidence", errors)
+            check_evidence(component.get("evidence"), "component.evidence", errors, evidence_base)
 
         ports = expect_list(component.get("ports"), "component.ports", errors)
         if ports is not None:
@@ -656,7 +683,7 @@ def validate_source_model(model: object) -> list[str]:
                         errors.append(f"{part_path}.id duplicates part: {part_id}")
                     part_ids.add(part_id)
                 if "evidence" in part:
-                    check_evidence(part.get("evidence"), f"{part_path}.evidence", errors)
+                    check_evidence(part.get("evidence"), f"{part_path}.evidence", errors, evidence_base)
 
                 ports = expect_list(part.get("ports"), f"{part_path}.ports", errors)
                 if ports is not None:
@@ -790,7 +817,7 @@ def validate_source_model(model: object) -> list[str]:
             if "evidence" not in connector:
                 errors.append(f"{connector_path}.evidence is required")
             else:
-                check_evidence(connector.get("evidence"), f"{connector_path}.evidence", errors)
+                check_evidence(connector.get("evidence"), f"{connector_path}.evidence", errors, evidence_base)
 
     for port_id in sorted(component_port_ids - connected_component_ports):
         errors.append(f"component port {port_id} must participate in a connector")
@@ -1247,6 +1274,24 @@ def derived_view_metadata_lines(view: WhiteboxView | None, canvas_width: int) ->
     ]
 
 
+def layout_candidate_metadata_line(layout: dict[str, object]) -> str:
+    policy = layout.get("layoutPolicy")
+    if not isinstance(policy, dict):
+        return ""
+    attrs = {
+        "data-layout-policy": policy.get("policy", ""),
+        "data-layout-candidate": policy.get("selectedCandidate", ""),
+        "data-layout-direction": policy.get("direction", ""),
+        "data-layout-wrapping": policy.get("wrapping", ""),
+        "data-layout-aspect-ratio": policy.get("aspectRatio", ""),
+        "data-layout-score": policy.get("score", ""),
+        "data-layout-candidate-count": policy.get("candidateCount", ""),
+        "data-layout-rejected-candidate-count": policy.get("rejectedCandidateCount", ""),
+    }
+    attr_text = " ".join(f'{name}="{svg_attr(value)}"' for name, value in attrs.items())
+    return f"  <metadata {attr_text}></metadata>"
+
+
 def svg_attr(value: object) -> str:
     return html.escape(str(value), quote=True)
 
@@ -1397,6 +1442,20 @@ def layout_edge_points(layout: dict[str, object], connector_id: str) -> list[tup
 def infer_port_side(port_box: tuple[int, int, int, int], owner_box: tuple[int, int, int, int]) -> str:
     port_x, port_y, port_width, port_height = port_box
     owner_x, owner_y, owner_width, owner_height = owner_box
+    port_right = port_x + port_width
+    port_bottom = port_y + port_height
+    owner_right = owner_x + owner_width
+    owner_bottom = owner_y + owner_height
+    vertical_overlap = port_y < owner_bottom and port_bottom > owner_y
+    horizontal_overlap = port_x < owner_right and port_right > owner_x
+    if port_right <= owner_x and vertical_overlap:
+        return "left"
+    if port_x >= owner_right and vertical_overlap:
+        return "right"
+    if port_bottom <= owner_y and horizontal_overlap:
+        return "top"
+    if port_y >= owner_bottom and horizontal_overlap:
+        return "bottom"
     center_x = port_x + port_width / 2
     center_y = port_y + port_height / 2
     distances = {
@@ -1408,9 +1467,35 @@ def infer_port_side(port_box: tuple[int, int, int, int], owner_box: tuple[int, i
     return min(distances, key=distances.get)
 
 
+def straddle_owner_boundary(
+    port_box: tuple[int, int, int, int],
+    owner_box: tuple[int, int, int, int],
+) -> tuple[int, int, int, int]:
+    port_x, port_y, port_width, port_height = port_box
+    owner_x, owner_y, owner_width, owner_height = owner_box
+    side = infer_port_side(port_box, owner_box)
+    if side == "left":
+        return owner_x - port_width // 2, port_y, port_width, port_height
+    if side == "right":
+        return owner_x + owner_width - port_width // 2, port_y, port_width, port_height
+    if side == "top":
+        return port_x, owner_y - port_height // 2, port_width, port_height
+    return port_x, owner_y + owner_height - port_height // 2, port_width, port_height
+
+
 def box_center(box: tuple[int, int, int, int]) -> tuple[int, int]:
     x, y, width, height = box
     return x + width // 2, y + height // 2
+
+
+def box_anchor_towards(box: tuple[int, int, int, int], neighbor: tuple[int, int]) -> tuple[int, int]:
+    x, y, width, height = box
+    center_x, center_y = box_center(box)
+    delta_x = neighbor[0] - center_x
+    delta_y = neighbor[1] - center_y
+    if abs(delta_x) >= abs(delta_y):
+        return (x + width if delta_x >= 0 else x, center_y)
+    return (center_x, y + height if delta_y >= 0 else y)
 
 
 def connector_endpoint_point(
@@ -1420,6 +1505,18 @@ def connector_endpoint_point(
     interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]],
 ) -> tuple[int, int]:
     return box_center(endpoint_box_from_layout(endpoint, component, layout, interface_role_positions))
+
+
+def connector_endpoint_anchor(
+    endpoint: object,
+    component: dict[str, object],
+    layout: dict[str, object],
+    interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]],
+    neighbor: tuple[int, int],
+) -> tuple[int, int]:
+    if isinstance(endpoint, dict):
+        return connector_endpoint_point(endpoint, component, layout, interface_role_positions)
+    return box_anchor_towards(endpoint_box_from_layout(endpoint, component, layout, interface_role_positions), neighbor)
 
 
 def endpoint_box_from_layout(
@@ -1434,8 +1531,14 @@ def endpoint_box_from_layout(
             return layout_box(layout, f"externals.{endpoint}")
         owner_id, port_id = endpoint.split(".", 1)
         if owner_id == component_id:
-            return layout_box(layout, f"componentPorts.{port_id}")
-        return layout_box(layout, f"partPorts.{owner_id}.{port_id}")
+            return straddle_owner_boundary(
+                layout_box(layout, f"componentPorts.{port_id}"),
+                layout_box(layout, "component"),
+            )
+        return straddle_owner_boundary(
+            layout_box(layout, f"partPorts.{owner_id}.{port_id}"),
+            layout_box(layout, f"parts.{owner_id}"),
+        )
     return interface_role_positions[endpoint_role_key(endpoint)]
 
 
@@ -1473,6 +1576,9 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
         lines.append(
             f'  <metadata data-diagram-complexity-signal="dense">{html.escape(format_complexity_signal(complexity))}</metadata>'
         )
+    layout_metadata = layout_candidate_metadata_line(layout)
+    if layout_metadata:
+        lines.append(layout_metadata)
     lines.extend(derived_view_metadata_lines(view, canvas_width))
     lines.extend([
         "  <defs>",
@@ -1581,7 +1687,10 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
             render_interface_role(owner_id, port_id, interface_id, role, side, port_box, offset)
 
     for port_id, port in ports.items():
-        x, y, width, height = layout_box(layout, f"componentPorts.{port_id}")
+        x, y, width, height = straddle_owner_boundary(
+            layout_box(layout, f"componentPorts.{port_id}"),
+            component_box,
+        )
         port_key = svg_node_key("component_port", port_id)
         lines.extend([
             f'  <rect {svg_node_attrs("component_port", port_key, component_key)} x="{x}" y="{y}" width="{width}" height="{height}" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />',
@@ -1601,7 +1710,10 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
             if not isinstance(port, dict) or "id" not in port:
                 continue
             port_id = str(port["id"])
-            port_box = layout_box(layout, f"partPorts.{part_id}.{port_id}")
+            port_box = straddle_owner_boundary(
+                layout_box(layout, f"partPorts.{part_id}.{port_id}"),
+                part_box,
+            )
             port_x, port_y, port_width, port_height = port_box
             port_key = svg_node_key("part_port", part_id, port_id)
             lines.extend([
@@ -1623,9 +1735,6 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
         connector_id = str(connector["id"])
         source = connector["from"]
         target = connector["to"]
-        source_label = endpoint_label(source, component, interfaces, ports, parts, part_ports, externals)
-        target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
-        direction_label = f"{source_label} -> {target_label}"
         routed_points = layout_edge_points(layout, connector_id)
         if len(routed_points) < 2:
             raise WhiteboxRenderError(
@@ -1635,22 +1744,31 @@ def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -
             raise WhiteboxRenderError(
                 f"ELK Whitebox layout returned out-of-canvas edge points for connector {connector_id}"
             )
-        points = routed_points
-        if isinstance(source, dict):
-            points[0] = connector_endpoint_point(source, component, layout, interface_role_positions)
-        if isinstance(target, dict):
-            points[-1] = connector_endpoint_point(target, component, layout, interface_role_positions)
+        points = list(routed_points)
+        points[0] = connector_endpoint_anchor(
+            source,
+            component,
+            layout,
+            interface_role_positions,
+            routed_points[1],
+        )
+        points[-1] = connector_endpoint_anchor(
+            target,
+            component,
+            layout,
+            interface_role_positions,
+            routed_points[-2],
+        )
         point_text = " ".join(f"{x},{y}" for x, y in points)
         midpoint = points[len(points) // 2]
         label_y = max(18, midpoint[1] - 18 - connector_index % 3 * 14)
-        lines.extend([
-            f'  <polyline data-connector="{html.escape(connector_id)}" points="{point_text}" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
-            f'  <text x="{midpoint[0]}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">{html.escape(direction_label)}</text>',
-        ])
+        lines.append(
+            f'  <polyline data-connector="{html.escape(connector_id)}" points="{point_text}" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />'
+        )
         label = connector.get("label")
         if isinstance(label, str) and label.strip():
             lines.append(
-                f'  <text x="{midpoint[0]}" y="{midpoint[1] + 28 + connector_index % 3 * 14}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">{html.escape(label)}</text>'
+                f'  <text x="{midpoint[0]}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">{html.escape(label)}</text>'
             )
 
     lines.append("</svg>")
@@ -1672,6 +1790,14 @@ def svg_attributes(tag: str) -> dict[str, str]:
         match.group(1): html.unescape(match.group(2))
         for match in re.finditer(r'([A-Za-z_:][-A-Za-z0-9_:.]*)="([^"]*)"', tag)
     }
+
+
+def svg_metadata_with_attribute(svg: str, attribute_name: str) -> dict[str, str] | None:
+    for tag_match in re.finditer(r"<metadata\b[^>]*>", svg):
+        attributes = svg_attributes(tag_match.group(0))
+        if attribute_name in attributes:
+            return attributes
+    return None
 
 
 def svg_polyline_points(points: str) -> list[tuple[int, int]]:
@@ -1734,6 +1860,13 @@ def svg_node_labels(svg: str) -> list[SvgNodeLabel]:
     return labels
 
 
+def svg_text_contents(svg: str) -> list[str]:
+    contents: list[str] = []
+    for tag_match in re.finditer(r"<text\b[^>]*>(.*?)</text>", svg):
+        contents.append(html.unescape(re.sub(r"<[^>]+>", "", tag_match.group(1))).strip())
+    return contents
+
+
 def boxes_overlap(left: SvgNodeBox, right: SvgNodeBox) -> bool:
     return (
         left.x < right.x + right.width
@@ -1741,6 +1874,38 @@ def boxes_overlap(left: SvgNodeBox, right: SvgNodeBox) -> bool:
         and left.y < right.y + right.height
         and left.y + left.height > right.y
     )
+
+
+def intervals_overlap(left_start: int, left_end: int, right_start: int, right_end: int) -> bool:
+    return left_start < right_end and left_end > right_start
+
+
+def box_straddles_owner_boundary(port_box: SvgNodeBox, owner_box: SvgNodeBox) -> bool:
+    port_left = port_box.x
+    port_right = port_box.x + port_box.width
+    port_top = port_box.y
+    port_bottom = port_box.y + port_box.height
+    owner_left = owner_box.x
+    owner_right = owner_box.x + owner_box.width
+    owner_top = owner_box.y
+    owner_bottom = owner_box.y + owner_box.height
+    crosses_left = (
+        port_left < owner_left < port_right
+        and intervals_overlap(port_top, port_bottom, owner_top, owner_bottom)
+    )
+    crosses_right = (
+        port_left < owner_right < port_right
+        and intervals_overlap(port_top, port_bottom, owner_top, owner_bottom)
+    )
+    crosses_top = (
+        port_top < owner_top < port_bottom
+        and intervals_overlap(port_left, port_right, owner_left, owner_right)
+    )
+    crosses_bottom = (
+        port_top < owner_bottom < port_bottom
+        and intervals_overlap(port_left, port_right, owner_left, owner_right)
+    )
+    return crosses_left or crosses_right or crosses_top or crosses_bottom
 
 
 def connector_ids_in_model(model: dict[str, object]) -> set[str]:
@@ -1763,6 +1928,107 @@ def svg_connector_points(svg: str) -> dict[str, list[tuple[int, int]]]:
         if connector_id and points:
             connector_points[connector_id] = svg_polyline_points(points)
     return connector_points
+
+
+def endpoint_svg_node_key(endpoint: object, component_id: str) -> str | None:
+    if not isinstance(endpoint, str):
+        return None
+    if "." not in endpoint:
+        return svg_node_key("external", endpoint)
+    owner_id, port_id = endpoint.split(".", 1)
+    if owner_id == component_id:
+        return svg_node_key("component_port", port_id)
+    return svg_node_key("part_port", owner_id, port_id)
+
+
+def svg_box_tuple(box: SvgNodeBox) -> tuple[int, int, int, int]:
+    return box.x, box.y, box.width, box.height
+
+
+def check_elk_connector_endpoint_anchors(
+    path: Path,
+    model: dict[str, object],
+    svg_label: str,
+    boxes: dict[str, SvgNodeBox],
+    connector_points: dict[str, list[tuple[int, int]]],
+) -> list[str]:
+    component, _, _, _, _, _ = model_index(model)
+    component_id = str(component["id"])
+    connectors = model.get("connectors", [])
+    assert isinstance(connectors, list)
+
+    errors: list[str] = []
+    for connector in connectors:
+        if not isinstance(connector, dict) or "id" not in connector:
+            continue
+        connector_id = str(connector["id"])
+        points = connector_points.get(connector_id, [])
+        if len(points) < 2:
+            continue
+        endpoint_checks = (
+            ("start", connector.get("from"), points[0], points[1]),
+            ("end", connector.get("to"), points[-1], points[-2]),
+        )
+        for endpoint_position, endpoint, actual_anchor, neighbor in endpoint_checks:
+            node_key = endpoint_svg_node_key(endpoint, component_id)
+            if node_key is None:
+                continue
+            box = boxes.get(node_key)
+            if box is None:
+                continue
+            expected_anchor = box_anchor_towards(svg_box_tuple(box), neighbor)
+            if actual_anchor != expected_anchor:
+                errors.append(
+                    f"{rel(path)} {svg_label} connector {connector_id} {endpoint_position} "
+                    f"must anchor to {node_key} edge facing the route, got {actual_anchor}, expected {expected_anchor}"
+                )
+    return errors
+
+
+def check_elk_layout_candidate_metadata(
+    path: Path,
+    svg_label: str,
+    svg: str,
+    canvas_width: int,
+    canvas_height: int,
+) -> list[str]:
+    errors: list[str] = []
+    metadata = svg_metadata_with_attribute(svg, "data-layout-policy")
+    if metadata is None:
+        return [f"{rel(path)} {svg_label} must expose viewport-readable layout metadata"]
+    if metadata.get("data-layout-policy") != VIEWPORT_LAYOUT_POLICY:
+        errors.append(f"{rel(path)} {svg_label} layout metadata must use {VIEWPORT_LAYOUT_POLICY!r} policy")
+    candidate = metadata.get("data-layout-candidate")
+    if candidate not in ELK_LAYOUT_CANDIDATES:
+        errors.append(f"{rel(path)} {svg_label} layout metadata has unsupported candidate {candidate!r}")
+    if metadata.get("data-layout-direction") not in {"RIGHT", "DOWN"}:
+        errors.append(f"{rel(path)} {svg_label} layout metadata must expose RIGHT or DOWN direction")
+    if metadata.get("data-layout-wrapping") not in {"OFF", "SINGLE_EDGE", "MULTI_EDGE"}:
+        errors.append(f"{rel(path)} {svg_label} layout metadata must expose wrapping state")
+
+    numeric_fields = [
+        "data-layout-aspect-ratio",
+        "data-layout-score",
+        "data-layout-candidate-count",
+        "data-layout-rejected-candidate-count",
+    ]
+    parsed: dict[str, float] = {}
+    for field in numeric_fields:
+        try:
+            parsed[field] = float(metadata.get(field, ""))
+        except ValueError:
+            errors.append(f"{rel(path)} {svg_label} layout metadata field {field} must be numeric")
+    if "data-layout-aspect-ratio" in parsed:
+        expected_aspect_ratio = canvas_width / max(1, canvas_height)
+        if abs(parsed["data-layout-aspect-ratio"] - expected_aspect_ratio) > 0.01:
+            errors.append(f"{rel(path)} {svg_label} layout metadata aspect ratio must match SVG dimensions")
+    if parsed.get("data-layout-score", 0) < 0:
+        errors.append(f"{rel(path)} {svg_label} layout metadata score must be nonnegative")
+    if parsed.get("data-layout-candidate-count", 0) < 1:
+        errors.append(f"{rel(path)} {svg_label} layout metadata must report at least one candidate")
+    if parsed.get("data-layout-rejected-candidate-count", 0) < 0:
+        errors.append(f"{rel(path)} {svg_label} layout metadata rejected candidate count must be nonnegative")
+    return errors
 
 
 def expected_svg_node_keys(model: dict[str, object]) -> set[str]:
@@ -1795,6 +2061,7 @@ def check_elk_layout_quality(
             f"{rel(path)} {svg_label} canvas aspect ratio {aspect_ratio:.2f} exceeds "
             f"{MAX_ELK_CANVAS_ASPECT_RATIO:.1f}"
         )
+    errors.extend(check_elk_layout_candidate_metadata(path, svg_label, svg, canvas_width, canvas_height))
 
     boxes = svg_node_boxes(svg)
     expected_keys = expected_svg_node_keys(model)
@@ -1805,6 +2072,14 @@ def check_elk_layout_quality(
     boxes_by_parent: dict[str, list[SvgNodeBox]] = {}
     for box in boxes.values():
         boxes_by_parent.setdefault(box.parent, []).append(box)
+        if box.kind in {"component_port", "part_port"}:
+            owner_box = boxes.get(box.parent)
+            if owner_box is None:
+                errors.append(f"{rel(path)} {svg_label} port {box.key} has no owner boundary metadata")
+            elif not box_straddles_owner_boundary(box, owner_box):
+                errors.append(
+                    f"{rel(path)} {svg_label} port {box.key} must straddle its owner boundary {box.parent}"
+                )
     for parent, peer_boxes in boxes_by_parent.items():
         for index, left in enumerate(peer_boxes):
             if left.width <= 0 or left.height <= 0:
@@ -1848,6 +2123,8 @@ def check_elk_layout_quality(
             if x < 0 or y < 0 or x > canvas_width or y > canvas_height:
                 errors.append(f"{rel(path)} {svg_label} connector {connector_id} has out-of-canvas routed point")
                 break
+
+    errors.extend(check_elk_connector_endpoint_anchors(path, model, svg_label, boxes, connector_points))
 
     return errors
 
@@ -1922,6 +2199,7 @@ def check_rendered_svg_semantics(
     errors: list[str] = []
     svg_label = f"{backend} {view_name} derived SVG" if view_name is not None else f"{backend} SVG"
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
+    visible_text = svg_text_contents(svg)
     required_text = [str(component["label"])]
     required_text.extend(str(port["label"]) for port in ports.values())
     required_text.extend(str(part["label"]) for part in parts.values())
@@ -1938,16 +2216,20 @@ def check_rendered_svg_semantics(
             required_role_count += 1
     for connector in model["connectors"]:
         assert isinstance(connector, dict)
-        required_text.append(
+        direction_label = (
             f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
             f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
         )
+        if html.escape(direction_label) not in svg:
+            errors.append(f"{rel(path)} {svg_label} accessibility description must contain {direction_label!r}")
+        if direction_label in visible_text:
+            errors.append(f"{rel(path)} {svg_label} must not use endpoint pair {direction_label!r} as visible connector text")
         label = connector.get("label")
         if isinstance(label, str) and label.strip():
             required_text.append(label)
 
     for text in required_text:
-        if html.escape(text) not in svg:
+        if text not in visible_text:
             errors.append(f"{rel(path)} {svg_label} must contain reader-visible text {text!r}")
 
     connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
@@ -2235,10 +2517,10 @@ def render_simple_svg(model: dict[str, object], view: WhiteboxView | None = None
     )
     canvas_height = top_margin + body_height + bottom_margin
     component_height = body_height
-    port_x = 220
-    external_x = 60
     port_width = 120
     port_height = 44
+    port_x = component_x - port_width // 2
+    external_x = 40
     external_width = 130
     external_height = 64
     part_port_width = 138
@@ -2264,7 +2546,7 @@ def render_simple_svg(model: dict[str, object], view: WhiteboxView | None = None
             port for port in part.get("ports", []) if isinstance(port, dict) and "id" in port
         ]
         for port_index, port in enumerate(part_ports_for_part):
-            port_x_in_part = part_x + (part_width - part_port_width) // 2
+            port_x_in_part = part_x - part_port_width // 2
             port_y_in_part = part_y + 54 + port_index * part_port_slot_height
             part_port_positions[(part_id, str(port["id"]))] = (port_x_in_part, port_y_in_part)
 
@@ -2456,30 +2738,21 @@ def render_simple_svg(model: dict[str, object], view: WhiteboxView | None = None
         assert isinstance(connector, dict)
         source = connector["from"]
         target = connector["to"]
-        source_label = endpoint_label(source, component, interfaces, ports, parts, part_ports, externals)
-        target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
-        direction_label = f"{source_label} -> {target_label}"
         start_x, start_y, end_x, end_y = endpoint_anchors(source, target)
 
         label_x = (start_x + end_x) // 2
         if complexity.dense and has_parts:
             label_y = 36 + connector_index * 16
-            connector_label_y = component_y + component_height + 32 + connector_index * 16
         else:
             label_offset = connector_index * 18 if has_parts else 0
-            connector_label_offset = connector_index * 16 if has_parts else 0
             label_y = min(start_y, end_y) - 37 - label_offset
-            connector_label_y = max(start_y, end_y) + 50 + connector_label_offset
-        lines.extend(
-            [
-                f'  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
-                f'  <text x="{label_x}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">{html.escape(direction_label)}</text>',
-            ]
+        lines.append(
+            f'  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />'
         )
         label = connector.get("label")
         if isinstance(label, str) and label.strip():
             lines.append(
-                f'  <text x="{label_x}" y="{connector_label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">{html.escape(label)}</text>'
+                f'  <text x="{label_x}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">{html.escape(label)}</text>'
             )
 
     lines.append("</svg>")
@@ -2610,7 +2883,7 @@ def check_fixtures() -> int:
 
 def validate_command(source_path: Path) -> int:
     model, load_errors = load_source_model(source_path)
-    errors = load_errors or validate_source_model(model)
+    errors = load_errors or validate_source_model(model, evidence_base_for_source(source_path))
     if errors:
         print(f"{rel(source_path)} is invalid:")
         for error in errors:
@@ -2628,7 +2901,7 @@ def render_command(source_path: Path, output_path: Path, backend: str = DEFAULT_
         return 2
 
     model, load_errors = load_source_model(source_path)
-    errors = load_errors or validate_source_model(model)
+    errors = load_errors or validate_source_model(model, evidence_base_for_source(source_path))
     if errors:
         print(f"{rel(source_path)} is invalid:")
         for error in errors:
@@ -2670,7 +2943,7 @@ def render_derived_command(
         return 2
 
     model, load_errors = load_source_model(source_path)
-    errors = load_errors or validate_source_model(model)
+    errors = load_errors or validate_source_model(model, evidence_base_for_source(source_path))
     if errors:
         print(f"{rel(source_path)} is invalid:")
         for error in errors:

@@ -1,5 +1,6 @@
 kind: whitebox_component_diagram
 version: 1
+aspectRatio: 1.15
 component:
   id: checkout_module
   label: Checkout Module

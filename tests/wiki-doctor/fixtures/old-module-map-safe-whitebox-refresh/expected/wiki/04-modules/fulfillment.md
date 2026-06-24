@@ -6,25 +6,25 @@ Related reading: [Checkout flow](../02-flows/checkout.md) and [Inventory model](
 
 ## 模块边界图（Module Boundary Map）
 
-![Fulfillment Module whitebox component diagram](./fulfillment.whitebox.svg)
+![Fulfillment Module whitebox component diagram](./assets/fulfillment.whitebox.svg)
 
 Source model: [`fulfillment.whitebox.yaml`](./fulfillment.whitebox.yaml) for the complete diagram and derived views below.
 
 ### Boundary Derived Whitebox View
 
-![Fulfillment Module Boundary Derived Whitebox View](./fulfillment.whitebox.boundary.svg)
+![Fulfillment Module Boundary Derived Whitebox View](./assets/fulfillment.whitebox.boundary.svg)
 
 ### Delegation Derived Whitebox View
 
-![Fulfillment Module Delegation Derived Whitebox View](./fulfillment.whitebox.delegation.svg)
+![Fulfillment Module Delegation Derived Whitebox View](./assets/fulfillment.whitebox.delegation.svg)
 
 ### Assembly Derived Whitebox View
 
-![Fulfillment Module Assembly Derived Whitebox View](./fulfillment.whitebox.assembly.svg)
+![Fulfillment Module Assembly Derived Whitebox View](./assets/fulfillment.whitebox.assembly.svg)
 
 ### Interfaces Derived Whitebox View
 
-![Fulfillment Module Interfaces Derived Whitebox View](./fulfillment.whitebox.interfaces.svg)
+![Fulfillment Module Interfaces Derived Whitebox View](./assets/fulfillment.whitebox.interfaces.svg)
 
 Derived views are reader aids generated from the same source model; they do not replace the complete diagram.
 

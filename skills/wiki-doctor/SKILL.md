@@ -1,6 +1,6 @@
 ---
 name: wiki-doctor
-description: Refresh existing repo-local wiki pages against the latest Wiki Guidance System without losing original information. Use when the user asks to audit, dry run, doctor, clean up, restructure, rewrite, split, merge, rename, or normalize existing wiki pages for reader quality.
+description: Refresh existing repo-local wiki pages, including module Whitebox Component Diagram source models and generated views, against the latest Wiki Guidance System without losing original information. Use when the user asks to audit, dry run, doctor, clean up, restructure, rewrite, split, merge, rename, or normalize existing wiki pages for reader quality.
 ---
 
 # wiki-doctor
@@ -31,7 +31,7 @@ Do not inspect source code, tests, routes, config, root `README.md`, `docs/**`, 
 
 Do not classify drift, do not rewrite an existing `wiki/07-drift.md`, and do not capture new stable knowledge. If a finding needs code/wiki comparison, fact verification, or missing coverage classification, report `drift_or_coverage_suspect` and recommend `wiki-drift-radar`.
 
-For module pages, `wiki-doctor` may create or refresh co-located `.whitebox.yaml`, the complete `.whitebox.svg`, and non-empty Derived Whitebox View SVGs under `wiki/04-modules/**` only from facts already present in the existing wiki content being refreshed. It must not inspect target source code to discover new whitebox facts, must not treat generated SVGs as fact sources, and must not write Whitebox files outside the target repo's top-level `wiki/`.
+For module pages, `wiki-doctor` may create or refresh the co-located `.whitebox.yaml` source model and generated complete/derived Whitebox SVGs under a module-local `assets/` subdirectory only from facts already present in the existing wiki content being refreshed. It must not inspect target source code to discover new whitebox facts, must not treat generated SVGs as fact sources, and must not write Whitebox files outside the target repo's top-level `wiki/`.
 
 Do not use schema, validator, lint, compliance, PASS, or FAIL language. This is semantic reader-quality work, not mechanical validation.
 
@@ -93,7 +93,7 @@ Scope limits writes. Scope-external wiki pages may be read for context, but are 
 
 `wiki-doctor` only processes top-level `wiki/`. It does not edit target-repository files outside `wiki/`, and it does not edit this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill instructions. Changes to the Wiki Guidance System itself are skill-suite maintenance work, not `wiki-doctor` work.
 
-Within any scope that includes module pages, safe Whitebox refresh may also write the module page's co-located `.whitebox.yaml` source model, complete `.whitebox.svg`, and non-empty Derived Whitebox View SVGs under `wiki/04-modules/**`. Other non-Markdown files remain out of scope.
+Within any scope that includes module pages, safe Whitebox refresh may also write the module page's co-located `.whitebox.yaml` source model. Generated Whitebox SVG outputs, including the complete diagram and non-empty Derived Whitebox View SVGs, must be written under that module directory's `assets/` subdirectory. Other non-Markdown files remain out of scope.
 
 ## Classifications
 
@@ -107,7 +107,7 @@ Only `safe_guidance_rewrite` can be written by default. `meaning_loss_risk` and 
 
 For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Runtime Topology shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
 
-For `wiki/04-modules/**`, refresh older module maps into Whitebox Component Diagrams only when the existing wiki already contains enough confirmed information to build a legal source model: enclosing module name, at least one boundary port, at least one external node, an `external` connector between them, and any internal parts or interface roles being migrated. A Mermaid diagram, PlantUML sketch, draw.io XML, Markdown table, prose block, generated SVG, or image can be migration input, but the resulting `.whitebox.yaml` becomes the fact source and every SVG is derived output. If a dense source model generates non-empty Derived Whitebox Views, embed them directly after the complete diagram and visible source model link with clear `... Derived Whitebox View` headings and alt text. If the old map does not identify legal whitebox facts, connector direction, evidence, or uncertainty clearly enough, report `meaning_loss_risk`; if deciding the facts requires code/wiki comparison or missing coverage classification, report `drift_or_coverage_suspect`.
+For `wiki/04-modules/**`, refresh older module maps into Whitebox Component Diagrams only when the existing wiki already contains enough confirmed information to build a legal source model: enclosing module name, at least one boundary port, at least one external node, an `external` connector between them, and any internal parts or interface roles being migrated. A Mermaid diagram, PlantUML sketch, draw.io XML, Markdown table, prose block, generated SVG, or image can be migration input, but the resulting `.whitebox.yaml` becomes the fact source and every SVG is derived output. Preserve meaningful old-map arrow labels as connector labels when they say action, data, protocol, contract, ownership, buffering, or persistence; do not create visible connector labels that only restate endpoints like `A -> B`. If a dense source model generates non-empty Derived Whitebox Views, embed them directly after the complete diagram and visible source model link with clear `... Derived Whitebox View` headings and alt text. If the old map does not identify legal whitebox facts, connector direction, evidence, or uncertainty clearly enough, report `meaning_loss_risk`; if deciding the facts requires code/wiki comparison or missing coverage classification, report `drift_or_coverage_suspect`.
 
 ## Action Vocabulary
 
@@ -146,10 +146,13 @@ Use these action names in reports. They are vocabulary, not a machine schema:
 9. In `audit-only`, write nothing and report proposed actions.
 10. When a Whitebox refresh is classified as `safe_guidance_rewrite` in default mode:
    - Create or update the co-located `.whitebox.yaml` source model.
-   - Render the complete `.whitebox.svg` from that source model. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
-   - For dense diagrams, render non-empty Derived Whitebox Views from the same source model with `python3 scripts/check_whitebox_fixtures.py render-derived <source.whitebox.yaml> <output-dir>` or the equivalent installed command. Do not embed empty derived views.
+   - Create or reuse an `assets/` subdirectory beside the module page for generated Whitebox SVG files. Do not place generated `.whitebox*.svg` files directly beside the Markdown page.
+   - Keep visible connector labels meaningful. Use action/data/protocol/contract phrases from confirmed wiki facts, and omit labels that would only repeat endpoint direction.
+   - Render the complete `.whitebox.svg` from that source model into the module-local `assets/` directory. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> assets/<name>.whitebox.svg` or the equivalent installed command.
+   - For dense diagrams, render non-empty Derived Whitebox Views from the same source model into the same module-local `assets/` directory with `python3 scripts/check_whitebox_fixtures.py render-derived <source.whitebox.yaml> assets/` or the equivalent installed command. Do not embed empty derived views.
    - Validate the source model. When the suite checker is available, use `python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>` or the equivalent installed command.
-   - Update the module page Markdown to embed the complete generated SVG first, keep the `.whitebox.yaml` source model link visible beside the diagrams, and then embed non-empty Derived Whitebox Views with clear headings and alt text.
+   - Treat obvious generated-view readability defects, including connector lines crossing port labels or arrowheads landing over port text, as renderer or fixture issues to fix before publishing.
+   - Update the module page Markdown to embed the complete generated SVG first using `./assets/<name>.whitebox.svg`, keep the `.whitebox.yaml` source model link visible beside the diagrams, and then embed non-empty Derived Whitebox Views from `./assets/` with clear headings and alt text.
    - Keep generated complete and derived SVGs out of the fact-source chain. If a later refresh needs facts, read the `.whitebox.yaml` source model and existing wiki prose, not the generated SVGs.
    - Preserve old-map information that does not fit the diagram as prose, uncertainty, or risk notes instead of deleting it.
 11. In default mode, apply only `safe_guidance_rewrite` and allowed `complete_skeleton` changes.

@@ -9,6 +9,67 @@ const PART_PORT_WIDTH = 138;
 const PART_PORT_HEIGHT = 34;
 const EXTERNAL_WIDTH = 150;
 const EXTERNAL_HEIGHT = 64;
+const VIEWPORT_POLICY_NAME = "viewport-readable";
+const VIEWPORT_TARGET_ASPECT_RATIO = 1.15;
+const VIEWPORT_PREFERRED_MAX_ASPECT_RATIO = 1.45;
+const VIEWPORT_HARD_MAX_ASPECT_RATIO = 2.2;
+
+const LAYOUT_CANDIDATES = [
+  {
+    name: "right-default",
+    direction: "RIGHT",
+    fallbackPenalty: 0,
+    rootOptions: {},
+    componentOptions: {},
+  },
+  {
+    name: "right-balanced",
+    direction: "RIGHT",
+    fallbackPenalty: 8,
+    rootOptions: {
+      "elk.aspectRatio": String(VIEWPORT_TARGET_ASPECT_RATIO),
+      "elk.spacing.nodeNode": "64",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "76",
+      "elk.layered.spacing.edgeNodeBetweenLayers": "32",
+    },
+    componentOptions: {
+      "elk.spacing.nodeNode": "48",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "70",
+    },
+  },
+  {
+    name: "right-wrapped",
+    direction: "RIGHT",
+    wrapping: "SINGLE_EDGE",
+    fallbackPenalty: 58,
+    rootOptions: {
+      "elk.aspectRatio": String(VIEWPORT_TARGET_ASPECT_RATIO),
+      "elk.spacing.nodeNode": "64",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "72",
+      "elk.layered.spacing.edgeNodeBetweenLayers": "30",
+      "elk.layered.wrapping.strategy": "SINGLE_EDGE",
+    },
+    componentOptions: {
+      "elk.spacing.nodeNode": "46",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "68",
+    },
+  },
+  {
+    name: "down-balanced",
+    direction: "DOWN",
+    fallbackPenalty: 180,
+    rootOptions: {
+      "elk.aspectRatio": "1.0",
+      "elk.spacing.nodeNode": "64",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "78",
+      "elk.layered.spacing.edgeNodeBetweenLayers": "32",
+    },
+    componentOptions: {
+      "elk.spacing.nodeNode": "48",
+      "elk.layered.spacing.nodeNodeBetweenLayers": "70",
+    },
+  },
+];
 
 function readStdin() {
   return new Promise((resolve, reject) => {
@@ -83,7 +144,7 @@ function sortedById(items) {
   return [...items].sort((left, right) => String(left.id).localeCompare(String(right.id)));
 }
 
-function buildGraph(model) {
+function buildGraph(model, candidate = LAYOUT_CANDIDATES[0]) {
   const component = model.component;
   const componentId = String(component.id);
   const componentPorts = sortedById(Array.isArray(component.ports) ? component.ports : []);
@@ -118,6 +179,7 @@ function buildGraph(model) {
       "elk.portConstraints": "FREE",
       "elk.layered.spacing.nodeNodeBetweenLayers": "90",
       "elk.spacing.nodeNode": "60",
+      ...candidate.componentOptions,
     },
   };
 
@@ -125,7 +187,7 @@ function buildGraph(model) {
     id: "whitebox-root",
     layoutOptions: {
       "elk.algorithm": "layered",
-      "elk.direction": "RIGHT",
+      "elk.direction": candidate.direction,
       "elk.hierarchyHandling": "INCLUDE_CHILDREN",
       "elk.edgeRouting": "ORTHOGONAL",
       "elk.padding": `[top=${ROOT_PADDING},left=${ROOT_PADDING},bottom=${ROOT_PADDING},right=${ROOT_PADDING}]`,
@@ -135,6 +197,7 @@ function buildGraph(model) {
       "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
       "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
       "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
+      ...candidate.rootOptions,
     },
     children: [
       ...externals.map((external) => ({
@@ -193,7 +256,113 @@ function endpointIsInsideComponent(endpoint) {
   return typeof endpoint !== "string" || endpoint.includes(".");
 }
 
-function emitLayout(model, graph) {
+function inferPortSide(portBox, ownerBox) {
+  const portRight = portBox.x + portBox.width;
+  const portBottom = portBox.y + portBox.height;
+  const ownerRight = ownerBox.x + ownerBox.width;
+  const ownerBottom = ownerBox.y + ownerBox.height;
+  const verticalOverlap = portBox.y < ownerBottom && portBottom > ownerBox.y;
+  const horizontalOverlap = portBox.x < ownerRight && portRight > ownerBox.x;
+  if (portRight <= ownerBox.x && verticalOverlap) {
+    return "left";
+  }
+  if (portBox.x >= ownerRight && verticalOverlap) {
+    return "right";
+  }
+  if (portBottom <= ownerBox.y && horizontalOverlap) {
+    return "top";
+  }
+  if (portBox.y >= ownerBottom && horizontalOverlap) {
+    return "bottom";
+  }
+  const centerX = portBox.x + portBox.width / 2;
+  const centerY = portBox.y + portBox.height / 2;
+  const distances = {
+    left: Math.abs(centerX - ownerBox.x),
+    right: Math.abs(centerX - ownerRight),
+    top: Math.abs(centerY - ownerBox.y),
+    bottom: Math.abs(centerY - ownerBottom),
+  };
+  return Object.entries(distances).sort((left, right) => left[1] - right[1])[0][0];
+}
+
+function straddleOwnerBoundary(portBox, ownerBox) {
+  const side = inferPortSide(portBox, ownerBox);
+  if (side === "left") {
+    return { ...portBox, x: ownerBox.x - Math.floor(portBox.width / 2) };
+  }
+  if (side === "right") {
+    return { ...portBox, x: ownerBox.x + ownerBox.width - Math.floor(portBox.width / 2) };
+  }
+  if (side === "top") {
+    return { ...portBox, y: ownerBox.y - Math.floor(portBox.height / 2) };
+  }
+  return { ...portBox, y: ownerBox.y + ownerBox.height - Math.floor(portBox.height / 2) };
+}
+
+function boxesOverlap(left, right) {
+  return (
+    left.x < right.x + right.width &&
+    left.x + left.width > right.x &&
+    left.y < right.y + right.height &&
+    left.y + left.height > right.y
+  );
+}
+
+function pushPeerBox(groups, parent, box) {
+  if (!groups.has(parent)) {
+    groups.set(parent, []);
+  }
+  groups.get(parent).push(box);
+}
+
+function renderedPeerGroups(layout) {
+  const groups = new Map();
+  pushPeerBox(groups, "root", { key: "component", ...layout.component });
+  for (const [externalId, externalBox] of Object.entries(layout.externals ?? {})) {
+    pushPeerBox(groups, "root", { key: `external:${externalId}`, ...externalBox });
+  }
+  for (const [portId, portBox] of Object.entries(layout.componentPorts ?? {})) {
+    pushPeerBox(groups, "component", {
+      key: `component-port:${portId}`,
+      ...straddleOwnerBoundary(portBox, layout.component),
+    });
+  }
+  for (const [partId, partBox] of Object.entries(layout.parts ?? {})) {
+    pushPeerBox(groups, "component", { key: `part:${partId}`, ...partBox });
+    for (const [portId, portBox] of Object.entries(layout.partPorts?.[partId] ?? {})) {
+      pushPeerBox(groups, `part:${partId}`, {
+        key: `part-port:${partId}.${portId}`,
+        ...straddleOwnerBoundary(portBox, partBox),
+      });
+    }
+  }
+  return groups;
+}
+
+function layoutQualityFailures(layout) {
+  const failures = [];
+  for (const [parent, boxes] of renderedPeerGroups(layout)) {
+    for (let index = 0; index < boxes.length; index += 1) {
+      const left = boxes[index];
+      if (left.width <= 0 || left.height <= 0) {
+        failures.push(`${left.key} has nonpositive geometry`);
+        continue;
+      }
+      for (const right of boxes.slice(index + 1)) {
+        if (right.width <= 0 || right.height <= 0) {
+          continue;
+        }
+        if (boxesOverlap(left, right)) {
+          failures.push(`${left.key} overlaps ${right.key} under ${parent}`);
+        }
+      }
+    }
+  }
+  return failures;
+}
+
+function emitLayout(model, graph, candidate, candidateSelection) {
   const component = model.component;
   const componentId = String(component.id);
   const { nodes, ports } = absoluteChildren(graph);
@@ -261,11 +430,22 @@ function emitLayout(model, graph) {
     );
   }
 
+  const canvas = {
+    width: Math.ceil((graph.width ?? 0) + ROOT_PADDING),
+    height: Math.ceil((graph.height ?? 0) + ROOT_PADDING),
+  };
   return {
     backend: "elk",
-    canvas: {
-      width: Math.ceil((graph.width ?? 0) + ROOT_PADDING),
-      height: Math.ceil((graph.height ?? 0) + ROOT_PADDING),
+    canvas,
+    layoutPolicy: {
+      policy: VIEWPORT_POLICY_NAME,
+      selectedCandidate: candidate.name,
+      direction: candidate.direction,
+      wrapping: candidate.wrapping ?? "OFF",
+      aspectRatio: roundMetric(canvas.width / Math.max(1, canvas.height), 3),
+      score: roundMetric(candidateSelection.score, 2),
+      candidateCount: candidateSelection.candidateCount,
+      rejectedCandidateCount: candidateSelection.rejectedCandidateCount,
     },
     component: componentNode,
     componentPorts,
@@ -276,13 +456,102 @@ function emitLayout(model, graph) {
   };
 }
 
+function roundMetric(value, digits) {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+function layoutEdgeMetrics(layout) {
+  let bendCount = 0;
+  let routeLength = 0;
+  for (const points of Object.values(layout.edges ?? {})) {
+    if (!Array.isArray(points) || points.length < 2) {
+      continue;
+    }
+    bendCount += Math.max(0, points.length - 2);
+    for (let index = 1; index < points.length; index += 1) {
+      const [leftX, leftY] = points[index - 1];
+      const [rightX, rightY] = points[index];
+      routeLength += Math.abs(rightX - leftX) + Math.abs(rightY - leftY);
+    }
+  }
+  return { bendCount, routeLength };
+}
+
+function viewportReadabilityScore(candidate, layout) {
+  const width = layout.canvas.width;
+  const height = layout.canvas.height;
+  const aspectRatio = width / Math.max(1, height);
+  const shapePenalty = Math.abs(Math.log(aspectRatio / VIEWPORT_TARGET_ASPECT_RATIO)) * 120;
+  const widePenalty = Math.max(0, aspectRatio - VIEWPORT_PREFERRED_MAX_ASPECT_RATIO) * 260;
+  const hardWidePenalty = Math.max(0, aspectRatio - VIEWPORT_HARD_MAX_ASPECT_RATIO) * 900;
+  const tallPenalty = Math.max(0, 0.72 - aspectRatio) * 70;
+  const viewportWidthPenalty = width / 34;
+  const areaPenalty = Math.sqrt(width * height) / 38;
+  const { bendCount, routeLength } = layoutEdgeMetrics(layout);
+  const routePenalty = bendCount * 4 + routeLength / 260;
+  return (
+    candidate.fallbackPenalty +
+    shapePenalty +
+    widePenalty +
+    hardWidePenalty +
+    tallPenalty +
+    viewportWidthPenalty +
+    areaPenalty +
+    routePenalty
+  );
+}
+
+async function layoutCandidate(elk, model, candidate) {
+  const graph = buildGraph(model, candidate);
+  const layout = await elk.layout(graph);
+  const emitted = emitLayout(model, layout, candidate, {
+    score: 0,
+    candidateCount: LAYOUT_CANDIDATES.length,
+    rejectedCandidateCount: 0,
+  });
+  const score = viewportReadabilityScore(candidate, emitted);
+  const qualityFailures = layoutQualityFailures(emitted);
+  if (qualityFailures.length > 0) {
+    throw new Error(`layout quality check failed: ${qualityFailures.slice(0, 4).join("; ")}`);
+  }
+  return { candidate, graph: layout, layout: emitted, score };
+}
+
+async function selectViewportReadableLayout(elk, model) {
+  const accepted = [];
+  const rejected = [];
+  for (const candidate of LAYOUT_CANDIDATES) {
+    try {
+      accepted.push(await layoutCandidate(elk, model, candidate));
+    } catch (error) {
+      rejected.push({ candidate: candidate.name, reason: error.message || String(error) });
+    }
+  }
+  if (accepted.length === 0) {
+    throw new Error(`all viewport-readable layout candidates failed: ${JSON.stringify(rejected)}`);
+  }
+  accepted.sort((left, right) => {
+    const scoreDelta = left.score - right.score;
+    if (Math.abs(scoreDelta) > 0.0001) {
+      return scoreDelta;
+    }
+    return left.candidate.name.localeCompare(right.candidate.name);
+  });
+  const selected = accepted[0];
+  return emitLayout(model, selected.graph, selected.candidate, {
+    score: selected.score,
+    candidateCount: LAYOUT_CANDIDATES.length,
+    rejectedCandidateCount: rejected.length,
+  });
+}
+
 async function main() {
   const input = await readStdin();
   const model = JSON.parse(input);
   const elk = new ELK();
-  const graph = buildGraph(model);
-  const layout = await elk.layout(graph);
-  process.stdout.write(`${JSON.stringify(emitLayout(model, layout))}\n`);
+  const layout = await selectViewportReadableLayout(elk, model);
+  process.stdout.write(`${JSON.stringify(layout)}\n`);
 }
 
 main().catch((error) => {

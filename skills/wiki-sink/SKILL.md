@@ -1,6 +1,6 @@
 ---
 name: wiki-sink
-description: Initialize the fixed top-level repo-local wiki structure and write confirmed or evidence-grounded reusable knowledge into stable wiki pages. Use when the user asks to create the wiki, seed wiki pages, sink knowledge, or update system, flow, page, module, model, or decision documentation outside an active drift-governance queue.
+description: Initialize the fixed top-level repo-local wiki structure and write confirmed or evidence-grounded reusable knowledge, including module Whitebox Component Diagram source models and generated views, into stable wiki pages. Use when the user asks to create the wiki, seed wiki pages, sink knowledge, or update system, flow, page, module, model, or decision documentation outside an active drift-governance queue.
 ---
 
 # wiki-sink
@@ -62,12 +62,15 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - `dependency-map.md` or `decision-tradeoff.md` for stable dependencies, active decisions, and current tradeoffs.
 7. When writing or updating a module page under `wiki/04-modules/**`, maintain its Whitebox Component Diagram as the Module Boundary Map:
    - Create or update the co-located `.whitebox.yaml` source model from confirmed repo evidence, existing wiki facts, or user confirmation.
+   - Store generated complete and derived SVGs in an `assets/` subdirectory beside the module page and source model. Do not place generated `.whitebox*.svg` files directly beside the Markdown page.
    - Keep `.whitebox.yaml` as the only diagram fact source. Mermaid, PlantUML, draw.io XML, Markdown prose, generated SVG, and other generated images are not the fact source.
    - Include at least one confirmed boundary port connected to an external node. Simple modules may omit internal `parts`, but they still need this external interaction.
-   - Render the complete `.whitebox.svg` from the source model after source changes. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.whitebox.svg>` or the equivalent installed command.
-   - For dense diagrams, render non-empty Derived Whitebox Views from the same source model with `python3 scripts/check_whitebox_fixtures.py render-derived <source.whitebox.yaml> <output-dir>` or the equivalent installed command. Embed only generated non-empty derived SVGs.
+   - Use connector labels only when they add relationship meaning such as action, data, protocol, contract, ownership, buffering, or persistence. Do not add visible labels that only restate endpoints like `A -> B`; omit the label if no meaningful phrase is confirmed.
+   - Render the complete `.whitebox.svg` into the module-local `assets/` directory after source changes. When the suite renderer is available, use `python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> assets/<name>.whitebox.svg` or the equivalent installed command.
+   - For dense diagrams, render non-empty Derived Whitebox Views from the same source model into the same module-local `assets/` directory with `python3 scripts/check_whitebox_fixtures.py render-derived <source.whitebox.yaml> assets/` or the equivalent installed command. Embed only generated non-empty derived SVGs.
    - Validate the source model after edits. When the suite checker is available, use `python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>` or the equivalent installed command.
-   - Link the complete generated SVG first, keep the `.whitebox.yaml` source model link visible beside it, then embed non-empty Derived Whitebox Views with clear `... Derived Whitebox View` headings and alt text.
+   - Treat obvious generated-view readability defects, including connector lines crossing port labels or arrowheads landing over port text, as renderer or fixture issues to fix before publishing.
+   - Link the complete generated SVG first using `./assets/<name>.whitebox.svg`, keep the `.whitebox.yaml` source model link visible beside it, then embed non-empty Derived Whitebox Views from `./assets/` with clear `... Derived Whitebox View` headings and alt text.
    - Treat every generated SVG, including derived SVGs, as reader-facing output only. Never read facts back out of a derived SVG, and never create extra source models for derived views.
    - If the evidence does not confirm a boundary port, external node, connector direction, internal part, interface role, or ownership boundary, ask the user or leave the fact out instead of filling a placeholder.
 8. Update the owner page and its canonical index together when the name, owner page, and boundary are confirmed. If a name conflict, unclear boundary, or unconfirmed owner would cause meaning loss, ask the user or leave it out instead of canonicalizing it.

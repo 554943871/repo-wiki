@@ -11,46 +11,40 @@
   </defs>
   <rect x="250" y="70" width="390" height="570" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
   <text x="445" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Dense Boundary Shell</text>
-  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake A</text>
-  <rect x="220" y="230" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake B</text>
-  <rect x="220" y="300" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake C</text>
-  <rect x="220" y="370" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="397" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake D</text>
-  <rect x="220" y="440" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="467" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake E</text>
-  <rect x="220" y="510" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-  <text x="280" y="537" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake F</text>
-  <rect x="60" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client A</text>
-  <rect x="60" y="220" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client B</text>
-  <rect x="60" y="290" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client C</text>
-  <rect x="60" y="360" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="397" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client D</text>
-  <rect x="60" y="430" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="467" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client E</text>
-  <rect x="60" y="500" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
-  <text x="125" y="537" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client F</text>
-  <line x1="190" y1="182" x2="220" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client A -&gt; Intake A</text>
-  <text x="205" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters A</text>
-  <line x1="190" y1="252" x2="220" y2="252" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client B -&gt; Intake B</text>
-  <text x="205" y="302" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters B</text>
-  <line x1="190" y1="322" x2="220" y2="322" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client C -&gt; Intake C</text>
-  <text x="205" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters C</text>
-  <line x1="190" y1="392" x2="220" y2="392" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client D -&gt; Intake D</text>
-  <text x="205" y="442" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters D</text>
-  <line x1="190" y1="462" x2="220" y2="462" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client E -&gt; Intake E</text>
-  <text x="205" y="512" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters E</text>
-  <line x1="190" y1="532" x2="220" y2="532" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
-  <text x="205" y="495" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Client F -&gt; Intake F</text>
-  <text x="205" y="582" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters F</text>
+  <rect x="190" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake A</text>
+  <rect x="190" y="230" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake B</text>
+  <rect x="190" y="300" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake C</text>
+  <rect x="190" y="370" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="397" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake D</text>
+  <rect x="190" y="440" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="467" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake E</text>
+  <rect x="190" y="510" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="250" y="537" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Intake F</text>
+  <rect x="40" y="150" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client A</text>
+  <rect x="40" y="220" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client B</text>
+  <rect x="40" y="290" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="327" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client C</text>
+  <rect x="40" y="360" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="397" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client D</text>
+  <rect x="40" y="430" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="467" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client E</text>
+  <rect x="40" y="500" width="130" height="64" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />
+  <text x="105" y="537" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">Client F</text>
+  <line x1="170" y1="182" x2="190" y2="182" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters A</text>
+  <line x1="170" y1="252" x2="190" y2="252" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters B</text>
+  <line x1="170" y1="322" x2="190" y2="322" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters C</text>
+  <line x1="170" y1="392" x2="190" y2="392" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters D</text>
+  <line x1="170" y1="462" x2="190" y2="462" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters E</text>
+  <line x1="170" y1="532" x2="190" y2="532" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="180" y="495" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">enters F</text>
 </svg>

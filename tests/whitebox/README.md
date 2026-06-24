@@ -21,9 +21,19 @@ pixel-perfect. They verify deterministic SVG output, reader-visible semantic
 text, connector markers, provided/required interface-role symbols, numeric
 canvas dimensions, nonnegative geometry, dense-diagram complexity metadata,
 reasonable aspect ratios, peer node non-overlap, node-label fit, and routed
-connector polylines. The ELK backend uses the repo-declared `elkjs` dependency
-and fails fast if `npm ci` has not installed dependencies during repo-wiki skill
-suite development or upgrade.
+connector polylines. ELK SVGs must expose viewport-readable layout metadata
+with the selected renderer candidate, score, direction, wrapping state, and
+measured aspect ratio, while exact score values and coordinates stay flexible.
+Visible connector labels must carry relationship meaning;
+generated endpoint direction text such as `A -> B` is allowed only in SVG
+accessibility descriptions, not as reader-facing edge text. Connector endpoints
+must attach to the endpoint box edge facing the route so rendered lines do not
+cross port labels or place arrowheads over port text. Port rectangles must
+straddle their owning component or internal part boundary, because ports are
+boundary interaction points rather than external floating nodes or ordinary
+children. The ELK backend uses the
+repo-declared `elkjs` dependency and fails fast if `npm ci` has not installed
+dependencies during repo-wiki skill suite development or upgrade.
 
 The legacy `simple` backend remains available only through explicit backend
 selection for diagnostics or migration comparison. The fixture suite still

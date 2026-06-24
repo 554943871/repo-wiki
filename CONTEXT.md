@@ -186,6 +186,22 @@ _Avoid_: silent fallback, fake successful ELK rendering, hidden quality downgrad
 The renderer verification practice for generated Whitebox Component Diagram output. It combines structural checks, geometry/readability checks, and visual snapshot review without treating pixel-perfect equality as the only signal of correctness.
 _Avoid_: YAML-only validation, pixel-perfect theater, unchecked visual regressions
 
+**Viewport-Readable Layout Policy**:
+The renderer-owned preference that generated Whitebox Component Diagrams should stay readable at a fixed browser or Markdown viewport width. It optimizes for practical readability through clear labels, visible ports, understandable connector routes, and a display shape that does not shrink the diagram unnecessarily, without adding layout hints to the Diagram Source Model.
+_Avoid_: square layout goal, source-level aspect ratio field, manual coordinate hint, readability at the cost of semantics
+
+**Multiple Candidate Layout Selection**:
+The renderer-owned practice of generating several Whitebox Layout Backend configurations from the same Diagram Source Model, rejecting candidates that fail layout quality checks, and selecting the remaining candidate with the best viewport-readability score. It starts from rightward layered layouts, may try wrapped rightward layouts for overly wide diagrams, and may try a downward layered layout only as a renderer-owned fallback when rightward candidates are materially less readable. It is a rendering decision, not a source-model view, layout hint, or user-authored variant.
+_Avoid_: source-level layout choice, manually selected diagram variant, single unscored layout option, user-authored direction field, always-on wrapping
+
+**Layout Candidate Metadata**:
+Renderer-generated SVG metadata that records the selected layout policy, selected candidate name, measured readability score, and practical display shape for a generated Whitebox Component Diagram. It helps later agents understand the renderer's choice without turning layout selection into a Diagram Source Model fact.
+_Avoid_: source-level layout field, full layout decision log, manual candidate selection, hidden renderer choice
+
+**Whitebox Asset Directory**:
+The module-local `assets/` subdirectory that stores generated complete and derived Whitebox SVG files for a module page. The `.whitebox.yaml` Diagram Source Model stays beside the module Markdown page, while generated `.whitebox*.svg` files live under `assets/` and are linked from Markdown as reader-facing outputs.
+_Avoid_: source model in assets, generated SVG beside module page, global image dump, SVG as fact source
+
 **Whitebox Renderer Dependency Boundary**:
 The rule that layout/rendering dependencies such as `elkjs` are installed only while developing or upgrading the Repo Wiki Skill Suite itself, not during ordinary Skill execution against a Target Repository. A renderer may check for required dependencies and fail loudly with a setup diagnostic, but it must not run package installation as part of rendering.
 _Avoid_: Skill initialization phase, runtime npm install, renderer-managed dependency mutation
