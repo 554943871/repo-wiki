@@ -1,0 +1,86 @@
+flowchart TB
+  classDef external fill:#f7f7f7,stroke:#999,color:#111
+  classDef component fill:#e8f4ff,stroke:#3b82f6,color:#111
+  classDef boundaryPort fill:#fff7d6,stroke:#d97706,stroke-width:2px,color:#111
+  classDef internalPort fill:#fef3c7,stroke:#92400e,stroke-dasharray: 4 2,color:#111
+
+  H5["H5 页面 / Replay Workbench"]:::external
+  CLI["CLI"]:::external
+
+  subgraph Backend["Select Agent Backend"]
+    subgraph Boundary["Backend 边界暴露接口"]
+      MsgApi(["消息入口<br/>/api/start<br/>/api/message<br/>/api/ui-response"]):::boundaryPort
+      TurnApi(["turn 续读接口<br/>/api/turns/* state / events / ack"]):::boundaryPort
+      ReadApi(["页面与读取入口<br/>skills / slots / replay / H5 pages"]):::boundaryPort
+      SseApi(["事件输出<br/>SSE stream"]):::boundaryPort
+    end
+
+    subgraph Internal["内部组件与内部接口"]
+      WebHttp(["Web Event Surfaces 接口<br/>HTTP routes / page entries"]):::internalPort
+      Web["Web 事件表面<br/>Web Event Surfaces"]:::component
+
+      BacklogState(["response backlog 接口<br/>turn buffer / state / ack"]):::internalPort
+      Backlog["response backlog<br/>SSE 续读 / ack"]:::component
+
+      StoreEvents(["DeepAgentRuntimeStore 接口<br/>event_source_factory"]):::internalPort
+      Store["DeepAgentRuntimeStore<br/>turn 协调 / UI 恢复"]:::component
+
+      RuntimeRun(["DeepAgentRuntime 接口<br/>message / resume"]):::internalPort
+      RuntimeOut(["DeepAgentRuntime 输出<br/>tool / assistant / ui events"]):::internalPort
+      Runtime["DeepAgentRuntime<br/>graph run / resume"]:::component
+
+      SkillFiles(["Skills 接口<br/>Skill files + metadata"]):::internalPort
+      Skills["active Skills<br/>/skills/* + metadata"]:::component
+
+      ToolRegistry(["Tool 注册表接口<br/>SELECT_TOOL_NAMES / get_select_tools()"]):::internalPort
+      Tools["Select Tools<br/>真实 Tool 动作"]:::component
+
+      StorageApi(["Storage 接口<br/>slots / replay / checkpoint / prices / memory"]):::internalPort
+      Storage["Storage<br/>slots / conversations / checkpoint / prices / memory"]:::component
+
+      AdapterApi(["Adapters 接口<br/>recycler / vision / market data"]):::internalPort
+      Adapters["Adapters<br/>recycler / vision / market data"]:::component
+    end
+  end
+
+  LLM["LLM Provider"]:::external
+  Sources["商品 / 视觉 / 行情来源"]:::external
+
+  H5 -->|使用 Backend 边界| MsgApi
+  MsgApi -->|委托给内部接口| WebHttp
+  WebHttp -->|由其提供| Web
+
+  H5 -->|续读 / ack| TurnApi
+  TurnApi -->|委托给内部接口| BacklogState
+  BacklogState -->|由其提供| Backlog
+
+  H5 -->|页面与读取| ReadApi
+  ReadApi -->|委托给内部接口| WebHttp
+
+  CLI -->|本进程复用| RuntimeRun
+  RuntimeRun -->|由其提供| Runtime
+
+  Web -->|创建 turn| BacklogState
+  Web -->|读取页面状态| StorageApi
+  Backlog -->|请求 runtime 事件源| StoreEvents
+  StoreEvents -->|由其提供| Store
+  Store -->|调用| RuntimeRun
+  Store -->|保存 turn / pending UI| StorageApi
+
+  Runtime -->|装载 active Skill| SkillFiles
+  SkillFiles -->|由其提供| Skills
+  Runtime -->|计算 allowed tools| ToolRegistry
+  ToolRegistry -->|由其提供| Tools
+  Runtime -->|模型调用| LLM
+  Runtime -->|checkpoint| StorageApi
+  Tools -->|读写业务事实| StorageApi
+  Tools -->|查询来源| AdapterApi
+  AdapterApi -->|由其提供| Adapters
+  StorageApi -->|由其承载| Storage
+  Adapters -->|外部查询或本地缓存读取| Sources
+
+  Runtime -->|输出 runtime events| RuntimeOut
+  RuntimeOut -->|被其消费| Store
+  Store -->|SSE events / waiting_ui state| Backlog
+  Backlog -->|输出到 Backend 边界| SseApi
+  SseApi -->|推送| H5

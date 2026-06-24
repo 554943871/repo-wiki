@@ -89,7 +89,11 @@ Canonical name 必须是单一稳定名称。不要在 canonical name 里用 `A 
 
 ## Canonical Subjects
 
-涉及“谁做了什么”的图和表，主语必须来自已经确认的 system context node、canonical roles、external systems、main runtime units、pages、modules 或 models，或来自当前页面先声明且有证据支撑的 subject list。目标系统本身可以在确实由系统发起的活动里作为 subject，但不要因此写进 Canonical Roles。主语不能是 payload、DTO、SQL、record、adapter、helper、method、临时状态名或文件路径。
+涉及“谁做了什么”的图和表，主语必须来自已经确认的 system context node、canonical roles、external systems、main runtime units、pages、modules，或来自当前页面先声明且有证据支撑的 subject list。Canonical Roles 只要参与该流程，就天然适合作为 Subject。目标系统本身可以在确实由系统发起的活动里作为 subject，但不要因此写进 Canonical Roles。
+
+Canonical Models 不适合作为 Activity Subject：model 通常是被创建、读取、更新、终止、展示或引用的对象、状态载体或事实来源，而不是“谁做了什么”的执行者。需要表达 model 变化时，把 model 写在 SVO 的 Object、状态结果、相关模型、state transition 或 evidence anchor 中；不要把 model 名称硬提升成主语。主语不能是 payload、DTO、SQL、record、adapter、helper、method、临时状态名或文件路径。
+
+同一张 Activity Map 里的 Subject 应保持抽象层次一致。Canonical Roles 代表参与者，可以和其他 subject family 共存；除 Roles 之外，同一张图里的其他 Subject 应尽量来自同一种 canonical index 类型或同一种页面声明的 flow-local 抽象层，例如全是 External Systems、全是 Main Runtime Units、全是 Pages、全是 Modules，或全是同一运行单元内部的 flow-local participants。不要在同一张主活动图里把 Page、Module、Runtime Unit、External System 和实现组件混成同级主语。如果确实需要解释跨层交接，应拆成主 activity map 加 drill-down / sequence，或把较低层内容放到 Object、条件、证据或相关页面中。
 
 如果写不出清楚主语，说明当前内容可能不是稳定业务活动、事实来源、页面跳转或 public surface；应改成证据说明、候选说明、source-of-truth note，或保留为问题，不要把实现名硬提升成 reader-facing 概念。
 
@@ -123,7 +127,7 @@ Activity map 的活动节点必须显式写出 Subject，并使用 SVO 业务动
 - Reader question: 这段内容正在回答哪个读者问题？主表达是图、表还是 prose，为什么这个表达最清楚？
 - Main expression: 如果内容有拓扑、顺序、分支、跳转、状态或关系，是否优先用了 Mermaid 或等价图形表达？如果用了表格作为主表达，是否确实是短线性或横向对照信息？
 - Stable anchors: 图中节点、表格行和相关段落是否复用同一组 stable names / aliases？下钻内容是否明确回到主图或 owner page？
-- Canonical subjects: 活动主语、事实来源、页面来源、参与方和 owner 是否来自 confirmed canonical concepts 或当前页面声明的 subject list，而不是 runtime / adapter / payload / DTO / SQL / helper？Activity map 是否使用 SVO label，并对不同 Subject 分色？
+- Canonical subjects: 活动主语、事实来源、页面来源、参与方和 owner 是否来自 confirmed canonical concepts 或当前页面声明的 subject list，而不是 model / runtime helper / adapter / payload / DTO / SQL / helper？Canonical Roles 是否优先保留为 Subject，Canonical Models 是否只作为对象、状态或相关模型出现？除 Roles 外，同一张 Activity Map 的其他 Subject 是否来自同一种 canonical index 或同一种 flow-local 抽象层？Activity map 是否使用 SVO label，并对不同 Subject 分色？
 - Evidence and uncertainty: 每个关键事实、边、状态、跳转、surface 或 decision 是否有短证据锚点；证据不足处是否保留 uncertainty，而不是补成稳定结论？
 - Boundary fit: 信息是否写在正确 owner page 或 canonical index 附近；是否把 model 关系、dependency、sequence、page navigation、public surface 或 decision 混成一种表达？
 - Preservation: 重排成图、表或短段落后，是否丢失了 unique facts、异常、限制条件、反例、证据或 unresolved question？

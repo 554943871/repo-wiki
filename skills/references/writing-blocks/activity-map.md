@@ -28,9 +28,9 @@ flowchart TD
   A1[A1 Buyer submits checkout request]
   B{Payment approved?}
   C1[C1 Payment Provider confirms payment result]
-  D1[D1 Warehouse reserves stock]
+  D1[D1 Warehouse Staff reserves stock]
   E1[E1 Support Agent reviews failed order]
-  F1[F1 Order becomes fulfillment ready]
+  F1[F1 Warehouse Staff marks order fulfillment ready]
   X[Abnormal exit: payment failed]
 
   A1 --> B
@@ -39,14 +39,12 @@ flowchart TD
 
   class A1 buyer;
   class C1 paymentProvider;
-  class D1 warehouse;
+  class D1,F1 warehouseStaff;
   class E1 supportAgent;
-  class F1 order;
   classDef buyer fill:#E8F5E9,stroke:#2E7D32,color:#111;
   classDef paymentProvider fill:#E3F2FD,stroke:#1565C0,color:#111;
-  classDef warehouse fill:#FFF3E0,stroke:#EF6C00,color:#111;
+  classDef warehouseStaff fill:#FFF3E0,stroke:#EF6C00,color:#111;
   classDef supportAgent fill:#F3E5F5,stroke:#7B1FA2,color:#111;
-  classDef order fill:#F5F5F5,stroke:#616161,color:#111;
 ```
 
 ```md
@@ -60,7 +58,8 @@ flowchart TD
 ## 写作要求
 
 - 先写 business mainline：从触发到正常终点的最短稳定路径。
-- 标明 subjects：用户角色、业务岗位、外部系统、主要运行单元、页面承接方、module 或 model。名称必须来自 wiki 中已经确认的 canonical names，或来自当前 flow 页面先声明且有证据锚点的 actor / subject list；不能在活动节点里临时发明主语。
+- 标明 subjects：用户角色、业务岗位、外部系统、主要运行单元、页面承接方或 module。名称必须来自 wiki 中已经确认的 canonical names，或来自当前 flow 页面先声明且有证据锚点的 actor / subject list；不能在活动节点里临时发明主语。Canonical Roles 只要参与该流程，就天然适合作为 Subject；Canonical Models 不适合作为 Activity Subject，只能作为动作对象、状态载体、相关模型或 evidence anchor。
+- 保持抽象层次：同一张 Activity Map 可以把 Canonical Roles 和一种非 Role subject family 放在一起；除 Roles 外，其他 Subject 应来自同一种 canonical index 类型或同一种 flow-local 抽象层。不要把 Page、Module、Runtime Unit、External System 和实现组件放在同一张主活动图里当同级主语。需要跨层说明时，保留主图在一个层级，把下钻放进 sequence、局部 activity map、Object、条件、证据或相关页面。
 - Activity node label 必须采用 SVO 业务动作短句。推荐形态为 `<stable-node-id> <Subject> <verb + business object>`，例如 `A1 Buyer submits checkout request`。分支、汇合和异常终点可以使用条件或结果标签，但不能伪装成业务活动节点。
 - 标明 conditions：触发条件、进入分支的条件、汇合条件和终止条件。
 - 标明 branches：用业务条件命名分支，不要用 `if flag`、`switch status` 这类实现表达代替业务含义。
@@ -78,7 +77,7 @@ flowchart TD
 
 Drill-down 图可以解释某个活动节点内部如何协作，也可以高亮一段主链路，但它不能重新定义另一套主业务流程。需要展示局部视角时，复用主图的稳定节点名、短编号或别名，并说明“本段从哪个活动节点 / 哪条边 / 哪段子链下钻”。
 
-活动节点的 Subject 必须复用 wiki 中已确认的 canonical roles、external systems、main runtime units、pages、modules 或 models，或者复用当前 flow 页面已经声明并有证据支撑的 subject list。Subject 不能是 DTO、payload、record、SQL、adapter、helper、method、文件路径或临时状态名。如果只能写出实现名，说明它更适合作为 evidence anchor、sequence participant 说明或候选问题，不应成为 activity node。
+活动节点的 Subject 必须复用 wiki 中已确认的 canonical roles、external systems、main runtime units、pages、modules，或者复用当前 flow 页面已经声明并有证据支撑的 subject list。除 Roles 外，同一张图的其他 Subject 应保持同一种 canonical index 类型或同一种 flow-local 抽象层。Canonical Models 不做 Activity Subject：如果需要表达 model 的创建、读取、更新、终止或状态变化，把 model 写进 SVO 的 Object、state transition、相关模型或 evidence anchor。Subject 不能是 DTO、payload、record、SQL、adapter、helper、method、文件路径或临时状态名。如果只能写出实现名或 model 名，说明它更适合作为 evidence anchor、sequence participant 说明、state transition 或候选问题，不应成为 activity node。
 
 ## Activity Label 规则
 
@@ -87,7 +86,7 @@ Activity label 必须是读者能理解的业务或系统动作，例如：
 - A1 Buyer submits checkout request.
 - C1 Payment Provider confirms payment result.
 - E1 Support Agent reviews failed order.
-- F1 Order becomes fulfillment ready.
+- F1 Warehouse Staff marks order fulfillment ready.
 
 Activity label 不能是实现层项目，例如：
 

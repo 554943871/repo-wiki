@@ -1,0 +1,47 @@
+@startuml
+title Select Agent Backend - UML Component Diagram Example
+
+left to right direction
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam wrapWidth 160
+
+actor "H5 Page" as H5
+component "LLM Provider" as LLM <<external>>
+cloud "Product / Vision /\nMarket Sources" as Sources
+
+package "Select Agent Backend" {
+  component "Web Event\nSurfaces" as Web
+  component "Response\nBacklog" as Backlog
+  component "DeepAgent\nRuntimeStore" as Store
+  component "DeepAgent\nRuntime" as Runtime
+  component "Select\nTools" as Tools
+  database "Storage" as Storage
+  component "Adapters" as Adapters
+
+  () "HTTP API" as HttpApi
+  () "Tool API" as ToolApi
+}
+
+H5 --> HttpApi : calls / streams
+HttpApi -- Web
+
+Web --> Backlog : creates turn
+Backlog --> Store : event source
+Store --> Runtime : run / resume
+Runtime --> LLM : model calls
+
+Runtime ..> ToolApi : requires
+ToolApi -- Tools
+
+Tools --> Storage : reads / writes facts
+Tools --> Adapters : queries sources
+Store --> Storage : saves turn state
+Adapters --> Sources : fetches
+
+note right of ToolApi
+  Provided/required interface
+  is what makes this closer
+  to a UML component diagram.
+end note
+@enduml
