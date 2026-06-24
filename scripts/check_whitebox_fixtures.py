@@ -900,7 +900,7 @@ def require_elk_runtime() -> None:
         missing.append("Node.js is required for the elk Whitebox render backend")
     if not ELK_PACKAGE_ENTRY.exists():
         missing.append(
-            "elkjs dependency is not installed; run npm ci during repo-wiki suite setup before rendering with --backend elk"
+            "elkjs dependency is not installed; run npm ci during repo-wiki skill suite development or upgrade before rendering with --backend elk"
         )
     if missing:
         raise WhiteboxRenderError("; ".join(missing))
@@ -989,6 +989,15 @@ def infer_port_side(port_box: tuple[int, int, int, int], owner_box: tuple[int, i
 def box_center(box: tuple[int, int, int, int]) -> tuple[int, int]:
     x, y, width, height = box
     return x + width // 2, y + height // 2
+
+
+def connector_endpoint_point(
+    endpoint: object,
+    component: dict[str, object],
+    layout: dict[str, object],
+    interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]],
+) -> tuple[int, int]:
+    return box_center(endpoint_box_from_layout(endpoint, component, layout, interface_role_positions))
 
 
 def endpoint_box_from_layout(
@@ -1119,11 +1128,11 @@ def render_elk_svg(model: dict[str, object]) -> str:
         lines.append(stem)
         if role == "provided":
             lines.append(
-                f'  <circle data-interface-role="provided" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" cx="{symbol_x}" cy="{role_y}" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />'
+                f'  <circle data-interface-role="provided" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" data-symbol-cx="{symbol_x}" data-symbol-cy="{role_y}" cx="{symbol_x}" cy="{role_y}" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />'
             )
         else:
             lines.append(
-                f'  <path data-interface-role="required" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" d="{socket_path}" fill="none" stroke="#b45309" stroke-width="2" />'
+                f'  <path data-interface-role="required" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" data-symbol-cx="{symbol_x}" data-symbol-cy="{role_y}" d="{socket_path}" fill="none" stroke="#b45309" stroke-width="2" />'
             )
         lines.append(label)
 
@@ -1196,14 +1205,18 @@ def render_elk_svg(model: dict[str, object]) -> str:
         ):
             points = routed_points
         else:
-            start = box_center(endpoint_box_from_layout(source, component, layout, interface_role_positions))
-            end = box_center(endpoint_box_from_layout(target, component, layout, interface_role_positions))
+            start = connector_endpoint_point(source, component, layout, interface_role_positions)
+            end = connector_endpoint_point(target, component, layout, interface_role_positions)
             points = [start, end]
+        if isinstance(source, dict):
+            points[0] = connector_endpoint_point(source, component, layout, interface_role_positions)
+        if isinstance(target, dict):
+            points[-1] = connector_endpoint_point(target, component, layout, interface_role_positions)
         point_text = " ".join(f"{x},{y}" for x, y in points)
         midpoint = points[len(points) // 2]
         label_y = max(18, midpoint[1] - 18 - connector_index % 3 * 14)
         lines.extend([
-            f'  <polyline points="{point_text}" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
+            f'  <polyline data-connector="{html.escape(connector_id)}" points="{point_text}" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
             f'  <text x="{midpoint[0]}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">{html.escape(direction_label)}</text>',
         ])
         label = connector.get("label")
@@ -1224,6 +1237,86 @@ def coordinate_values(svg: str) -> list[int]:
         for value in re.findall(r"-?[0-9]+", points):
             values.append(int(value))
     return values
+
+
+def svg_attributes(tag: str) -> dict[str, str]:
+    return {
+        match.group(1): html.unescape(match.group(2))
+        for match in re.finditer(r'([A-Za-z_:][-A-Za-z0-9_:.]*)="([^"]*)"', tag)
+    }
+
+
+def svg_polyline_points(points: str) -> list[tuple[int, int]]:
+    parsed: list[tuple[int, int]] = []
+    for point in points.split():
+        if "," not in point:
+            continue
+        x_value, y_value = point.split(",", 1)
+        try:
+            parsed.append((int(x_value), int(y_value)))
+        except ValueError:
+            continue
+    return parsed
+
+
+def interface_role_key_from_endpoint(endpoint: object) -> tuple[str, str, str, str] | None:
+    if not isinstance(endpoint, dict):
+        return None
+    return endpoint_role_key(endpoint)
+
+
+def check_elk_interface_assembly_symbol_endpoints(
+    path: Path,
+    model: dict[str, object],
+    svg: str,
+) -> list[str]:
+    role_centers: dict[tuple[str, str, str, str], tuple[int, int]] = {}
+    for tag_match in re.finditer(r'<(?:circle|path)\b[^>]*\bdata-interface-role="(?:provided|required)"[^>]*/>', svg):
+        attributes = svg_attributes(tag_match.group(0))
+        key = (
+            attributes.get("data-owner", ""),
+            attributes.get("data-port", ""),
+            attributes.get("data-interface", ""),
+            attributes.get("data-interface-role", ""),
+        )
+        try:
+            role_centers[key] = (
+                int(attributes["data-symbol-cx"]),
+                int(attributes["data-symbol-cy"]),
+            )
+        except (KeyError, ValueError):
+            continue
+
+    connector_points: dict[str, list[tuple[int, int]]] = {}
+    for tag_match in re.finditer(r'<polyline\b[^>]*/>', svg):
+        attributes = svg_attributes(tag_match.group(0))
+        connector_id = attributes.get("data-connector")
+        points = attributes.get("points")
+        if connector_id and points:
+            connector_points[connector_id] = svg_polyline_points(points)
+
+    errors: list[str] = []
+    connectors = model.get("connectors", [])
+    assert isinstance(connectors, list)
+    for connector in connectors:
+        if not isinstance(connector, dict) or connector.get("type") != "interfaceAssembly":
+            continue
+        connector_id = str(connector["id"])
+        points = connector_points.get(connector_id, [])
+        if len(points) < 2:
+            errors.append(f"{rel(path)} elk SVG connector {connector_id} must expose rendered polyline points")
+            continue
+        source_key = interface_role_key_from_endpoint(connector["from"])
+        target_key = interface_role_key_from_endpoint(connector["to"])
+        if source_key is not None and role_centers.get(source_key) != points[0]:
+            errors.append(
+                f"{rel(path)} elk SVG connector {connector_id} must start at source interface-role symbol center"
+            )
+        if target_key is not None and role_centers.get(target_key) != points[-1]:
+            errors.append(
+                f"{rel(path)} elk SVG connector {connector_id} must end at target interface-role symbol center"
+            )
+    return errors
 
 
 def check_rendered_svg_semantics(
@@ -1296,6 +1389,9 @@ def check_rendered_svg_semantics(
                 errors.append(f"{rel(path)} {backend} dense SVG must expand canvas instead of compacting semantics")
         if "refactor" in complexity_signal.lower():
             errors.append(f"{rel(path)} {backend} SVG complexity signal must not write refactor conclusions")
+
+    if backend == ELK_RENDER_BACKEND:
+        errors.extend(check_elk_interface_assembly_symbol_endpoints(path, model, svg))
 
     return errors
 

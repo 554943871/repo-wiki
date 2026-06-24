@@ -23,7 +23,7 @@ they verify deterministic SVG output, reader-visible semantic text, connector
 markers, provided/required interface-role symbols, numeric canvas dimensions,
 nonnegative geometry, and dense-diagram complexity metadata. The ELK backend
 uses the repo-declared `elkjs` dependency and fails fast if `npm ci` has not
-installed dependencies during repo-wiki suite setup.
+installed dependencies during repo-wiki skill suite development or upgrade.
 
 It covers internal parts, port-level connectors, global interface definitions,
 provided/required interface roles, interface assembly, UML lollipop/socket
