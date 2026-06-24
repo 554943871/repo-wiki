@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-labelledby="title desc">
+  <title id="title">Delegation Derived Whitebox View: Checkout Orchestrator</title>
+  <desc id="desc">Delegation Derived Whitebox View generated from the same Diagram Source Model; focuses on enclosing component boundary ports, internal part ports, and delegation connectors; Order Entry -&gt; Request Router.Inbound Orders; Support Console -&gt; Order Writer.Audit Need</desc>
+  <metadata data-derived-whitebox-view="delegation">Delegation Derived Whitebox View generated from the same Diagram Source Model; focuses on enclosing component boundary ports, internal part ports, and delegation connectors</metadata>
+  <text data-derived-view-title="delegation" x="480" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Delegation Derived Whitebox View</text>
+  <text data-derived-view-source="delegation" x="480" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">Generated from the same Diagram Source Model</text>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="250" y="70" width="650" height="290" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />
+  <text x="575" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Checkout Orchestrator</text>
+  <rect x="220" y="160" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="187" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Order Entry</text>
+  <rect x="220" y="230" width="120" height="44" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+  <text x="280" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">Support Console</text>
+  <rect x="410" y="135" width="190" height="120" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="505" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Request Router</text>
+  <rect x="436" y="189" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="505" y="211" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Inbound Orders</text>
+  <rect x="680" y="135" width="190" height="120" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+  <text x="775" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Order Writer</text>
+  <rect x="706" y="189" width="138" height="34" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+  <text x="775" y="211" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">Audit Need</text>
+  <line x1="340" y1="182" x2="436" y2="206" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="388" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Order Entry -&gt; Request Router.Inbound Orders</text>
+  <text x="388" y="256" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">delegates inbound order</text>
+  <line x1="340" y1="252" x2="706" y2="206" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="523" y="151" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">Support Console -&gt; Order Writer.Audit Need</text>
+  <text x="523" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">delegates audit lookup</text>
+</svg>

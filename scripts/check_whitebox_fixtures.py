@@ -24,6 +24,7 @@ FIXTURE_ROOT = ROOT / "tests" / "whitebox" / "fixtures"
 
 REQUIRED_VALID_FIXTURES = {
     "both-interface-roles.whitebox.yaml",
+    "dense-boundary-delegation-only.whitebox.yaml",
     "dense-complexity-signal.whitebox.yaml",
     "delegation-input.whitebox.yaml",
     "delegation-output.whitebox.yaml",
@@ -116,6 +117,31 @@ ELK_RENDER_BACKEND = "elk"
 AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND, ELK_RENDER_BACKEND})
 ELK_LAYOUT_HELPER = ROOT / "scripts" / "elk_whitebox_layout.mjs"
 ELK_PACKAGE_ENTRY = ROOT / "node_modules" / "elkjs" / "lib" / "elk.bundled.js"
+DERIVED_VIEW_NAMES = ("boundary", "delegation", "assembly", "interfaces")
+DERIVED_VIEW_LABELS = {
+    "boundary": "Boundary Derived Whitebox View",
+    "delegation": "Delegation Derived Whitebox View",
+    "assembly": "Assembly Derived Whitebox View",
+    "interfaces": "Interfaces Derived Whitebox View",
+}
+DERIVED_VIEW_DESCRIPTIONS = {
+    "boundary": (
+        "Boundary Derived Whitebox View generated from the same Diagram Source Model; "
+        "focuses on external nodes, enclosing component boundary ports, and external connectors"
+    ),
+    "delegation": (
+        "Delegation Derived Whitebox View generated from the same Diagram Source Model; "
+        "focuses on enclosing component boundary ports, internal part ports, and delegation connectors"
+    ),
+    "assembly": (
+        "Assembly Derived Whitebox View generated from the same Diagram Source Model; "
+        "focuses on internal parts, internal part ports, and assembly connectors"
+    ),
+    "interfaces": (
+        "Interfaces Derived Whitebox View generated from the same Diagram Source Model; "
+        "focuses on provided and required interface roles and interface assembly connectors"
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -151,6 +177,30 @@ class DiagramComplexity:
 @dataclass(frozen=True)
 class RenderBackend:
     name: str
+
+
+@dataclass(frozen=True)
+class WhiteboxView:
+    name: str
+    label: str
+    description: str
+
+
+@dataclass(frozen=True)
+class DerivedViewReferences:
+    connector_ids: frozenset[str]
+    component_port_ids: frozenset[str]
+    part_port_ids: frozenset[tuple[str, str]]
+    external_ids: frozenset[str]
+    interface_ids: frozenset[str]
+
+    @property
+    def has_connector_content(self) -> bool:
+        return bool(self.connector_ids)
+
+    @property
+    def has_interface_content(self) -> bool:
+        return bool(self.interface_ids)
 
 
 class WhiteboxRenderError(RuntimeError):
@@ -869,6 +919,312 @@ def format_complexity_signal(complexity: DiagramComplexity) -> str:
     return f"Diagram Complexity Signal raw metrics: {format_complexity_metrics(complexity)}; warnings={warnings}"
 
 
+def whitebox_view(view_name: str) -> WhiteboxView:
+    try:
+        return WhiteboxView(
+            name=view_name,
+            label=DERIVED_VIEW_LABELS[view_name],
+            description=DERIVED_VIEW_DESCRIPTIONS[view_name],
+        )
+    except KeyError as exc:
+        raise ValueError(f"unsupported Derived Whitebox View: {view_name}") from exc
+
+
+def connectors_by_type(model: dict[str, object], connector_type: str) -> list[dict[str, object]]:
+    connectors = model.get("connectors", [])
+    if not isinstance(connectors, list):
+        return []
+    return [
+        connector
+        for connector in connectors
+        if isinstance(connector, dict) and connector.get("type") == connector_type and "id" in connector
+    ]
+
+
+def collect_endpoint_references(
+    endpoint: object,
+    component_id: str,
+    component_port_ids: set[str],
+    part_port_ids: set[tuple[str, str]],
+    external_ids: set[str],
+    interface_ids: set[str],
+) -> None:
+    if isinstance(endpoint, str):
+        if "." not in endpoint:
+            external_ids.add(endpoint)
+            return
+        owner_id, port_id = endpoint.split(".", 1)
+        if owner_id == component_id:
+            component_port_ids.add(port_id)
+        else:
+            part_port_ids.add((owner_id, port_id))
+        return
+
+    if not isinstance(endpoint, dict):
+        return
+    owner_id = endpoint.get("owner")
+    port_id = endpoint.get("port")
+    interface_id = endpoint.get("interface")
+    if isinstance(owner_id, str) and isinstance(port_id, str):
+        if owner_id == component_id:
+            component_port_ids.add(port_id)
+        else:
+            part_port_ids.add((owner_id, port_id))
+    if isinstance(interface_id, str):
+        interface_ids.add(interface_id)
+
+
+def collect_connector_references(
+    connectors: list[dict[str, object]],
+    component_id: str,
+) -> DerivedViewReferences:
+    connector_ids: set[str] = set()
+    component_port_ids: set[str] = set()
+    part_port_ids: set[tuple[str, str]] = set()
+    external_ids: set[str] = set()
+    interface_ids: set[str] = set()
+    for connector in connectors:
+        connector_ids.add(str(connector["id"]))
+        collect_endpoint_references(
+            connector.get("from"),
+            component_id,
+            component_port_ids,
+            part_port_ids,
+            external_ids,
+            interface_ids,
+        )
+        collect_endpoint_references(
+            connector.get("to"),
+            component_id,
+            component_port_ids,
+            part_port_ids,
+            external_ids,
+            interface_ids,
+        )
+    return DerivedViewReferences(
+        connector_ids=frozenset(connector_ids),
+        component_port_ids=frozenset(component_port_ids),
+        part_port_ids=frozenset(part_port_ids),
+        external_ids=frozenset(external_ids),
+        interface_ids=frozenset(interface_ids),
+    )
+
+
+def merge_derived_references(
+    left: DerivedViewReferences,
+    right: DerivedViewReferences,
+) -> DerivedViewReferences:
+    return DerivedViewReferences(
+        connector_ids=left.connector_ids | right.connector_ids,
+        component_port_ids=left.component_port_ids | right.component_port_ids,
+        part_port_ids=left.part_port_ids | right.part_port_ids,
+        external_ids=left.external_ids | right.external_ids,
+        interface_ids=left.interface_ids | right.interface_ids,
+    )
+
+
+def port_has_interface_roles(port: dict[str, object]) -> bool:
+    return bool(port_interface_ids(port, "provides") or port_interface_ids(port, "requires"))
+
+
+def role_interface_ids_for_port(port: dict[str, object]) -> set[str]:
+    return set(port_interface_ids(port, "provides")) | set(port_interface_ids(port, "requires"))
+
+
+def interface_role_references(model: dict[str, object]) -> DerivedViewReferences:
+    component = model["component"]
+    assert isinstance(component, dict)
+    component_port_ids: set[str] = set()
+    part_port_ids: set[tuple[str, str]] = set()
+    interface_ids: set[str] = set()
+
+    for port in component.get("ports", []):
+        if not isinstance(port, dict) or "id" not in port or not port_has_interface_roles(port):
+            continue
+        component_port_ids.add(str(port["id"]))
+        interface_ids.update(role_interface_ids_for_port(port))
+
+    for part in model.get("parts", []):
+        if not isinstance(part, dict) or "id" not in part:
+            continue
+        part_id = str(part["id"])
+        for port in part.get("ports", []):
+            if not isinstance(port, dict) or "id" not in port or not port_has_interface_roles(port):
+                continue
+            part_port_ids.add((part_id, str(port["id"])))
+            interface_ids.update(role_interface_ids_for_port(port))
+
+    return DerivedViewReferences(
+        connector_ids=frozenset(),
+        component_port_ids=frozenset(component_port_ids),
+        part_port_ids=frozenset(part_port_ids),
+        external_ids=frozenset(),
+        interface_ids=frozenset(interface_ids),
+    )
+
+
+def derived_view_references(model: dict[str, object], view_name: str) -> DerivedViewReferences:
+    component = model["component"]
+    assert isinstance(component, dict)
+    component_id = str(component["id"])
+
+    if view_name == "boundary":
+        return collect_connector_references(connectors_by_type(model, "external"), component_id)
+    if view_name == "delegation":
+        return collect_connector_references(connectors_by_type(model, "delegation"), component_id)
+    if view_name == "assembly":
+        return collect_connector_references(connectors_by_type(model, "assembly"), component_id)
+    if view_name == "interfaces":
+        connector_refs = collect_connector_references(connectors_by_type(model, "interfaceAssembly"), component_id)
+        return merge_derived_references(connector_refs, interface_role_references(model))
+    raise ValueError(f"unsupported Derived Whitebox View: {view_name}")
+
+
+def clone_port_for_view(
+    port: dict[str, object],
+    include_interface_roles: bool,
+) -> tuple[dict[str, object], set[str]]:
+    cloned = dict(port)
+    if include_interface_roles:
+        return cloned, role_interface_ids_for_port(port)
+    cloned.pop("provides", None)
+    cloned.pop("requires", None)
+    return cloned, set()
+
+
+def filter_model_for_derived_view(
+    model: dict[str, object],
+    references: DerivedViewReferences,
+    include_interface_roles: bool,
+) -> dict[str, object]:
+    component = model["component"]
+    assert isinstance(component, dict)
+    needed_interface_ids = set(references.interface_ids)
+
+    component_copy = {key: value for key, value in component.items() if key != "ports"}
+    component_ports: list[dict[str, object]] = []
+    for port in component.get("ports", []):
+        if not isinstance(port, dict) or "id" not in port:
+            continue
+        if str(port["id"]) not in references.component_port_ids:
+            continue
+        cloned_port, role_interface_ids = clone_port_for_view(port, include_interface_roles)
+        needed_interface_ids.update(role_interface_ids)
+        component_ports.append(cloned_port)
+    component_copy["ports"] = component_ports
+
+    parts: list[dict[str, object]] = []
+    for part in model.get("parts", []):
+        if not isinstance(part, dict) or "id" not in part:
+            continue
+        part_id = str(part["id"])
+        part_ports: list[dict[str, object]] = []
+        for port in part.get("ports", []):
+            if not isinstance(port, dict) or "id" not in port:
+                continue
+            if (part_id, str(port["id"])) not in references.part_port_ids:
+                continue
+            cloned_port, role_interface_ids = clone_port_for_view(port, include_interface_roles)
+            needed_interface_ids.update(role_interface_ids)
+            part_ports.append(cloned_port)
+        if part_ports:
+            part_copy = {key: value for key, value in part.items() if key != "ports"}
+            part_copy["ports"] = part_ports
+            parts.append(part_copy)
+
+    result: dict[str, object] = {
+        "kind": model.get("kind"),
+        "version": model.get("version"),
+    }
+    if needed_interface_ids:
+        result["interfaces"] = [
+            dict(interface)
+            for interface in model.get("interfaces", [])
+            if isinstance(interface, dict) and str(interface.get("id")) in needed_interface_ids
+        ]
+    result["component"] = component_copy
+    if parts:
+        result["parts"] = parts
+    if references.external_ids:
+        result["externals"] = [
+            dict(external)
+            for external in model.get("externals", [])
+            if isinstance(external, dict) and str(external.get("id")) in references.external_ids
+        ]
+    result["connectors"] = [
+        dict(connector)
+        for connector in model.get("connectors", [])
+        if isinstance(connector, dict) and str(connector.get("id")) in references.connector_ids
+    ]
+    return result
+
+
+def build_derived_view_model(model: dict[str, object], view_name: str) -> dict[str, object] | None:
+    references = derived_view_references(model, view_name)
+    if view_name == "interfaces":
+        if not references.has_interface_content:
+            return None
+        return filter_model_for_derived_view(model, references, include_interface_roles=True)
+    if not references.has_connector_content:
+        return None
+    return filter_model_for_derived_view(model, references, include_interface_roles=False)
+
+
+def build_derived_view_models(model: dict[str, object]) -> dict[str, dict[str, object]]:
+    if not diagram_complexity(model).dense:
+        return {}
+    derived_models: dict[str, dict[str, object]] = {}
+    for view_name in DERIVED_VIEW_NAMES:
+        derived_model = build_derived_view_model(model, view_name)
+        if derived_model is not None:
+            derived_models[view_name] = derived_model
+    return derived_models
+
+
+def derived_svg_path(source_path: Path, view_name: str) -> Path:
+    return source_path.parent / source_path.name.replace(".whitebox.yaml", f".whitebox.{view_name}.svg")
+
+
+def derived_svg_file_name(source_path: Path, view_name: str) -> str:
+    return source_path.name.replace(".whitebox.yaml", f".whitebox.{view_name}.svg")
+
+
+def svg_title(component_label: str, view: WhiteboxView | None) -> str:
+    if view is None:
+        return f"Whitebox Component Diagram: {component_label}"
+    return f"{view.label}: {component_label}"
+
+
+def svg_description(direction_labels: list[str], view: WhiteboxView | None) -> str:
+    direction_text = "; ".join(direction_labels)
+    if view is None:
+        return direction_text
+    if direction_text:
+        return f"{view.description}; {direction_text}"
+    return view.description
+
+
+def derived_view_metadata_lines(view: WhiteboxView | None, canvas_width: int) -> list[str]:
+    if view is None:
+        return []
+    return [
+        (
+            f'  <metadata data-derived-whitebox-view="{html.escape(view.name)}">'
+            f"{html.escape(view.description)}</metadata>"
+        ),
+        (
+            f'  <text data-derived-view-title="{html.escape(view.name)}" x="{canvas_width // 2}" y="26" '
+            f'text-anchor="middle" font-family="Arial, sans-serif" font-size="16" '
+            f'font-weight="700" fill="#111827">{html.escape(view.label)}</text>'
+        ),
+        (
+            f'  <text data-derived-view-source="{html.escape(view.name)}" x="{canvas_width // 2}" y="48" '
+            f'text-anchor="middle" font-family="Arial, sans-serif" font-size="12" '
+            f'fill="#4b5563">Generated from the same Diagram Source Model</text>'
+        ),
+    ]
+
+
 def svg_dimensions(svg: str) -> tuple[int, int] | None:
     match = re.search(r'<svg\b[^>]*\bwidth="([0-9]+)"\s+height="([0-9]+)"', svg)
     if match is None:
@@ -883,13 +1239,25 @@ def select_render_backend(backend: str = SIMPLE_RENDER_BACKEND) -> RenderBackend
     return RenderBackend(name=backend)
 
 
-def render_svg(model: dict[str, object], backend: str = SIMPLE_RENDER_BACKEND) -> str:
+def render_svg(
+    model: dict[str, object],
+    backend: str = SIMPLE_RENDER_BACKEND,
+    view: WhiteboxView | None = None,
+) -> str:
     selected_backend = select_render_backend(backend)
     if selected_backend.name == SIMPLE_RENDER_BACKEND:
-        return render_simple_svg(model)
+        return render_simple_svg(model, view=view)
     if selected_backend.name == ELK_RENDER_BACKEND:
-        return render_elk_svg(model)
+        return render_elk_svg(model, view=view)
     raise AssertionError(f"unhandled Whitebox render backend: {selected_backend.name}")
+
+
+def render_derived_svgs(model: dict[str, object], backend: str = SIMPLE_RENDER_BACKEND) -> dict[str, str]:
+    selected_backend = select_render_backend(backend)
+    return {
+        view_name: render_svg(derived_model, backend=selected_backend.name, view=whitebox_view(view_name))
+        for view_name, derived_model in build_derived_view_models(model).items()
+    }
 
 
 def require_elk_runtime() -> None:
@@ -1017,7 +1385,7 @@ def endpoint_box_from_layout(
     return interface_role_positions[endpoint_role_key(endpoint)]
 
 
-def render_elk_svg(model: dict[str, object]) -> str:
+def render_elk_svg(model: dict[str, object], view: WhiteboxView | None = None) -> str:
     layout = run_elk_layout(model)
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
@@ -1044,13 +1412,14 @@ def render_elk_svg(model: dict[str, object]) -> str:
     interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]] = {}
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}" role="img" aria-labelledby="title desc">',
-        f'  <title id="title">Whitebox Component Diagram: {html.escape(str(component["label"]))}</title>',
-        f'  <desc id="desc">{html.escape("; ".join(direction_labels))}</desc>',
+        f'  <title id="title">{html.escape(svg_title(str(component["label"]), view))}</title>',
+        f'  <desc id="desc">{html.escape(svg_description(direction_labels, view))}</desc>',
     ]
     if complexity.dense:
         lines.append(
             f'  <metadata data-diagram-complexity-signal="dense">{html.escape(format_complexity_signal(complexity))}</metadata>'
         )
+    lines.extend(derived_view_metadata_lines(view, canvas_width))
     lines.extend([
         "  <defs>",
         '    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">',
@@ -1324,8 +1693,10 @@ def check_rendered_svg_semantics(
     model: dict[str, object],
     svg: str,
     backend: str,
+    view_name: str | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    svg_label = f"{backend} {view_name} derived SVG" if view_name is not None else f"{backend} SVG"
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
     required_text = [str(component["label"])]
     required_text.extend(str(port["label"]) for port in ports.values())
@@ -1353,42 +1724,42 @@ def check_rendered_svg_semantics(
 
     for text in required_text:
         if html.escape(text) not in svg:
-            errors.append(f"{rel(path)} {backend} SVG must contain reader-visible text {text!r}")
+            errors.append(f"{rel(path)} {svg_label} must contain reader-visible text {text!r}")
 
     connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
     if svg.count('marker-end="url(#arrowhead)"') < connector_count:
-        errors.append(f"{rel(path)} {backend} SVG must contain a direction marker for every connector")
+        errors.append(f"{rel(path)} {svg_label} must contain a direction marker for every connector")
     if svg.count('data-interface-role="provided"') < provided_role_count:
-        errors.append(f"{rel(path)} {backend} SVG must contain a lollipop marker for every provided interface")
+        errors.append(f"{rel(path)} {svg_label} must contain a lollipop marker for every provided interface")
     if svg.count('data-interface-role="required"') < required_role_count:
-        errors.append(f"{rel(path)} {backend} SVG must contain a socket marker for every required interface")
+        errors.append(f"{rel(path)} {svg_label} must contain a socket marker for every required interface")
 
     dimensions = svg_dimensions(svg)
     if dimensions is None:
-        errors.append(f"{rel(path)} {backend} SVG must expose numeric width and height")
+        errors.append(f"{rel(path)} {svg_label} must expose numeric width and height")
     else:
         width, height = dimensions
         if width <= 0 or height <= 0:
-            errors.append(f"{rel(path)} {backend} SVG must have positive canvas dimensions")
+            errors.append(f"{rel(path)} {svg_label} must have positive canvas dimensions")
         values = coordinate_values(svg)
         if values and min(values) < 0:
-            errors.append(f"{rel(path)} {backend} SVG must not render negative geometry coordinates")
+            errors.append(f"{rel(path)} {svg_label} must not render negative geometry coordinates")
 
     complexity = diagram_complexity(model)
     if complexity.dense:
         if 'data-diagram-complexity-signal="dense"' not in svg:
-            errors.append(f"{rel(path)} {backend} SVG must emit raw Diagram Complexity Signal metrics")
+            errors.append(f"{rel(path)} {svg_label} must emit raw Diagram Complexity Signal metrics")
         complexity_signal = format_complexity_signal(complexity)
         for fragment in (format_complexity_metrics(complexity), f"warnings={','.join(complexity.warnings)}"):
             if html.escape(fragment) not in svg:
-                errors.append(f"{rel(path)} {backend} SVG complexity metrics must contain {fragment!r}")
+                errors.append(f"{rel(path)} {svg_label} complexity metrics must contain {fragment!r}")
         if dimensions is not None:
             width, height = dimensions
             base_width = 960 if parts else 720
             if width <= base_width and height <= 360:
-                errors.append(f"{rel(path)} {backend} dense SVG must expand canvas instead of compacting semantics")
+                errors.append(f"{rel(path)} {svg_label} must expand canvas instead of compacting semantics")
         if "refactor" in complexity_signal.lower():
-            errors.append(f"{rel(path)} {backend} SVG complexity signal must not write refactor conclusions")
+            errors.append(f"{rel(path)} {svg_label} complexity signal must not write refactor conclusions")
 
     if backend == ELK_RENDER_BACKEND:
         errors.extend(check_elk_interface_assembly_symbol_endpoints(path, model, svg))
@@ -1396,7 +1767,187 @@ def check_rendered_svg_semantics(
     return errors
 
 
-def render_simple_svg(model: dict[str, object]) -> str:
+def actual_derived_view_references(model: dict[str, object]) -> DerivedViewReferences:
+    _, interfaces, ports, _, part_ports, externals = model_index(model)
+    connectors = model.get("connectors", [])
+    connector_ids = {
+        str(connector["id"])
+        for connector in connectors
+        if isinstance(connector, dict) and "id" in connector
+    }
+    return DerivedViewReferences(
+        connector_ids=frozenset(connector_ids),
+        component_port_ids=frozenset(ports),
+        part_port_ids=frozenset(part_ports),
+        external_ids=frozenset(externals),
+        interface_ids=frozenset(interfaces),
+    )
+
+
+def connector_types_in_model(model: dict[str, object]) -> set[str]:
+    connectors = model.get("connectors", [])
+    if not isinstance(connectors, list):
+        return set()
+    return {str(connector.get("type")) for connector in connectors if isinstance(connector, dict)}
+
+
+def all_ports_in_model(model: dict[str, object]) -> list[dict[str, object]]:
+    _, _, ports, _, part_ports, _ = model_index(model)
+    return list(ports.values()) + list(part_ports.values())
+
+
+def check_derived_view_structure(
+    path: Path,
+    source_model: dict[str, object],
+    view_name: str,
+    derived_model: dict[str, object],
+) -> list[str]:
+    errors: list[str] = []
+    expected = derived_view_references(source_model, view_name)
+    actual = actual_derived_view_references(derived_model)
+    if actual.connector_ids != expected.connector_ids:
+        errors.append(
+            f"{rel(path)} {view_name} derived view connectors must be "
+            f"{sorted(expected.connector_ids)}, got {sorted(actual.connector_ids)}"
+        )
+    if actual.component_port_ids != expected.component_port_ids:
+        errors.append(
+            f"{rel(path)} {view_name} derived view component ports must be "
+            f"{sorted(expected.component_port_ids)}, got {sorted(actual.component_port_ids)}"
+        )
+    if actual.part_port_ids != expected.part_port_ids:
+        errors.append(
+            f"{rel(path)} {view_name} derived view part ports must be "
+            f"{sorted(expected.part_port_ids)}, got {sorted(actual.part_port_ids)}"
+        )
+    if actual.external_ids != expected.external_ids:
+        errors.append(
+            f"{rel(path)} {view_name} derived view externals must be "
+            f"{sorted(expected.external_ids)}, got {sorted(actual.external_ids)}"
+        )
+    expected_interface_ids = expected.interface_ids if view_name == "interfaces" else frozenset()
+    if actual.interface_ids != expected_interface_ids:
+        errors.append(
+            f"{rel(path)} {view_name} derived view interfaces must be "
+            f"{sorted(expected_interface_ids)}, got {sorted(actual.interface_ids)}"
+        )
+
+    expected_connector_type = {
+        "boundary": "external",
+        "delegation": "delegation",
+        "assembly": "assembly",
+        "interfaces": "interfaceAssembly",
+    }[view_name]
+    actual_connector_types = connector_types_in_model(derived_model)
+    if actual_connector_types - {expected_connector_type}:
+        errors.append(
+            f"{rel(path)} {view_name} derived view must contain only "
+            f"{expected_connector_type} connectors, got {sorted(actual_connector_types)}"
+        )
+
+    if view_name != "interfaces":
+        for port in all_ports_in_model(derived_model):
+            if "provides" in port or "requires" in port:
+                errors.append(f"{rel(path)} {view_name} derived view must omit interface role fields")
+                break
+
+    return errors
+
+
+def check_derived_svg_accessibility(
+    path: Path,
+    model: dict[str, object],
+    view: WhiteboxView,
+    svg: str,
+    backend: str,
+) -> list[str]:
+    errors: list[str] = []
+    component = model["component"]
+    assert isinstance(component, dict)
+    title = svg_title(str(component["label"]), view)
+    if f"<title id=\"title\">{html.escape(title)}</title>" not in svg:
+        errors.append(f"{rel(path)} {backend} {view.name} derived SVG must expose a clear title")
+    if 'role="img" aria-labelledby="title desc"' not in svg:
+        errors.append(f"{rel(path)} {backend} {view.name} derived SVG must expose image accessibility text")
+    if f'data-derived-whitebox-view="{html.escape(view.name)}"' not in svg:
+        errors.append(f"{rel(path)} {backend} {view.name} derived SVG must identify the derived view name")
+    if f'data-derived-view-title="{html.escape(view.name)}"' not in svg:
+        errors.append(f"{rel(path)} {backend} {view.name} derived SVG must contain a visible derived-view title")
+    if "Generated from the same Diagram Source Model" not in svg:
+        errors.append(f"{rel(path)} {backend} {view.name} derived SVG must identify the shared source model")
+    return errors
+
+
+def check_derived_svg(
+    path: Path,
+    source_model: dict[str, object],
+    view_name: str,
+    derived_model: dict[str, object],
+    svg: str,
+    backend: str,
+) -> list[str]:
+    view = whitebox_view(view_name)
+    errors = check_derived_view_structure(path, source_model, view_name, derived_model)
+    errors.extend(check_rendered_svg_semantics(path, derived_model, svg, backend, view_name=view_name))
+    errors.extend(check_derived_svg_accessibility(path, derived_model, view, svg, backend))
+    return errors
+
+
+def check_derived_fixture_outputs(
+    path: Path,
+    model: dict[str, object],
+    backend: str,
+    snapshot: bool,
+) -> list[str]:
+    errors: list[str] = []
+    derived_models = build_derived_view_models(model)
+    for view_name in DERIVED_VIEW_NAMES:
+        expected_path = derived_svg_path(path, view_name)
+        derived_model = derived_models.get(view_name)
+        if derived_model is None:
+            if expected_path.exists():
+                errors.append(
+                    f"{rel(expected_path)} must be absent because the {view_name} derived view is empty or not generated"
+                )
+            continue
+
+        view = whitebox_view(view_name)
+        try:
+            svg = render_svg(derived_model, backend=backend, view=view)
+        except WhiteboxRenderError as exc:
+            errors.append(f"{rel(path)} {backend} {view_name} derived backend failed: {exc}")
+            continue
+        errors.extend(check_derived_svg(path, model, view_name, derived_model, svg, backend))
+
+        if snapshot:
+            if not expected_path.exists():
+                errors.append(f"{rel(expected_path)} is missing")
+            elif svg != read_text(expected_path):
+                errors.append(f"{rel(path)} rendered {view_name} derived SVG differs from {rel(expected_path)}")
+    return errors
+
+
+def check_derived_determinism(
+    path: Path,
+    model: dict[str, object],
+    backend: str,
+) -> list[str]:
+    errors: list[str] = []
+    derived_models = build_derived_view_models(model)
+    for view_name, derived_model in derived_models.items():
+        view = whitebox_view(view_name)
+        try:
+            first_svg = render_svg(derived_model, backend=backend, view=view)
+            second_svg = render_svg(derived_model, backend=backend, view=view)
+        except WhiteboxRenderError as exc:
+            errors.append(f"{rel(path)} {backend} {view_name} derived backend failed: {exc}")
+            continue
+        if first_svg != second_svg:
+            errors.append(f"{rel(path)} {backend} {view_name} derived backend must produce deterministic SVG")
+    return errors
+
+
+def render_simple_svg(model: dict[str, object], view: WhiteboxView | None = None) -> str:
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
     assert isinstance(connectors, list)
@@ -1537,13 +2088,14 @@ def render_simple_svg(model: dict[str, object]) -> str:
 
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}" role="img" aria-labelledby="title desc">',
-        f'  <title id="title">Whitebox Component Diagram: {html.escape(str(component["label"]))}</title>',
-        f'  <desc id="desc">{html.escape("; ".join(direction_labels))}</desc>',
+        f'  <title id="title">{html.escape(svg_title(str(component["label"]), view))}</title>',
+        f'  <desc id="desc">{html.escape(svg_description(direction_labels, view))}</desc>',
     ]
     if complexity.dense:
         lines.append(
             f'  <metadata data-diagram-complexity-signal="dense">{html.escape(format_complexity_signal(complexity))}</metadata>'
         )
+    lines.extend(derived_view_metadata_lines(view, canvas_width))
     lines.extend([
         "  <defs>",
         '    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">',
@@ -1728,6 +2280,7 @@ def check_valid_fixture(path: Path) -> list[str]:
         errors.append(f"{rel(path)} rendered SVG differs from {rel(expected_svg_path)}")
 
     errors.extend(check_rendered_svg_semantics(path, model, svg, SIMPLE_RENDER_BACKEND))
+    errors.extend(check_derived_fixture_outputs(path, model, SIMPLE_RENDER_BACKEND, snapshot=True))
     try:
         elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
         second_elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
@@ -1735,6 +2288,8 @@ def check_valid_fixture(path: Path) -> list[str]:
         errors.append(f"{rel(path)} elk backend failed: {exc}")
     else:
         errors.extend(check_rendered_svg_semantics(path, model, elk_svg, ELK_RENDER_BACKEND))
+        errors.extend(check_derived_fixture_outputs(path, model, ELK_RENDER_BACKEND, snapshot=False))
+        errors.extend(check_derived_determinism(path, model, ELK_RENDER_BACKEND))
         if elk_svg != second_elk_svg:
             errors.append(f"{rel(path)} elk backend must produce deterministic SVG for stable input")
 
@@ -1841,12 +2396,50 @@ def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_R
     return 0
 
 
+def render_derived_command(
+    source_path: Path,
+    output_dir: Path,
+    backend: str = SIMPLE_RENDER_BACKEND,
+) -> int:
+    try:
+        selected_backend = select_render_backend(backend)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    model, load_errors = load_source_model(source_path)
+    errors = load_errors or validate_source_model(model)
+    if errors:
+        print(f"{rel(source_path)} is invalid:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    assert isinstance(model, dict)
+    try:
+        derived_svgs = render_derived_svgs(model, backend=selected_backend.name)
+    except WhiteboxRenderError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    if not derived_svgs:
+        print(f"No non-empty Derived Whitebox Views generated for {rel(source_path)}")
+        return 0
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for view_name, svg in derived_svgs.items():
+        output_path = output_dir / derived_svg_file_name(source_path, view_name)
+        output_path.write_text(svg, encoding="utf-8")
+        print(f"Wrote {rel(output_path)}")
+    return 0
+
+
 def usage() -> None:
     print(
         "Usage:\n"
         "  python3 scripts/check_whitebox_fixtures.py\n"
         "  python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>\n"
-        "  python3 scripts/check_whitebox_fixtures.py render [--backend simple|elk] <source.whitebox.yaml> <output.svg|->"
+        "  python3 scripts/check_whitebox_fixtures.py render [--backend simple|elk] <source.whitebox.yaml> <output.svg|->\n"
+        "  python3 scripts/check_whitebox_fixtures.py render-derived [--backend simple|elk] <source.whitebox.yaml> <output-dir>"
     )
 
 
@@ -1860,6 +2453,11 @@ def main(argv: list[str]) -> int:
             return render_command(Path(argv[2]), Path(argv[3]))
         if argv[2] == "--backend":
             return render_command(Path(argv[4]), Path(argv[5]), backend=argv[3])
+    if len(argv) in (4, 6) and argv[1] == "render-derived":
+        if len(argv) == 4:
+            return render_derived_command(Path(argv[2]), Path(argv[3]))
+        if argv[2] == "--backend":
+            return render_derived_command(Path(argv[4]), Path(argv[5]), backend=argv[3])
     usage()
     return 2
 

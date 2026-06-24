@@ -1,0 +1,162 @@
+kind: whitebox_component_diagram
+version: 1
+component:
+  id: dense_boundary_shell
+  label: Dense Boundary Shell
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense boundary/delegation diagram fact.
+  ports:
+  - id: intake_a
+    label: Intake A
+  - id: intake_b
+    label: Intake B
+  - id: intake_c
+    label: Intake C
+  - id: intake_d
+    label: Intake D
+  - id: intake_e
+    label: Intake E
+  - id: intake_f
+    label: Intake F
+parts:
+- id: worker_a
+  label: Worker A
+  ports:
+  - id: task
+    label: Task
+- id: worker_b
+  label: Worker B
+  ports:
+  - id: task
+    label: Task
+- id: worker_c
+  label: Worker C
+  ports:
+  - id: task
+    label: Task
+- id: worker_d
+  label: Worker D
+  ports:
+  - id: task
+    label: Task
+- id: worker_e
+  label: Worker E
+  ports:
+  - id: task
+    label: Task
+- id: worker_f
+  label: Worker F
+  ports:
+  - id: task
+    label: Task
+externals:
+- id: client_a
+  label: Client A
+- id: client_b
+  label: Client B
+- id: client_c
+  label: Client C
+- id: client_d
+  label: Client D
+- id: client_e
+  label: Client E
+- id: client_f
+  label: Client F
+connectors:
+- id: client_a_enters
+  type: external
+  label: enters A
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_a
+  to: dense_boundary_shell.intake_a
+- id: client_b_enters
+  type: external
+  label: enters B
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_b
+  to: dense_boundary_shell.intake_b
+- id: client_c_enters
+  type: external
+  label: enters C
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_c
+  to: dense_boundary_shell.intake_c
+- id: client_d_enters
+  type: external
+  label: enters D
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_d
+  to: dense_boundary_shell.intake_d
+- id: client_e_enters
+  type: external
+  label: enters E
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_e
+  to: dense_boundary_shell.intake_e
+- id: client_f_enters
+  type: external
+  label: enters F
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: client_f
+  to: dense_boundary_shell.intake_f
+- id: intake_a_delegates
+  type: delegation
+  label: delegates A
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_a
+  to: worker_a.task
+- id: intake_b_delegates
+  type: delegation
+  label: delegates B
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_b
+  to: worker_b.task
+- id: intake_c_delegates
+  type: delegation
+  label: delegates C
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_c
+  to: worker_c.task
+- id: intake_d_delegates
+  type: delegation
+  label: delegates D
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_d
+  to: worker_d.task
+- id: intake_e_delegates
+  type: delegation
+  label: delegates E
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_e
+  to: worker_e.task
+- id: intake_f_delegates
+  type: delegation
+  label: delegates F
+  evidence:
+  - path: tests/whitebox/fixtures/evidence/minimal-module.md
+    note: Fixture evidence anchors this dense connector.
+  from: dense_boundary_shell.intake_f
+  to: worker_f.task
