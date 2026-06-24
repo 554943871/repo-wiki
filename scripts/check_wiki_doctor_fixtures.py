@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-from check_whitebox_fixtures import load_source_model, render_svg, validate_source_model
+from check_whitebox_fixtures import SIMPLE_RENDER_BACKEND, load_source_model, render_svg, validate_source_model
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -400,7 +400,7 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
             for error in validation_errors:
                 errors.append(error)
             if not validation_errors and svg_path and svg_path.exists() and isinstance(model, dict):
-                rendered_svg = render_svg(model)
+                rendered_svg = render_svg(model, backend=SIMPLE_RENDER_BACKEND)
                 expected_svg = read_text(svg_path)
                 if rendered_svg != expected_svg:
                     errors.append(f"{rel(svg_path)} must be rendered from {rel(source_path)}")

@@ -1,0 +1,4 @@
+source model must not contain view-selection field: views
+source model must not contain view-selection field: derivedViews
+source model must not contain view-selection field: connectors[0].include_parts
+source model must not contain view-selection field: connectors[0].include_connectors

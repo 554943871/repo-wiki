@@ -50,6 +50,7 @@ REQUIRED_INVALID_FIXTURES = {
     "non-snake-case-id.whitebox.yaml",
     "nonexistent-evidence-path.whitebox.yaml",
     "source-layout-hint.whitebox.yaml",
+    "source-view-selection.whitebox.yaml",
     "source-complexity-conclusion.whitebox.yaml",
     "unconnected-port.whitebox.yaml",
     "unsupported-top-level-field.whitebox.yaml",
@@ -94,6 +95,12 @@ COMPLEXITY_CONCLUSION_FIELDS = {
     "refactor_verdict",
     "refactoring",
 }
+VIEW_SELECTION_FIELDS = {
+    "derivedViews",
+    "include_connectors",
+    "include_parts",
+    "views",
+}
 SNAKE_CASE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 LINE_RANGE = re.compile(r"^([1-9][0-9]*)(?:-([1-9][0-9]*))?$")
 DENSE_PORT_THRESHOLD = 10
@@ -101,6 +108,8 @@ DENSE_INTERFACE_ROLE_THRESHOLD = 8
 DENSE_CONNECTOR_THRESHOLD = 10
 DENSE_PART_THRESHOLD = 6
 APPROX_TEXT_CHAR_WIDTH = 7
+SIMPLE_RENDER_BACKEND = "simple"
+AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND})
 
 
 @dataclass(frozen=True)
@@ -131,6 +140,11 @@ class DiagramComplexity:
     @property
     def dense(self) -> bool:
         return bool(self.warnings)
+
+
+@dataclass(frozen=True)
+class RenderBackend:
+    name: str
 
 
 def rel(path: Path) -> str:
@@ -199,6 +213,8 @@ def check_source_model_forbidden_fields(value: object, field_path: str, errors: 
                 errors.append(f"source model must not contain layout hint field: {child_path}")
             if key in COMPLEXITY_CONCLUSION_FIELDS:
                 errors.append(f"source model must not contain complexity or refactor conclusion field: {child_path}")
+            if key in VIEW_SELECTION_FIELDS:
+                errors.append(f"source model must not contain view-selection field: {child_path}")
             check_source_model_forbidden_fields(child, child_path, errors)
     elif isinstance(value, list):
         for index, child in enumerate(value):
@@ -850,7 +866,21 @@ def svg_dimensions(svg: str) -> tuple[int, int] | None:
     return int(match.group(1)), int(match.group(2))
 
 
-def render_svg(model: dict[str, object]) -> str:
+def select_render_backend(backend: str = SIMPLE_RENDER_BACKEND) -> RenderBackend:
+    if backend not in AVAILABLE_RENDER_BACKENDS:
+        available = ", ".join(sorted(AVAILABLE_RENDER_BACKENDS))
+        raise ValueError(f"unsupported Whitebox render backend: {backend}; available backends: {available}")
+    return RenderBackend(name=backend)
+
+
+def render_svg(model: dict[str, object], backend: str = SIMPLE_RENDER_BACKEND) -> str:
+    selected_backend = select_render_backend(backend)
+    if selected_backend.name == SIMPLE_RENDER_BACKEND:
+        return render_simple_svg(model)
+    raise AssertionError(f"unhandled Whitebox render backend: {selected_backend.name}")
+
+
+def render_simple_svg(model: dict[str, object]) -> str:
     component, interfaces, ports, parts, part_ports, externals = model_index(model)
     connectors = model.get("connectors", [])
     assert isinstance(connectors, list)
@@ -1174,7 +1204,7 @@ def check_valid_fixture(path: Path) -> list[str]:
         return [f"{rel(path)} should be valid but failed: {error}" for error in validation_errors]
 
     assert isinstance(model, dict)
-    svg = render_svg(model)
+    svg = render_svg(model, backend=SIMPLE_RENDER_BACKEND)
     expected_svg_path = path.with_suffix(".svg")
     if not expected_svg_path.exists():
         errors.append(f"{rel(expected_svg_path)} is missing")
@@ -1290,7 +1320,7 @@ def check_fixtures() -> int:
 
     print(f"Checked {len(valid_paths)} valid Whitebox fixture(s).")
     print(f"Checked {len(invalid_paths)} invalid Whitebox fixture(s).")
-    print("Validated topology-only source models and SVG rendering.")
+    print(f"Validated topology-only source models and SVG rendering with {SIMPLE_RENDER_BACKEND} backend.")
     return 0
 
 
@@ -1306,7 +1336,13 @@ def validate_command(source_path: Path) -> int:
     return 0
 
 
-def render_command(source_path: Path, output_path: Path) -> int:
+def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_RENDER_BACKEND) -> int:
+    try:
+        selected_backend = select_render_backend(backend)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
     model, load_errors = load_source_model(source_path)
     errors = load_errors or validate_source_model(model)
     if errors:
@@ -1315,7 +1351,7 @@ def render_command(source_path: Path, output_path: Path) -> int:
             print(f"- {error}")
         return 1
     assert isinstance(model, dict)
-    svg = render_svg(model)
+    svg = render_svg(model, backend=selected_backend.name)
     complexity = diagram_complexity(model)
     if str(output_path) == "-":
         sys.stdout.write(svg)
@@ -1332,7 +1368,7 @@ def usage() -> None:
         "Usage:\n"
         "  python3 scripts/check_whitebox_fixtures.py\n"
         "  python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>\n"
-        "  python3 scripts/check_whitebox_fixtures.py render <source.whitebox.yaml> <output.svg|->"
+        "  python3 scripts/check_whitebox_fixtures.py render [--backend simple] <source.whitebox.yaml> <output.svg|->"
     )
 
 
@@ -1341,8 +1377,11 @@ def main(argv: list[str]) -> int:
         return check_fixtures()
     if len(argv) == 3 and argv[1] == "validate":
         return validate_command(Path(argv[2]))
-    if len(argv) == 4 and argv[1] == "render":
-        return render_command(Path(argv[2]), Path(argv[3]))
+    if len(argv) in (4, 6) and argv[1] == "render":
+        if len(argv) == 4:
+            return render_command(Path(argv[2]), Path(argv[3]))
+        if argv[2] == "--backend":
+            return render_command(Path(argv[4]), Path(argv[5]), backend=argv[3])
     usage()
     return 2
 
