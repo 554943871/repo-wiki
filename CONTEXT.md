@@ -166,6 +166,34 @@ _Avoid_: UML-complete model, package dependency map, image-only architecture ske
 The reader-facing interpretation that a dense or tangled Whitebox Component Diagram may indicate genuinely complex module logic or a potential refactoring opportunity, not merely a rendering failure. It is a review signal for human judgment, not a mechanical score.
 _Avoid_: automatic refactor verdict, renderer defect by default, complexity metric
 
+**Derived Whitebox View**:
+An additional renderer-produced view generated from the same Diagram Source Model to make a dense Whitebox Component Diagram easier to read. It may focus on external boundary interactions, delegation, assembly, interface roles, or other renderer-defined slices, but it does not replace the complete Whitebox Component Diagram and never becomes a separate fact source. Derived views are generated automatically from renderer rules for dense diagrams; the Diagram Source Model does not contain `views` fields or author-selected view lists. The first standard derived views are `boundary`, `delegation`, and `assembly`, with `interfaces` generated only when interface roles exist. Empty derived views are not generated or embedded.
+_Avoid_: second source model, partial truth source, source-level layout hint, manual diagram fork, source-level view selection
+
+**Whitebox Layout Backend**:
+The renderer-owned automatic layout engine that converts a Diagram Source Model into concrete node positions, port positions, edge routing, canvas size, and derived view geometry. For the free and open-source path, ELK is the preferred backend because it is designed for layered diagrams with ports, compound nodes, labels, and orthogonal routing. The enclosing Whitebox Component Diagram boundary is modeled as a real layout compound node so the backend can place boundary ports and internal parts together. The renderer does not pre-assign boundary port sides by default; free port placement belongs to the layout backend, while repeatability comes from stable ids, stable ordering, and fixed backend options. A layout backend is replaceable renderer infrastructure, not a diagram fact source, and it does not own the final Whitebox Component Diagram notation.
+_Avoid_: source model field, layout intent in YAML, generated fact, manual coordinate editor, final notation owner, renderer-owned port side rule
+
+**Simple Whitebox Layout Backend**:
+The legacy deterministic renderer layout backend kept only as an explicitly selected diagnostic or migration comparison path while the ELK backend becomes the default. It is not the normal Skill execution path and must not be used as a silent fallback when ELK is unavailable.
+_Avoid_: default renderer, silent fallback, production-quality layout target
+
+**Whitebox Layout Failure**:
+The fail-fast renderer outcome when the preferred Whitebox Layout Backend is unavailable or cannot produce a valid layout. The renderer reports the backend problem instead of silently falling back to a lower-quality layout. A simpler layout backend may exist only as an explicitly selected diagnostic or compatibility mode.
+_Avoid_: silent fallback, fake successful ELK rendering, hidden quality downgrade
+
+**Whitebox Layout Quality Check**:
+The renderer verification practice for generated Whitebox Component Diagram output. It combines structural checks, geometry/readability checks, and visual snapshot review without treating pixel-perfect equality as the only signal of correctness.
+_Avoid_: YAML-only validation, pixel-perfect theater, unchecked visual regressions
+
+**Whitebox Renderer Dependency Boundary**:
+The rule that layout/rendering dependencies such as `elkjs` are installed only while developing or upgrading the Repo Wiki Skill Suite itself, not during ordinary Skill execution against a Target Repository. A renderer may check for required dependencies and fail loudly with a setup diagnostic, but it must not run package installation as part of rendering.
+_Avoid_: Skill initialization phase, runtime npm install, renderer-managed dependency mutation
+
+**Semantic SVG Renderer**:
+The renderer layer that turns laid-out Whitebox Component Diagram geometry into reader-facing SVG using the suite's own notation, labels, accessibility text, evidence-friendly metadata, interface-role symbols, connector styles, and derived-view framing. It consumes layout geometry from the Whitebox Layout Backend, but owns the final diagram semantics and visual notation.
+_Avoid_: layout engine, fact source, ELK output as final notation, image-only rendering
+
 **Diagram Source Model**:
 The structured YAML or JSON file that acts as the only modifiable fact source for an agent-owned diagram. It records only topology and semantic relationships; renderer-owned layout algorithms decide grouping, ordering, coordinates, and routing, while generated SVG, PNG, Mermaid, PlantUML, or draw.io files remain derived renderings unless explicitly promoted.
 It contains only explicit facts confirmed by code, documentation, or the user; unresolved questions must be resolved by further inspection or user clarification before entering the model.
