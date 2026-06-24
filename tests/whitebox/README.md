@@ -17,6 +17,14 @@ SVG for valid fixtures with the committed expected SVG through the explicit
 is passed to the checker or render command and is not represented in
 `.whitebox.yaml`.
 
+The checker also renders every valid complete-view fixture through the explicit
+`elk` backend. ELK fixture checks are structural rather than snapshot-based:
+they verify deterministic SVG output, reader-visible semantic text, connector
+markers, provided/required interface-role symbols, numeric canvas dimensions,
+nonnegative geometry, and dense-diagram complexity metadata. The ELK backend
+uses the repo-declared `elkjs` dependency and fails fast if `npm ci` has not
+installed dependencies during repo-wiki suite setup.
+
 It covers internal parts, port-level connectors, global interface definitions,
 provided/required interface roles, interface assembly, UML lollipop/socket
 notation, dense-diagram raw complexity metrics, and rejection of source-model

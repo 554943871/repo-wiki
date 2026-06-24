@@ -5,7 +5,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import html
+import json
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -109,7 +112,10 @@ DENSE_CONNECTOR_THRESHOLD = 10
 DENSE_PART_THRESHOLD = 6
 APPROX_TEXT_CHAR_WIDTH = 7
 SIMPLE_RENDER_BACKEND = "simple"
-AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND})
+ELK_RENDER_BACKEND = "elk"
+AVAILABLE_RENDER_BACKENDS = frozenset({SIMPLE_RENDER_BACKEND, ELK_RENDER_BACKEND})
+ELK_LAYOUT_HELPER = ROOT / "scripts" / "elk_whitebox_layout.mjs"
+ELK_PACKAGE_ENTRY = ROOT / "node_modules" / "elkjs" / "lib" / "elk.bundled.js"
 
 
 @dataclass(frozen=True)
@@ -145,6 +151,10 @@ class DiagramComplexity:
 @dataclass(frozen=True)
 class RenderBackend:
     name: str
+
+
+class WhiteboxRenderError(RuntimeError):
+    """Raised when a selected Whitebox render backend cannot produce SVG."""
 
 
 def rel(path: Path) -> str:
@@ -877,7 +887,417 @@ def render_svg(model: dict[str, object], backend: str = SIMPLE_RENDER_BACKEND) -
     selected_backend = select_render_backend(backend)
     if selected_backend.name == SIMPLE_RENDER_BACKEND:
         return render_simple_svg(model)
+    if selected_backend.name == ELK_RENDER_BACKEND:
+        return render_elk_svg(model)
     raise AssertionError(f"unhandled Whitebox render backend: {selected_backend.name}")
+
+
+def require_elk_runtime() -> None:
+    missing: list[str] = []
+    if not ELK_LAYOUT_HELPER.exists():
+        missing.append(f"ELK layout helper is missing: {rel(ELK_LAYOUT_HELPER)}")
+    if shutil.which("node") is None:
+        missing.append("Node.js is required for the elk Whitebox render backend")
+    if not ELK_PACKAGE_ENTRY.exists():
+        missing.append(
+            "elkjs dependency is not installed; run npm ci during repo-wiki suite setup before rendering with --backend elk"
+        )
+    if missing:
+        raise WhiteboxRenderError("; ".join(missing))
+
+
+def run_elk_layout(model: dict[str, object]) -> dict[str, object]:
+    require_elk_runtime()
+    command = ["node", str(ELK_LAYOUT_HELPER)]
+    try:
+        completed = subprocess.run(
+            command,
+            input=json.dumps(model, sort_keys=True),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=ROOT,
+            check=False,
+        )
+    except OSError as exc:
+        raise WhiteboxRenderError(f"failed to start ELK layout helper: {exc}") from exc
+
+    if completed.returncode != 0:
+        diagnostic = completed.stderr.strip() or completed.stdout.strip() or f"exit code {completed.returncode}"
+        raise WhiteboxRenderError(f"ELK Whitebox layout failed: {diagnostic}")
+    try:
+        layout = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise WhiteboxRenderError(f"ELK Whitebox layout helper returned invalid JSON: {exc}") from exc
+    if not isinstance(layout, dict):
+        raise WhiteboxRenderError("ELK Whitebox layout helper returned a non-object layout")
+    return layout
+
+
+def layout_box(layout: dict[str, object], path: str) -> tuple[int, int, int, int]:
+    current: object = layout
+    for segment in path.split("."):
+        if not isinstance(current, dict) or segment not in current:
+            raise WhiteboxRenderError(f"ELK Whitebox layout is missing geometry for {path}")
+        current = current[segment]
+    if not isinstance(current, dict):
+        raise WhiteboxRenderError(f"ELK Whitebox layout geometry for {path} is not an object")
+    try:
+        return (
+            round(float(current["x"])),
+            round(float(current["y"])),
+            round(float(current["width"])),
+            round(float(current["height"])),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise WhiteboxRenderError(f"ELK Whitebox layout geometry for {path} is incomplete") from exc
+
+
+def layout_edge_points(layout: dict[str, object], connector_id: str) -> list[tuple[int, int]]:
+    edges = layout.get("edges")
+    if not isinstance(edges, dict):
+        return []
+    points = edges.get(connector_id)
+    if not isinstance(points, list):
+        return []
+    parsed: list[tuple[int, int]] = []
+    for point in points:
+        if (
+            isinstance(point, list)
+            and len(point) == 2
+            and isinstance(point[0], (int, float))
+            and isinstance(point[1], (int, float))
+        ):
+            parsed.append((round(point[0]), round(point[1])))
+    return parsed
+
+
+def infer_port_side(port_box: tuple[int, int, int, int], owner_box: tuple[int, int, int, int]) -> str:
+    port_x, port_y, port_width, port_height = port_box
+    owner_x, owner_y, owner_width, owner_height = owner_box
+    center_x = port_x + port_width / 2
+    center_y = port_y + port_height / 2
+    distances = {
+        "left": abs(center_x - owner_x),
+        "right": abs(center_x - (owner_x + owner_width)),
+        "top": abs(center_y - owner_y),
+        "bottom": abs(center_y - (owner_y + owner_height)),
+    }
+    return min(distances, key=distances.get)
+
+
+def box_center(box: tuple[int, int, int, int]) -> tuple[int, int]:
+    x, y, width, height = box
+    return x + width // 2, y + height // 2
+
+
+def endpoint_box_from_layout(
+    endpoint: object,
+    component: dict[str, object],
+    layout: dict[str, object],
+    interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]],
+) -> tuple[int, int, int, int]:
+    component_id = str(component["id"])
+    if isinstance(endpoint, str):
+        if "." not in endpoint:
+            return layout_box(layout, f"externals.{endpoint}")
+        owner_id, port_id = endpoint.split(".", 1)
+        if owner_id == component_id:
+            return layout_box(layout, f"componentPorts.{port_id}")
+        return layout_box(layout, f"partPorts.{owner_id}.{port_id}")
+    return interface_role_positions[endpoint_role_key(endpoint)]
+
+
+def render_elk_svg(model: dict[str, object]) -> str:
+    layout = run_elk_layout(model)
+    component, interfaces, ports, parts, part_ports, externals = model_index(model)
+    connectors = model.get("connectors", [])
+    assert isinstance(connectors, list)
+
+    canvas = layout.get("canvas")
+    if not isinstance(canvas, dict):
+        raise WhiteboxRenderError("ELK Whitebox layout is missing canvas geometry")
+    try:
+        canvas_width = max(360, round(float(canvas["width"])))
+        canvas_height = max(240, round(float(canvas["height"])))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise WhiteboxRenderError("ELK Whitebox layout canvas geometry is incomplete") from exc
+
+    component_box = layout_box(layout, "component")
+    complexity = diagram_complexity(model)
+    direction_labels = [
+        f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
+        f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
+        for connector in connectors
+        if isinstance(connector, dict)
+    ]
+
+    interface_role_positions: dict[tuple[str, str, str, str], tuple[int, int, int, int]] = {}
+    lines = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas_width}" height="{canvas_height}" viewBox="0 0 {canvas_width} {canvas_height}" role="img" aria-labelledby="title desc">',
+        f'  <title id="title">Whitebox Component Diagram: {html.escape(str(component["label"]))}</title>',
+        f'  <desc id="desc">{html.escape("; ".join(direction_labels))}</desc>',
+    ]
+    if complexity.dense:
+        lines.append(
+            f'  <metadata data-diagram-complexity-signal="dense">{html.escape(format_complexity_signal(complexity))}</metadata>'
+        )
+    lines.extend([
+        "  <defs>",
+        '    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">',
+        '      <polygon points="0 0, 10 3.5, 0 7" fill="#1f2937" />',
+        "    </marker>",
+        "  </defs>",
+    ])
+
+    component_x, component_y, component_width, component_height = component_box
+    lines.extend([
+        f'  <rect x="{component_x}" y="{component_y}" width="{component_width}" height="{component_height}" rx="8" fill="#ffffff" stroke="#1f2937" stroke-width="2" />',
+        f'  <text x="{component_x + component_width // 2}" y="{component_y + 34}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">{html.escape(str(component["label"]))}</text>',
+    ])
+
+    def role_offsets(count: int) -> list[int]:
+        if count <= 0:
+            return []
+        first_offset = -((count - 1) * 26) // 2
+        return [first_offset + index * 26 for index in range(count)]
+
+    def render_interface_role(
+        owner_id: str,
+        port_id: str,
+        interface_id: str,
+        role: str,
+        side: str,
+        port_box: tuple[int, int, int, int],
+        offset: int,
+    ) -> None:
+        x, y, width, height = port_box
+        if side in {"left", "right"}:
+            role_y = y + height // 2 + offset
+            if side == "right":
+                stem_start_x = x + width
+                symbol_x = x + width + 30
+                stem_end_x = symbol_x - 10
+                label_x = symbol_x + 16
+                text_anchor = "start"
+            else:
+                stem_start_x = x
+                symbol_x = x - 30
+                stem_end_x = symbol_x + 10
+                label_x = symbol_x - 16
+                text_anchor = "end"
+            stem = f'  <line x1="{stem_start_x}" y1="{role_y}" x2="{stem_end_x}" y2="{role_y}" stroke="#6b7280" stroke-width="2" />'
+            label = f'  <text x="{label_x}" y="{role_y + 4}" text-anchor="{text_anchor}" font-family="Arial, sans-serif" font-size="11" fill="#374151">{html.escape(str(interfaces[interface_id]["label"]))}</text>'
+            if role == "required":
+                if side == "right":
+                    socket_path = f"M {symbol_x - 10} {role_y - 10} A 10 10 0 0 1 {symbol_x - 10} {role_y + 10}"
+                else:
+                    socket_path = f"M {symbol_x + 10} {role_y - 10} A 10 10 0 0 0 {symbol_x + 10} {role_y + 10}"
+        else:
+            role_x = x + width // 2 + offset
+            if side == "bottom":
+                stem_start_y = y + height
+                symbol_y = y + height + 30
+                stem_end_y = symbol_y - 10
+                label_y = symbol_y + 25
+                socket_path = f"M {role_x - 10} {symbol_y - 10} A 10 10 0 0 0 {role_x + 10} {symbol_y - 10}"
+            else:
+                stem_start_y = y
+                symbol_y = y - 30
+                stem_end_y = symbol_y + 10
+                label_y = symbol_y - 16
+                socket_path = f"M {role_x - 10} {symbol_y + 10} A 10 10 0 0 1 {role_x + 10} {symbol_y + 10}"
+            symbol_x = role_x
+            role_y = symbol_y
+            stem = f'  <line x1="{role_x}" y1="{stem_start_y}" x2="{role_x}" y2="{stem_end_y}" stroke="#6b7280" stroke-width="2" />'
+            label = f'  <text x="{role_x}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#374151">{html.escape(str(interfaces[interface_id]["label"]))}</text>'
+
+        escaped_owner = html.escape(owner_id)
+        escaped_port = html.escape(port_id)
+        escaped_interface = html.escape(interface_id)
+        interface_role_positions[(owner_id, port_id, interface_id, role)] = (symbol_x - 10, role_y - 10, 20, 20)
+        lines.append(stem)
+        if role == "provided":
+            lines.append(
+                f'  <circle data-interface-role="provided" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" cx="{symbol_x}" cy="{role_y}" r="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />'
+            )
+        else:
+            lines.append(
+                f'  <path data-interface-role="required" data-owner="{escaped_owner}" data-port="{escaped_port}" data-interface="{escaped_interface}" d="{socket_path}" fill="none" stroke="#b45309" stroke-width="2" />'
+            )
+        lines.append(label)
+
+    def render_port_interface_roles(
+        owner_id: str,
+        owner_kind: str,
+        port_id: str,
+        port: dict[str, object],
+        port_box: tuple[int, int, int, int],
+        owner_box: tuple[int, int, int, int],
+    ) -> None:
+        provided_ids = port_interface_ids(port, "provides")
+        required_ids = port_interface_ids(port, "requires")
+        side = infer_port_side(port_box, owner_box)
+        if owner_kind == "component":
+            roles = [("provided", interface_id) for interface_id in provided_ids]
+            roles.extend(("required", interface_id) for interface_id in required_ids)
+        else:
+            roles = [("required", interface_id) for interface_id in required_ids]
+            roles.extend(("provided", interface_id) for interface_id in provided_ids)
+        for (role, interface_id), offset in zip(roles, role_offsets(len(roles))):
+            render_interface_role(owner_id, port_id, interface_id, role, side, port_box, offset)
+
+    for port_id, port in ports.items():
+        x, y, width, height = layout_box(layout, f"componentPorts.{port_id}")
+        lines.extend([
+            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />',
+            f'  <text x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1e3a8a">{html.escape(str(port["label"]))}</text>',
+        ])
+        render_port_interface_roles(str(component["id"]), "component", port_id, port, (x, y, width, height), component_box)
+
+    for part_id, part in parts.items():
+        part_box = layout_box(layout, f"parts.{part_id}")
+        x, y, width, height = part_box
+        lines.extend([
+            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2" />',
+            f'  <text x="{x + width // 2}" y="{y + 31}" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">{html.escape(str(part["label"]))}</text>',
+        ])
+        for port in part.get("ports", []):
+            if not isinstance(port, dict) or "id" not in port:
+                continue
+            port_id = str(port["id"])
+            port_box = layout_box(layout, f"partPorts.{part_id}.{port_id}")
+            port_x, port_y, port_width, port_height = port_box
+            lines.extend([
+                f'  <rect x="{port_x}" y="{port_y}" width="{port_width}" height="{port_height}" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" />',
+                f'  <text x="{port_x + port_width // 2}" y="{port_y + port_height // 2 + 4}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#065f46">{html.escape(str(port["label"]))}</text>',
+            ])
+            render_port_interface_roles(part_id, "part", port_id, port, port_box, part_box)
+
+    for external_id, external in externals.items():
+        x, y, width, height = layout_box(layout, f"externals.{external_id}")
+        lines.extend([
+            f'  <rect x="{x}" y="{y}" width="{width}" height="{height}" rx="8" fill="#f9fafb" stroke="#4b5563" stroke-width="2" />',
+            f'  <text x="{x + width // 2}" y="{y + height // 2 + 5}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#111827">{html.escape(str(external["label"]))}</text>',
+        ])
+
+    for connector_index, connector in enumerate(connectors):
+        assert isinstance(connector, dict)
+        connector_id = str(connector["id"])
+        source = connector["from"]
+        target = connector["to"]
+        source_label = endpoint_label(source, component, interfaces, ports, parts, part_ports, externals)
+        target_label = endpoint_label(target, component, interfaces, ports, parts, part_ports, externals)
+        direction_label = f"{source_label} -> {target_label}"
+        routed_points = layout_edge_points(layout, connector_id)
+        if (
+            len(routed_points) >= 2
+            and all(0 <= x <= canvas_width and 0 <= y <= canvas_height for x, y in routed_points)
+        ):
+            points = routed_points
+        else:
+            start = box_center(endpoint_box_from_layout(source, component, layout, interface_role_positions))
+            end = box_center(endpoint_box_from_layout(target, component, layout, interface_role_positions))
+            points = [start, end]
+        point_text = " ".join(f"{x},{y}" for x, y in points)
+        midpoint = points[len(points) // 2]
+        label_y = max(18, midpoint[1] - 18 - connector_index % 3 * 14)
+        lines.extend([
+            f'  <polyline points="{point_text}" fill="none" stroke="#1f2937" stroke-width="2" marker-end="url(#arrowhead)" />',
+            f'  <text x="{midpoint[0]}" y="{label_y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#374151">{html.escape(direction_label)}</text>',
+        ])
+        label = connector.get("label")
+        if isinstance(label, str) and label.strip():
+            lines.append(
+                f'  <text x="{midpoint[0]}" y="{midpoint[1] + 28 + connector_index % 3 * 14}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#4b5563">{html.escape(label)}</text>'
+            )
+
+    lines.append("</svg>")
+    return "\n".join(lines) + "\n"
+
+
+def coordinate_values(svg: str) -> list[int]:
+    values: list[int] = []
+    for match in re.finditer(r'\b(?:x|y|x1|y1|x2|y2|cx|cy|width|height)="(-?[0-9]+)"', svg):
+        values.append(int(match.group(1)))
+    for points in re.findall(r'\bpoints="([^"]+)"', svg):
+        for value in re.findall(r"-?[0-9]+", points):
+            values.append(int(value))
+    return values
+
+
+def check_rendered_svg_semantics(
+    path: Path,
+    model: dict[str, object],
+    svg: str,
+    backend: str,
+) -> list[str]:
+    errors: list[str] = []
+    component, interfaces, ports, parts, part_ports, externals = model_index(model)
+    required_text = [str(component["label"])]
+    required_text.extend(str(port["label"]) for port in ports.values())
+    required_text.extend(str(part["label"]) for part in parts.values())
+    required_text.extend(str(port["label"]) for port in part_ports.values())
+    required_text.extend(str(external["label"]) for external in externals.values())
+    provided_role_count = 0
+    required_role_count = 0
+    for port in list(ports.values()) + list(part_ports.values()):
+        for interface_id in port_interface_ids(port, "provides"):
+            required_text.append(str(interfaces[interface_id]["label"]))
+            provided_role_count += 1
+        for interface_id in port_interface_ids(port, "requires"):
+            required_text.append(str(interfaces[interface_id]["label"]))
+            required_role_count += 1
+    for connector in model["connectors"]:
+        assert isinstance(connector, dict)
+        required_text.append(
+            f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
+            f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
+        )
+        label = connector.get("label")
+        if isinstance(label, str) and label.strip():
+            required_text.append(label)
+
+    for text in required_text:
+        if html.escape(text) not in svg:
+            errors.append(f"{rel(path)} {backend} SVG must contain reader-visible text {text!r}")
+
+    connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
+    if svg.count('marker-end="url(#arrowhead)"') < connector_count:
+        errors.append(f"{rel(path)} {backend} SVG must contain a direction marker for every connector")
+    if svg.count('data-interface-role="provided"') < provided_role_count:
+        errors.append(f"{rel(path)} {backend} SVG must contain a lollipop marker for every provided interface")
+    if svg.count('data-interface-role="required"') < required_role_count:
+        errors.append(f"{rel(path)} {backend} SVG must contain a socket marker for every required interface")
+
+    dimensions = svg_dimensions(svg)
+    if dimensions is None:
+        errors.append(f"{rel(path)} {backend} SVG must expose numeric width and height")
+    else:
+        width, height = dimensions
+        if width <= 0 or height <= 0:
+            errors.append(f"{rel(path)} {backend} SVG must have positive canvas dimensions")
+        values = coordinate_values(svg)
+        if values and min(values) < 0:
+            errors.append(f"{rel(path)} {backend} SVG must not render negative geometry coordinates")
+
+    complexity = diagram_complexity(model)
+    if complexity.dense:
+        if 'data-diagram-complexity-signal="dense"' not in svg:
+            errors.append(f"{rel(path)} {backend} SVG must emit raw Diagram Complexity Signal metrics")
+        complexity_signal = format_complexity_signal(complexity)
+        for fragment in (format_complexity_metrics(complexity), f"warnings={','.join(complexity.warnings)}"):
+            if html.escape(fragment) not in svg:
+                errors.append(f"{rel(path)} {backend} SVG complexity metrics must contain {fragment!r}")
+        if dimensions is not None:
+            width, height = dimensions
+            base_width = 960 if parts else 720
+            if width <= base_width and height <= 360:
+                errors.append(f"{rel(path)} {backend} dense SVG must expand canvas instead of compacting semantics")
+        if "refactor" in complexity_signal.lower():
+            errors.append(f"{rel(path)} {backend} SVG complexity signal must not write refactor conclusions")
+
+    return errors
 
 
 def render_simple_svg(model: dict[str, object]) -> str:
@@ -1211,61 +1631,16 @@ def check_valid_fixture(path: Path) -> list[str]:
     elif svg != read_text(expected_svg_path):
         errors.append(f"{rel(path)} rendered SVG differs from {rel(expected_svg_path)}")
 
-    component, interfaces, ports, parts, part_ports, externals = model_index(model)
-    required_text = [str(component["label"])]
-    required_text.extend(str(port["label"]) for port in ports.values())
-    required_text.extend(str(part["label"]) for part in parts.values())
-    required_text.extend(str(port["label"]) for port in part_ports.values())
-    required_text.extend(str(external["label"]) for external in externals.values())
-    provided_role_count = 0
-    required_role_count = 0
-    for port in list(ports.values()) + list(part_ports.values()):
-        for interface_id in port_interface_ids(port, "provides"):
-            required_text.append(str(interfaces[interface_id]["label"]))
-            provided_role_count += 1
-        for interface_id in port_interface_ids(port, "requires"):
-            required_text.append(str(interfaces[interface_id]["label"]))
-            required_role_count += 1
-    for connector in model["connectors"]:
-        assert isinstance(connector, dict)
-        required_text.append(
-            f"{endpoint_label(connector['from'], component, interfaces, ports, parts, part_ports, externals)} -> "
-            f"{endpoint_label(connector['to'], component, interfaces, ports, parts, part_ports, externals)}"
-        )
-        label = connector.get("label")
-        if isinstance(label, str) and label.strip():
-            required_text.append(label)
-
-    for text in required_text:
-        if html.escape(text) not in svg:
-            errors.append(f"{rel(path)} SVG must contain reader-visible text {text!r}")
-
-    connector_count = len([connector for connector in model["connectors"] if isinstance(connector, dict)])
-    if svg.count('marker-end="url(#arrowhead)"') < connector_count:
-        errors.append(f"{rel(path)} SVG must contain a direction marker for every connector")
-    if svg.count('data-interface-role="provided"') < provided_role_count:
-        errors.append(f"{rel(path)} SVG must contain a lollipop marker for every provided interface")
-    if svg.count('data-interface-role="required"') < required_role_count:
-        errors.append(f"{rel(path)} SVG must contain a socket marker for every required interface")
-
-    complexity = diagram_complexity(model)
-    if complexity.dense:
-        if 'data-diagram-complexity-signal="dense"' not in svg:
-            errors.append(f"{rel(path)} SVG must emit raw Diagram Complexity Signal metrics")
-        complexity_signal = format_complexity_signal(complexity)
-        for fragment in (format_complexity_metrics(complexity), f"warnings={','.join(complexity.warnings)}"):
-            if html.escape(fragment) not in svg:
-                errors.append(f"{rel(path)} SVG complexity metrics must contain {fragment!r}")
-        dimensions = svg_dimensions(svg)
-        if dimensions is None:
-            errors.append(f"{rel(path)} SVG must expose numeric width and height")
-        else:
-            width, height = dimensions
-            base_width = 960 if parts else 720
-            if width <= base_width and height <= 360:
-                errors.append(f"{rel(path)} dense SVG must expand canvas instead of compacting semantics")
-        if "refactor" in complexity_signal.lower():
-            errors.append(f"{rel(path)} SVG complexity signal must not write refactor conclusions")
+    errors.extend(check_rendered_svg_semantics(path, model, svg, SIMPLE_RENDER_BACKEND))
+    try:
+        elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
+        second_elk_svg = render_svg(model, backend=ELK_RENDER_BACKEND)
+    except WhiteboxRenderError as exc:
+        errors.append(f"{rel(path)} elk backend failed: {exc}")
+    else:
+        errors.extend(check_rendered_svg_semantics(path, model, elk_svg, ELK_RENDER_BACKEND))
+        if elk_svg != second_elk_svg:
+            errors.append(f"{rel(path)} elk backend must produce deterministic SVG for stable input")
 
     return errors
 
@@ -1320,7 +1695,10 @@ def check_fixtures() -> int:
 
     print(f"Checked {len(valid_paths)} valid Whitebox fixture(s).")
     print(f"Checked {len(invalid_paths)} invalid Whitebox fixture(s).")
-    print(f"Validated topology-only source models and SVG rendering with {SIMPLE_RENDER_BACKEND} backend.")
+    print(
+        "Validated topology-only source models and SVG rendering with "
+        f"{SIMPLE_RENDER_BACKEND} snapshot checks and {ELK_RENDER_BACKEND} structural checks."
+    )
     return 0
 
 
@@ -1351,7 +1729,11 @@ def render_command(source_path: Path, output_path: Path, backend: str = SIMPLE_R
             print(f"- {error}")
         return 1
     assert isinstance(model, dict)
-    svg = render_svg(model, backend=selected_backend.name)
+    try:
+        svg = render_svg(model, backend=selected_backend.name)
+    except WhiteboxRenderError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     complexity = diagram_complexity(model)
     if str(output_path) == "-":
         sys.stdout.write(svg)
@@ -1368,7 +1750,7 @@ def usage() -> None:
         "Usage:\n"
         "  python3 scripts/check_whitebox_fixtures.py\n"
         "  python3 scripts/check_whitebox_fixtures.py validate <source.whitebox.yaml>\n"
-        "  python3 scripts/check_whitebox_fixtures.py render [--backend simple] <source.whitebox.yaml> <output.svg|->"
+        "  python3 scripts/check_whitebox_fixtures.py render [--backend simple|elk] <source.whitebox.yaml> <output.svg|->"
     )
 
 

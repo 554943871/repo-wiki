@@ -1,0 +1,8 @@
+{
+  "name": "repo-wiki",
+  "private": true,
+  "description": "Repo Wiki skill suite development dependencies.",
+  "dependencies": {
+    "elkjs": "^0.11.1"
+  }
+}
