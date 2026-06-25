@@ -15,6 +15,18 @@ Module Overview pages serve two readers in one natural document:
 
 This is an ordering and responsibility model, not a rigid template. Do not force fixed `Human View` and `Agent Context` headings, parallel halves, or any other hard split. Use headings that fit the page, but make sure fast human orientation comes before detailed structured context.
 
+## Human Scan Path
+
+Open with a short scope statement before the main map. In one to three sentences, name the system, subsystem, or directory-level relationship being explained, link canonical module ownership back to `wiki/04-modules/README.md` when useful, and say that the overview does not create canonical modules.
+
+Place the primary topology map, dependency map, Whitebox view, or equivalent structural table near the top, immediately after the scope statement and any short canonical-index pointer. The primary visual comes before detailed context, caveats, evidence, source mechanics, node tables, or long explanatory prose.
+
+Give the primary visual a compact legend or caption for high-impact semantics. Define distinctions readers could otherwise misread, such as canonical module versus supporting participant, direction of collaboration, external boundary, store, adapter, queue, runtime, or overview-only grouping. Do not make readers infer those semantics later from dense prose.
+
+After the primary visual, give reader routes to the concrete places they should drill into next: module owner pages, related flows, related pages, related models, decisions, or source-backed evidence sections. Then add denser node interpretation, collaboration details, boundaries, evidence anchors, and non-goals.
+
+Prose supports the visual path; it does not replace it. Keep pre-map prose short, and use later prose to explain how to read the map, preserve programming context, and prevent common misreadings.
+
 ## Should Help Readers Answer
 
 - Which confirmed canonical modules are in scope.
@@ -31,6 +43,7 @@ This is an ordering and responsibility model, not a rigid template. Do not force
 - A link back to `wiki/04-modules/README.md` as the canonical module index.
 - A short list or table of canonical modules shown in the map.
 - Cross-module topology, dependency direction, or collaboration relationships that are already confirmed.
+- A compact legend or caption beside the primary map or structural table when map semantics carry ownership, direction, boundary, or supporting-participant meaning.
 - Supporting participants such as stores, adapters, queues, runtimes, tools, or internal layers when they are needed to understand module collaboration.
 - A table that separates map nodes from owner pages and states how readers should and should not interpret each node.
 - Reader routes to related flows, pages, models, and decisions.
@@ -46,22 +59,25 @@ This is an ordering and responsibility model, not a rigid template. Do not force
 - Turning the overview into a package tree, service inventory, deployment map, or complete request sequence.
 - Using private helpers, DTOs, SQL objects, files, or adapter internals as stable module concepts.
 - Splitting the page into mandatory `Human View` and `Agent Context` sections instead of choosing natural headings that preserve the human-first scan path and downstream structured context.
+- Starting with long prose, node interpretation tables, evidence blocks, caveats, source model explanations, or rendering mechanics before the primary map or structural table.
+- Letting prose-only description stand in for the main map when a topology map or compact structural table is needed for fast human orientation.
 - Restating Whitebox mechanics instead of referring to `skills/references/writing-blocks/whitebox-component.md`.
 
 ## Recommended Shape
 
 A useful Module Overview page usually combines:
 
-- Scope note: what system or subsystem this overview explains.
-- Canonical modules in scope.
+- Short scope note: what system or subsystem this overview explains, and that it does not create canonical modules.
+- Primary overview topology diagram, dependency map, Whitebox view, or compact structural table near the top.
+- Legend or caption for high-impact map semantics, especially ownership, direction, boundary, external, store, adapter, queue, runtime, or supporting-participant meaning.
+- Reader routes to module owner pages, flows, pages, models, decisions, and evidence sections.
+- Canonical modules in scope, if not already clear from the primary visual.
 - Supporting participants in scope, explicitly marked as non-canonical modules.
-- Overview topology diagram or map.
 - Node interpretation table.
 - Collaboration relationship table.
-- Reader routes to flows, pages, models, decisions, and module owner pages.
 - Boundary rules and known non-goals.
 
-These are writing suggestions, not fixed fields. Put the fastest human scan path before denser interpretation, evidence, and programming context. The downstream structured context still matters; it is what lets Code Agents reuse the overview safely without treating diagram nodes as new module ownership.
+These are writing suggestions, not fixed fields. Put the fastest human scan path before denser interpretation, evidence, and programming context, and keep prose in service of that visual route. The downstream structured context still matters; it is what lets Code Agents reuse the overview safely without treating diagram nodes as new module ownership.
 
 ## Whitebox Use On Overview Pages
 
@@ -74,7 +90,7 @@ When a Module Overview page uses Whitebox:
 - The page remains a Module Overview page; the enclosing component is an overview boundary, not automatically a canonical module.
 - The page must state the overview scope and point canonical module ownership back to `wiki/04-modules/README.md`.
 - Supporting participants can appear only when they help explain collaboration; their appearance must not promote them into canonical modules.
-- If the existing evidence is not strong enough for Whitebox, do not invent a placeholder diagram. Use a Dependency Map, prose, table, or report the gap instead.
+- If the existing evidence is not strong enough for Whitebox, do not invent a placeholder diagram. Use a Dependency Map or compact structural table when another confirmed visual path is possible; otherwise report the gap and keep prose focused on what cannot yet be mapped.
 
 ## Relationship To Module Owner Pages
 
@@ -86,7 +102,12 @@ When a Module Overview page uses Whitebox:
 ## LLM Semantic Checks
 
 - Does the page clearly say it is an overview and not a canonical module owner page?
+- Does the page open with a short scope statement before the primary map or structural table?
+- Does the primary map or equivalent structural table appear near the top, before detailed context, caveats, evidence, source mechanics, or node tables?
+- Does the primary visual include a compact legend or caption for high-impact semantics?
+- Does the page give readers concrete routes after the primary visual?
 - Does the page give humans a fast scan path before detailed context?
+- Does the prose support the visual path instead of replacing it?
 - Does the page still preserve structured downstream Code Agent context such as node meaning, collaboration direction, evidence, boundaries, routes, and non-goals?
 - Does the page avoid mandatory `Human View` / `Agent Context` headings or another hard split while still serving both readers?
 - Does it link to the canonical module index instead of creating a parallel module list?
