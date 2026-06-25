@@ -158,20 +158,21 @@ flowchart LR
 
 本目录解释人类可理解的能力、职责边界、稳定入口、内部能力和协作规则。Module 可以和代码目录一致，也可以不一致。
 
-当多个 confirmed modules 需要一个总览入口时，可以增加 `module-map.md` 作为模块地图（Module Map / Module Overview）。它解释跨模块拓扑和读者路线，但不新增 canonical module；标准模块名称仍以本 README 的 Canonical Module Index 为准。
+本 README 是平铺 Canonical Module Index，不维护强制模块树。C2 runtime unit、stable subsystem、代码模块或其他 confirmed module 都应拥有自己的 module owner page；module page 之间可以通过“内部模块”、相关模块和读者路线进行下钻或横向跳转。
 
 适合写：
 - 模块负责什么。
 - 模块不负责什么。
-- 上游、下游和协作关系。
-- 对外能力或入口。
-- 支撑对外行为的内部稳定能力。
+- 上游、下游、内部模块和协作关系。
+- 对外能力、入口和 boundary port contracts。
+- 支撑对外行为的内部稳定能力与 module-to-module drill-down routes。
 - 当前仍有效的边界规则、owner decision 或协作约束。
 - 重要代码锚点。
 
 避免写：
 - 直接复制 package tree。
 - 运行单元清单。
+- 强制模块树。
 - 页面清单。
 - 只有局部实现意义的 helper 说明。
 - 把内部能力当成跨 module contract。

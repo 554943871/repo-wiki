@@ -221,9 +221,9 @@ New blocks:
 - `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动节点使用 confirmed Subject + SVO 业务动作短句，不同 Subject 用不同 Mermaid class / classDef 或等价样式分色；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
 - `evidence-anchor`: short traceable evidence support for stable wiki facts, uncertainty, and candidate notes. It borrows the useful verification discipline from mem-style evidence docs without adding a separate evidence family or verification matrix to repo-wiki V1.
 - `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
-- `module-overview`: `wiki/04-modules/` 下的目录级模块地图 / 模块总览页，解释多个 confirmed canonical modules 如何协作、哪些 supporting participants 只是支撑层、读者应下钻到哪里。它 must not create canonical modules, replace module owner pages, or promote stores/adapters/queues/runtimes into modules just because they appear in the map.
+- `module-drill-down`: module owner page 内的读者路线表达；当一个 confirmed C2 runtime unit、stable subsystem 或代码模块把其他 canonical modules 作为 internal parts 展示时，用 `内部模块` 摘要表和 related-module links 引导下钻，不在 `README.md` 中制造强制模块树，也不创建 ownerless overview page。
 - `module-boundary`: module边界表达；说明 stable responsibility boundary、public surfaces、internal capabilities、collaboration direction 和 current module rules。它 must not turn package trees, private helpers, deployment inventory, or unconfirmed ownership into module contracts.
-- `whitebox-component`: canonical module owner page 的必备 Module Boundary Map，也可用于 module overview page 的 confirmed overview boundary；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达边界内部组装关系。
+- `whitebox-component`: canonical module owner page 的必备 Module Boundary Map；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达边界内部组装关系。Reader-facing Markdown 可在图旁补 `内部模块` 表和 per-port contract tables，但这些不进入 source model。
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
 - `page-layout`: page detail expression for stable visible regions, major components, overlays, drawers, tabs, placeholders, page variants, visible state projection, and page-level interaction surfaces. It must not become DOM/CSS/component-library documentation or a screenshot archive.
@@ -312,7 +312,7 @@ Explains user-visible pages, entry points, navigation, visible regions, page var
 
 ### 04-modules/
 
-Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, module overview maps, and related flows/pages/models. A module may or may not match a code directory, page, service process, or package. `README.md` owns the Canonical Module Index; optional pages such as `module-map.md` may explain cross-module topology and reader routes without creating new canonical modules.
+Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, module-to-module drill-down routes, and related flows/pages/models. A module may or may not match a code directory, page, service process, C2 runtime unit, stable subsystem, or package. `README.md` owns the flat Canonical Module Index; former `module-map.md`-style pages must be canonical module owner pages when they draw a confirmed C2 runtime unit or subsystem as the enclosing component.
 
 ### 05-models/
 

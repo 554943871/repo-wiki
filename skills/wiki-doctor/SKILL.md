@@ -1,6 +1,6 @@
 ---
 name: wiki-doctor
-description: Refresh existing repo-local wiki pages, including module overview pages plus module Whitebox Component Diagram source models and generated views, against the latest Wiki Guidance System without losing original information. Use when the user asks to audit, dry run, doctor, clean up, restructure, rewrite, split, merge, rename, or normalize existing wiki pages for reader quality.
+description: Refresh existing repo-local wiki pages, including canonical module owner pages plus module Whitebox Component Diagram source models and generated views with render-readability gates, against the latest Wiki Guidance System without losing original information. Use when the user asks to audit, dry run, doctor, clean up, restructure, rewrite, split, merge, rename, or normalize existing wiki pages for reader quality.
 ---
 
 # wiki-doctor
@@ -15,8 +15,8 @@ Read these before acting:
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for the scoped wiki pages
 - Relevant `../references/writing-blocks/*.md` files for the rewrite shape
-- For canonical module owner-page refreshes, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
-- For module overview or module-map refreshes, `../references/writing-guidance/module-overview.md` and `../references/writing-blocks/whitebox-component.md` when Whitebox is used
+- For canonical module owner-page refreshes, including confirmed C2 runtime-unit or stable-subsystem pages, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
+- `../references/writing-guidance/module-overview.md` only as a compatibility note when interpreting older overview terminology; do not route current pages to it as a separate page family.
 
 For whole-wiki refresh, read all page-family guidance and the writing blocks needed by the existing pages. For narrow page or directory scope, read only the matching guidance plus any block guidance needed to preserve the page's information.
 
@@ -32,7 +32,7 @@ Do not inspect source code, tests, routes, config, root `README.md`, `docs/**`, 
 
 Do not classify drift, do not rewrite an existing `wiki/07-drift.md`, and do not capture new stable knowledge. If a finding needs code/wiki comparison, fact verification, or missing coverage classification, report `drift_or_coverage_suspect` and recommend `wiki-drift-radar`.
 
-For canonical module owner pages and module overview/map pages, `wiki-doctor` may create or refresh Whitebox source and rendered artifacts only from facts already present in the existing wiki content being refreshed. Use `../references/writing-guidance/module-page.md` or `../references/writing-guidance/module-overview.md` to classify the page role, and route Whitebox fact-source, rendering, placement, migration, and fallback mechanics to `../references/writing-blocks/whitebox-component.md`. It must not inspect target source code to discover new Whitebox facts, change the page role, or write Whitebox files outside the target repo's top-level `wiki/`.
+For canonical module owner pages, `wiki-doctor` may create or refresh Whitebox source and rendered artifacts only from facts already present in the existing wiki content being refreshed. Use `../references/writing-guidance/module-page.md` to refresh module pages, and route Whitebox fact-source, rendering, placement, migration, and fallback mechanics to `../references/writing-blocks/whitebox-component.md`. It must not inspect target source code to discover new Whitebox facts, change an ownerless overview into a module without existing confirmation, or write Whitebox files outside the target repo's top-level `wiki/`.
 
 Do not use schema, validator, lint, compliance, PASS, or FAIL language. This is semantic reader-quality work, not mechanical validation.
 
@@ -94,7 +94,7 @@ Scope limits writes. Scope-external wiki pages may be read for context, but are 
 
 `wiki-doctor` only processes top-level `wiki/`. It does not edit target-repository files outside `wiki/`, and it does not edit this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill instructions. Changes to the Wiki Guidance System itself are skill-suite maintenance work, not `wiki-doctor` work.
 
-Within any scope that includes canonical module owner pages or module overview/map pages, safe Whitebox refresh may also write the source and generated files allowed by `../references/writing-blocks/whitebox-component.md` inside the target repo's top-level `wiki/`. Other non-Markdown files remain out of scope.
+Within any scope that includes canonical module owner pages, safe Whitebox refresh may also write the source and generated files allowed by `../references/writing-blocks/whitebox-component.md` inside the target repo's top-level `wiki/`. Other non-Markdown files remain out of scope.
 
 ## Classifications
 
@@ -108,7 +108,7 @@ Only `safe_guidance_rewrite` can be written by default. `meaning_loss_risk` and 
 
 For `wiki/01-system.md`, migrate older system-overview structures to the current C1 / C2 / Runtime Topology shape by default only when all existing information, names, boundaries, evidence, and uncertainty can be preserved. If migration would require deciding current system facts, changing meaning, or dropping unique information, report `meaning_loss_risk` or `drift_or_coverage_suspect` instead of rewriting that area.
 
-For `wiki/04-modules/**`, first decide whether the page is a canonical module owner page or a module overview/map page. Route canonical module owner-page refreshes through `../references/writing-guidance/module-page.md`; route module overview/map refreshes through `../references/writing-guidance/module-overview.md`. Treat conversion to a Whitebox Component Diagram as a candidate change only when the existing wiki already contains information that `../references/writing-blocks/whitebox-component.md` permits migrating without choosing new meaning or changing the page role. If the old map lacks information required by the referenced guidance, report `meaning_loss_risk`; if deciding the facts requires code/wiki comparison or missing coverage classification, report `drift_or_coverage_suspect`.
+For `wiki/04-modules/**`, first decide whether the page is a canonical module owner page, a catalog/index README, or an ownerless legacy overview/map. Route canonical module owner-page refreshes through `../references/writing-guidance/module-page.md`. A former `module-map.md` may be refreshed as a module owner page only when the existing wiki already confirms the enclosing C2 runtime unit or stable subsystem as a canonical module with a name, owner page, and boundary. If the old map lacks that confirmation, report `meaning_loss_risk` instead of preserving a separate overview page family. Treat conversion to a Whitebox Component Diagram as a candidate change only when the existing wiki already contains information that `../references/writing-blocks/whitebox-component.md` permits migrating without choosing new meaning or changing the page role. If deciding the facts requires code/wiki comparison or missing coverage classification, report `drift_or_coverage_suspect`.
 
 ## Action Vocabulary
 
@@ -142,10 +142,14 @@ Use these action names in reports. They are vocabulary, not a machine schema:
    - improve reader entry, navigation, canonical names, tables, diagrams, and evidence placement when safe;
    - keep uncertainty visible;
    - avoid template-filling and mechanical completeness claims.
-7. For scopes that include `wiki/04-modules/**`, classify each scoped page as a canonical module owner page, module overview/map page, catalog/index README, or other page before applying module guidance. Identify existing module-boundary or cross-module topology material. Treat conversion to a Whitebox Component Diagram as a candidate change only when every converted fact is already explicit in the wiki content and can be preserved under `../references/writing-blocks/whitebox-component.md` without choosing new meaning or changing the page role.
+7. For scopes that include `wiki/04-modules/**`, classify each scoped page as a canonical module owner page, catalog/index README, ownerless legacy overview/map, or other page before applying module guidance. Identify existing module-boundary or cross-module topology material. Treat conversion to a Whitebox Component Diagram as a candidate change only when every converted fact is already explicit in the wiki content and can be preserved under `../references/writing-blocks/whitebox-component.md` without choosing new meaning or changing the page role.
 8. Classify candidate changes.
 9. In `audit-only`, write nothing and report proposed actions.
-10. When a Whitebox refresh is classified as `safe_guidance_rewrite` in default mode, apply the source-model, rendering, derived-view, linking, migration, readability, and fallback rules from `../references/writing-blocks/whitebox-component.md`. For module overview/map pages, also apply `../references/writing-guidance/module-overview.md` so the page keeps its overview role while preserving old-map information that does not fit the diagram as prose, uncertainty, or risk notes.
+10. When a Whitebox refresh is classified as `safe_guidance_rewrite` in default mode, apply the source-model, rendering, derived-view, linking, migration, readability, explanation-table, and fallback rules from `../references/writing-blocks/whitebox-component.md`, plus `../references/writing-guidance/module-page.md`. Preserve old-map information that does not fit the diagram as prose, uncertainty, supporting-participant notes, module drill-down routes, or risk notes.
+    - Use the normal/default Whitebox renderer for reader-facing SVG output. Do not use a diagnostic or fallback renderer such as an explicit `simple` backend as a completed wiki artifact unless the user explicitly asks for a temporary diagnostic artifact; diagnostic output must not be embedded in Markdown or reported as a validated reader-facing diagram.
+    - If the default renderer dependency is missing or the renderer fails, stop the Whitebox rendering portion before adding or updating Markdown image embeds for that diagram. Report the renderer blocker, the command that failed, and the affected source model; do not silently downgrade renderer quality.
+    - Source-model validation is necessary but not sufficient. After rendering, inspect the complete SVG and every Markdown-embedded derived SVG for reader readability: no cropped content, no text outside boxes, no severe edge/label overlap, no obvious arrow/text collisions, and no diagram so wide or dense that inline Markdown scaling makes labels unreadable.
+    - If a rendered Whitebox view is unreadable, first reduce, group, or split only facts already explicit in the scoped wiki content, then rerender. If the diagram still cannot be made readable without changing meaning or dropping unique facts, leave the bad SVG unembedded, report the readability blocker, and classify any further modeling choice as `meaning_loss_risk` instead of presenting the page as fully refreshed.
 11. In default mode, apply only `safe_guidance_rewrite` and allowed `complete_skeleton` changes.
 12. Stop and ask a focused question only when a small number of `meaning_loss_risk` items block an otherwise safe rewrite. Otherwise report risks without editing them.
 
@@ -157,7 +161,7 @@ Always report:
 - Structural changes made or proposed, especially `complete_skeleton`.
 - Changed pages, with action names.
 - Whitebox Component Diagram source models, complete SVGs, and non-empty derived SVGs created, refreshed, rendered, validated, and linked, or why old module maps were left unchanged.
-- Module overview/map pages refreshed or left unchanged, including how `module-overview.md` was applied.
+- Module owner pages refreshed or left unchanged, including any former module-map pages migrated to or blocked from owner-page treatment.
 - Skipped risk items classified as `meaning_loss_risk`.
 - Suspected drift or coverage items classified as `drift_or_coverage_suspect`, with a recommendation to run `wiki-drift-radar`.
 - Out-of-scope suggestions caused by scope limits.

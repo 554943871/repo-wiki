@@ -2,7 +2,7 @@
 
 Whitebox Component Diagram 是 canonical module owner page 的必备 Module Boundary Map。它解释一个 enclosing module 如何通过 boundary ports 暴露能力、如何把这些能力委派给内部 components、内部 components 如何协作，以及哪些 interface roles 被满足。
 
-Module Overview / Module Map pages may also use a Whitebox Component Diagram when they need to show one confirmed enclosing system or subsystem boundary across multiple modules and supporting participants. In that case, the page remains an overview page: the enclosing component is an overview boundary, not a canonical module unless `wiki/04-modules/README.md` already names it as one.
+Former Module Overview / Module Map pages that draw one confirmed C2 runtime unit or stable subsystem as the enclosing component are canonical module owner pages in the current model. The enclosing component must be named in `wiki/04-modules/README.md`, while module-to-module drill-down and cross-module topology are explained inside owner pages rather than in a separate overview page family.
 
 它不是 UML 完整模型、package dependency map、调用链、文件树或截图式架构图。它只记录已经确认的 module 边界事实。
 
@@ -10,7 +10,7 @@ Module Overview / Module Map pages may also use a Whitebox Component Diagram whe
 
 - `.whitebox.yaml` 是唯一可修改的 diagram fact source。Agent 修改 diagram 时只改 source model，再重新生成 SVG。
 - `.whitebox.svg` 是 reader-facing rendering，必须从同一份 `.whitebox.yaml` 派生。SVG 和其他生成图片都不是事实源。
-- Generated SVGs belong in an `assets/` subdirectory beside the module or module-overview page, not beside the Markdown page itself. Keep the `.whitebox.yaml` source model beside the Markdown page so agents can find the fact source directly, and keep complete/derived `.whitebox*.svg` files under `./assets/`.
+- Generated SVGs belong in an `assets/` subdirectory beside the module owner page, not beside the Markdown page itself. Keep the `.whitebox.yaml` source model beside the Markdown page so agents can find the fact source directly, and keep complete/derived `.whitebox*.svg` files under `./assets/`.
 - Mermaid、PlantUML、draw.io XML、Markdown prose、截图、手绘图片和生成图片都不能作为 Whitebox Component Diagram 的 diagram fact source。它们可以在转换过程中作为输入，但 Whitebox adoption 之后不能继续作为旧草图、迁移说明或并行事实源留在 wiki。
 - Source model 只写 topology 和语义关系；不要写坐标、布局、排序、routing、canvas size、样式或 renderer hints。布局由 renderer 决定。
 - Source model 不写 aspect ratio、direction、wrapping、candidate selection 或 viewport-readability fields。Viewport-readable layout belongs to the renderer policy and generated SVG metadata only.
@@ -19,7 +19,7 @@ Module Overview / Module Map pages may also use a Whitebox Component Diagram whe
 
 ## Current Artifact Policy
 
-Wiki content reflects the current understanding of the module or overview boundary, not the migration process that produced it.
+Wiki content reflects the current understanding of the module boundary, not the migration process that produced it.
 
 When a `.whitebox.yaml` source model supersedes an older Mermaid block, PlantUML file, draw.io export, PNG, screenshot, hand-drawn image, generated image, or manual diagram file, delete the superseded artifact from the repo-local wiki unless the user explicitly says that older artifact remains current.
 
@@ -29,7 +29,7 @@ Do not add migration notes such as "converted from Mermaid" or "old diagram repl
 
 ## Markdown Caption And Linking Convention
 
-Module owner pages and Module Overview pages that use Whitebox both link SVG and source model at the diagram location. Source model 与 Markdown page 平级；完整图和派生 SVG 放在同目录的 `assets/` 子目录，使用稳定的相对路径。
+Module owner pages that use Whitebox link SVG and source model at the diagram location. Source model 与 Markdown page 平级；完整图和派生 SVG 放在同目录的 `assets/` 子目录，使用稳定的相对路径。
 
 The source model link must appear as a short, low-friction caption immediately beside the diagram. Prefer `图源：[...]` or another equally short caption. Do not put source/rendering mechanics in the reader scan path; keep those rules in this block instead.
 
@@ -74,14 +74,27 @@ Do not generate or embed an empty derived view. A derived view exists only when 
 
 Do not put generated Whitebox SVGs beside the Markdown page. Use page-local `assets/`: for `wiki/04-modules/checkout.md`, use `wiki/04-modules/checkout.whitebox.yaml` and `wiki/04-modules/assets/checkout.whitebox.svg`.
 
+## Markdown Explanation Tables
+
+Whitebox diagrams stay topology-first. Do not add description, responsibility, contract-summary, input/output, side-effect, owner, drill-down, or prose explanation fields to `.whitebox.yaml`, and do not render those explanations directly into SVG.
+
+Use Markdown beside the diagram for reader explanation:
+
+- `内部模块`: a table for internal parts that are canonical modules only. Use columns `模块 | 图中节点 | 摘要 | 下钻页面`. The summary is one or two sentences; the internal module's owner page owns its full responsibilities, ports, contracts, internal parts, and evidence. Supporting participants do not enter this table.
+- Supporting participants: explain them in a legend, node-notes table, map-node section, or short prose when needed, and explicitly avoid promoting them into canonical modules just because they appear in the Whitebox diagram.
+- Boundary port contract tables: when a boundary port carries multiple highly related contracts, create one Markdown table per port with columns `Contract | 输入 | 输出 | 简介 | 副作用`. Inputs and outputs are reader-level summaries, not complete field schemas. Side effects name state changes such as creating or advancing a turn, writing ack progress, resuming a pending interaction, writing facts, or calling an external system.
+- Internal part ports: normally explain these on the relevant internal module's owner page. Only add a brief local note when an internal port is essential to understanding the enclosing module and no better drill-down page exists.
+
+These tables supplement the diagram. They do not replace `.whitebox.yaml` as the diagram fact source, and they do not create a second source of topology truth.
+
 ## Source Model Semantics
 
 Use the current Whitebox Component Diagram source model:
 
 - `kind: whitebox_component_diagram` and `version: 1`.
-- `component`: the enclosing boundary. On a canonical module owner page this is the module boundary. On a Module Overview page this may be a confirmed system or subsystem overview boundary. It owns boundary `ports` and must have evidence.
-- `parts`: optional internal components inside the enclosing boundary. Use only for confirmed internal responsibilities that help explain how public capability is assembled. On Module Overview pages, parts may include confirmed canonical modules and supporting participants, but supporting participants must not be promoted into canonical modules by appearing in the diagram.
-- `ports`: named interaction points. Port direction is not a field; interaction direction is expressed by connectors.
+- `component`: the enclosing canonical module boundary. It may be a code module, C2 runtime unit, or stable subsystem, but it must be confirmed as a canonical module owner page. It owns boundary `ports` and must have evidence.
+- `parts`: optional internal components inside the enclosing boundary. Use only for confirmed internal responsibilities that help explain how public capability is assembled. Parts may include canonical modules and supporting participants, but supporting participants must not be promoted into canonical modules by appearing in the diagram.
+- `ports`: named interaction points. A port may carry a highly related group of contracts. Port direction is not a field; interaction direction is expressed by connectors.
 - `interfaces`: optional interface contracts that can be attached to ports as `provides` or `requires`.
 - `externals`: actors, modules, pages, flows, runtime units, or systems outside this enclosing module boundary when they are needed to explain the boundary interaction.
 - `connectors`: directed, typed relationships with evidence.
@@ -112,7 +125,7 @@ Simple modules may use an empty whitebox: the source model can omit `parts` and 
 
 Even an empty whitebox must still show the enclosing component boundary, at least one confirmed boundary port, at least one external node, and an `external` connector between that external node and the boundary port. Do not create a content-free diagram with only a component box.
 
-If no boundary port or external interaction is confirmed, the canonical module owner page or Module Overview page is not ready for a complete Whitebox Component Diagram. Ask for confirmation, inspect allowed evidence, or report the gap instead of inventing a placeholder.
+If no boundary port or external interaction is confirmed, the canonical module owner page is not ready for a complete Whitebox Component Diagram. Ask for confirmation, inspect allowed evidence, or report the gap instead of inventing a placeholder.
 
 ## Refreshing Older Module Maps
 

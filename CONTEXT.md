@@ -158,13 +158,37 @@ _Avoid_: database ER dump, runtime call graph, vague dependency table
 A module-detail writing block for stable responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and current module rules. It explains what neighboring flows, pages, modules, or systems can rely on without turning private helpers or package trees into contracts.
 _Avoid_: package tree, helper list, deployment inventory, unconfirmed ownership
 
+**Canonical Module Owner Page**:
+A page under `wiki/04-modules/` that owns one confirmed module boundary. The enclosing module may be a code module, a C2 runtime unit, or a stable subsystem when it is named as a canonical module and explained through responsibilities, boundary ports, contracts, internal parts, module-to-module drill-down routes, related pages, and a Whitebox Component Diagram.
+_Avoid_: directory-level map, supporting-participant promotion, package/deployment map, unowned overview
+
+**Module Drill-Down Route**:
+A reader route from one Canonical Module Owner Page to another module page when the second page explains a lower-level part, collaborating module, or related boundary in more detail. It supports hierarchy and cross-module jumps without turning the source page into a separate overview page family; `wiki/04-modules/README.md` stays a flat Canonical Module Index rather than a forced module tree.
+_Avoid_: ownerless overview, duplicate module ownership, package-tree navigation, forced single-parent module tree
+
 **Module Overview Page**:
-A directory-level page under `wiki/04-modules/`, often named `module-map.md`, that explains how confirmed canonical modules and supporting participants fit together. It is a reader route and cross-module topology page, not a canonical module owner page; `wiki/04-modules/README.md` remains the Canonical Module Index.
-_Avoid_: new canonical module, parallel module index, supporting participant promotion, package/deployment map
+An older page-family term for directory-level module maps. In the current model, a page that draws a confirmed C2 runtime unit or subsystem as an enclosing component is a Canonical Module Owner Page; `wiki/04-modules/README.md` remains the Canonical Module Index and reader route.
+_Avoid_: separate overview page family, ownerless enclosing component, parallel module index
 
 **Whitebox Component Diagram**:
 A module-boundary diagram that shows one enclosing component's boundary ports, internal components, internal ports, interface roles, and connector semantics so readers can see how exposed capabilities are delegated and assembled inside the boundary.
 _Avoid_: UML-complete model, package dependency map, image-only architecture sketch
+
+**Whitebox Explanation Tables**:
+Markdown tables placed beside a Whitebox Component Diagram that explain internal part responsibilities and port meanings for readers. They supplement the diagram and source model without adding description fields to `.whitebox.yaml` or rendered SVG.
+_Avoid_: source-model description fields, SVG annotations, parallel diagram truth
+
+**Internal Part Responsibilities Table**:
+A Whitebox Explanation Table, commonly titled `内部模块`, that explains the simple responsibility and drill-down route for internal parts that are canonical modules. It gives only a short summary and link because the internal module's own owner page owns the full responsibility, ports, contracts, internal parts, and evidence.
+_Avoid_: supporting-participant inventory, canonical module index, package inventory, helper list
+
+**Port Explanation Table**:
+A Whitebox Explanation Table that summarizes boundary ports in reader terms before detailed contract tables. Internal part ports usually belong on the relevant internal module owner page.
+_Avoid_: port direction field, method list, connector replacement, internal-port inventory
+
+**Port Contract Table**:
+A Markdown table for one component port that lists the highly related contracts carried by that port. Each row summarizes one contract's inputs and outputs, what it is for, and what side effects it may produce without turning the port into a raw function inventory.
+_Avoid_: one giant all-port table, unrelated contract bundle, owner/evidence columns, function dump
 
 **Diagram Complexity Signal**:
 The reader-facing interpretation that a dense or tangled Whitebox Component Diagram may indicate genuinely complex module logic or a potential refactoring opportunity, not merely a rendering failure. It is a review signal for human judgment, not a mechanical score.
@@ -203,7 +227,7 @@ Renderer-generated SVG metadata that records the selected layout policy, selecte
 _Avoid_: source-level layout field, full layout decision log, manual candidate selection, hidden renderer choice
 
 **Whitebox Asset Directory**:
-The page-local `assets/` subdirectory that stores generated complete and derived Whitebox SVG files for a canonical module owner page or Module Overview page. The `.whitebox.yaml` Diagram Source Model stays beside the Markdown page, while generated `.whitebox*.svg` files live under `assets/` and are linked from Markdown as reader-facing outputs.
+The page-local `assets/` subdirectory that stores generated complete and derived Whitebox SVG files for a canonical module owner page. The `.whitebox.yaml` Diagram Source Model stays beside the Markdown page, while generated `.whitebox*.svg` files live under `assets/` and are linked from Markdown as reader-facing outputs.
 _Avoid_: source model in assets, generated SVG beside Markdown page, global image dump, SVG as fact source
 
 **Whitebox Renderer Dependency Boundary**:
@@ -220,9 +244,9 @@ It contains only explicit facts confirmed by code, documentation, or the user; u
 _Avoid_: generated image as truth, draw.io XML as truth, Markdown prose as truth, source-level coordinates, source-level layout hints, question backlog
 
 **Component Port**:
-A named interaction point on a component boundary. It identifies where a component interacts, while interface roles identify the contracts available or needed at that point.
+A named interaction point on a component boundary. It can carry a highly related group of contracts, while interface roles identify the provided or required contracts available at that point.
 Port direction is not a port attribute in the Diagram Source Model; interaction direction is expressed only by connectors.
-_Avoid_: interface, method, required port, provided port, port direction
+_Avoid_: contract collection itself, interface, method, required port, provided port, port direction
 
 **Interface Role**:
 A provided or required interface contract attached to a component port. Interface assembly connects interface roles, not ports themselves.

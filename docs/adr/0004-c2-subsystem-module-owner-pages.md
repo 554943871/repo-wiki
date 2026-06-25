@@ -1,0 +1,5 @@
+# C2 And Subsystem Module Owner Pages
+
+The wiki no longer treats Module Overview as a separate page family. When a confirmed C2 runtime unit or stable subsystem is drawn as the enclosing component for a Whitebox Component Diagram, it is a canonical module owner page under `wiki/04-modules/`; `wiki/04-modules/README.md` stays a flat Canonical Module Index, while hierarchy, cross-module topology, and drill-down routes are expressed inside module owner pages.
+
+Consequences: former `module-map.md` pages must either become confirmed module owner pages or be reported as `meaning_loss_risk` until their owner boundary is clarified. Upper-level module pages may show lower-level canonical modules as internal parts, but they only summarize those internal modules and link to their owner pages; the lower-level owner pages keep their full responsibilities, ports, contracts, internals, and evidence. Supporting participants may appear in Whitebox diagrams and node notes, but their appearance does not promote them into canonical modules.

@@ -760,47 +760,25 @@ def check_module_overview_guidance_contract() -> list[str]:
     errors: list[str] = []
     text = read_text(MODULE_OVERVIEW_GUIDANCE)
 
-    errors.extend(
-        check_required_phrase(
-            MODULE_OVERVIEW_GUIDANCE,
-            text,
-            "The primary visual comes before detailed context, caveats, evidence, source mechanics, node tables, or long explanatory prose.",
-            "Module Overview human scan path before dense context",
-        )
-    )
-    errors.extend(
-        check_required_phrase(
-            MODULE_OVERVIEW_GUIDANCE,
-            text,
-            "Code Agents get stable programming context downstream",
-            "Code Agent context retention",
-        )
-    )
-    errors.extend(
-        check_required_phrase(
-            MODULE_OVERVIEW_GUIDANCE,
-            text,
-            "Do not leave stable programming interpretation only in source code, generated diagrams, local fixtures, skill notes, or issue discussion",
-            "downstream Code Agent context must not be removed",
-        )
-    )
-    errors.extend(
-        check_phrase_order(
-            MODULE_OVERVIEW_GUIDANCE,
-            text,
-            "## Human Scan Path",
-            "## Downstream Code Agent Context",
-            "Module Overview should keep fast reader orientation before Code Agent detail",
-        )
-    )
-    errors.extend(
-        check_required_phrase(
-            MODULE_OVERVIEW_GUIDANCE,
-            text,
-            "Restating Whitebox mechanics instead of referring to `skills/references/writing-blocks/whitebox-component.md`.",
-            "Module Overview should route Whitebox mechanics to the shared block",
-        )
-    )
+    for phrase, why in [
+        (
+            "kept only as a compatibility note",
+            "Module Overview guidance should not remain a current page-family contract",
+        ),
+        (
+            "no longer treats Module Overview as a separate page family",
+            "Module Overview should be deprecated as a separate page family",
+        ),
+        (
+            "must follow [`module-page.md`](./module-page.md)",
+            "confirmed C2/subsystem maps should route to module-page guidance",
+        ),
+        (
+            "Do not promote stores, adapters, queues, helper layers, or runtime participants into canonical modules",
+            "supporting participants must not be promoted by map appearance",
+        ),
+    ]:
+        errors.extend(check_required_phrase(MODULE_OVERVIEW_GUIDANCE, text, phrase, why))
     return errors
 
 
@@ -824,6 +802,14 @@ def check_whitebox_guidance_contract() -> list[str]:
         (
             "Do not mechanically embed every generated derived view.",
             "derived views should not be embedded just because the renderer produced them",
+        ),
+        (
+            "Do not add description, responsibility, contract-summary, input/output, side-effect, owner, drill-down, or prose explanation fields to `.whitebox.yaml`",
+            "reader explanation belongs in Markdown, not the Whitebox source model",
+        ),
+        (
+            "Contract | 输入 | 输出 | 简介 | 副作用",
+            "boundary port contracts should use the agreed reader-facing table shape",
         ),
     ]:
         errors.extend(check_required_phrase(WHITEBOX_BLOCK, text, phrase, why))
@@ -851,6 +837,21 @@ def check_module_page_guidance_contract() -> list[str]:
             "module pages should not require every generated derived view to be embedded",
         )
     )
+    for phrase, why in [
+        (
+            "模块 | 图中节点 | 摘要 | 下钻页面",
+            "internal module summaries should use the agreed table shape",
+        ),
+        (
+            "Contract | 输入 | 输出 | 简介 | 副作用",
+            "port contract tables should use the agreed table shape",
+        ),
+        (
+            "`wiki/04-modules/README.md` remains the flat Canonical Module Index",
+            "module hierarchy should live in owner pages, not the index",
+        ),
+    ]:
+        errors.extend(check_required_phrase(MODULE_PAGE_GUIDANCE, text, phrase, why))
     for phrase in [
         "必须把这些派生阅读视图",
         "Dense 图的非空 Derived Whitebox Views 是否在完整图和 source model link 之后直接从 `./assets/` 展示",
@@ -880,12 +881,16 @@ def check_skill_reference_routing() -> list[str]:
         text = read_text(path)
         for phrase, why in [
             (
-                "../references/writing-guidance/module-overview.md",
-                "module overview work should route to Module Overview guidance",
+                "../references/writing-guidance/module-page.md",
+                "module work should route to canonical module page guidance",
             ),
             (
                 "../references/writing-blocks/whitebox-component.md",
                 "Whitebox mechanics should route to the shared Whitebox block",
+            ),
+            (
+                "module-overview.md` only",
+                "legacy module-overview references should be compatibility-only",
             ),
         ]:
             errors.extend(check_required_phrase(path, text, phrase, why))
@@ -960,7 +965,7 @@ def main() -> int:
     print("Covered behaviors:")
     for behavior in sorted(seen_behaviors):
         print(f"- {behavior}")
-    print("Checked Module Overview, Whitebox, module-page, and skill routing guidance contracts.")
+    print("Checked module guidance compatibility, Whitebox, module-page, and skill routing contracts.")
     print(
         "This only checks fixture coverage and boundary wording; "
         "it does not prove wiki meaning is right."

@@ -1,6 +1,6 @@
 ---
 name: wiki-sink
-description: Initialize the fixed top-level repo-local wiki structure and write confirmed or evidence-grounded reusable knowledge, including module overview pages plus module Whitebox Component Diagram source models and generated views, into stable wiki pages. Use when the user asks to create the wiki, seed wiki pages, sink knowledge, or update system, flow, page, module, model, or decision documentation outside an active drift-governance queue.
+description: Initialize the fixed top-level repo-local wiki structure and write confirmed or evidence-grounded reusable knowledge, including canonical module owner pages plus module Whitebox Component Diagram source models and generated views, into stable wiki pages. Use when the user asks to create the wiki, seed wiki pages, sink knowledge, or update system, flow, page, module, model, or decision documentation outside an active drift-governance queue.
 ---
 
 # wiki-sink
@@ -15,8 +15,8 @@ Read these before acting:
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for target pages
 - Relevant `../references/writing-blocks/*.md` files for explanatory blocks
-- For canonical module owner pages, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
-- For module overview or module-map pages, `../references/writing-guidance/module-overview.md` and `../references/writing-blocks/whitebox-component.md` when Whitebox is used
+- For canonical module owner pages, including confirmed C2 runtime-unit or stable-subsystem module pages, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
+- `../references/writing-guidance/module-overview.md` only when maintaining or interpreting older skill-suite references; do not use it as a new page-family route.
 
 ## Boundary
 
@@ -46,25 +46,25 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - `01-system.md` for system context and major runtime units.
    - `02-flows/**` for key user, business, or system flows.
    - `03-pages/**` for user-visible pages, entry points, navigation, page layout, page variants, visible states, and page-level interactions.
-   - `04-modules/**` for capability boundaries, public surfaces, internal capabilities, collaboration rules, module overview maps, and related flows/pages/models.
+   - `04-modules/**` for capability boundaries, public surfaces, internal capabilities, collaboration rules, module-to-module drill-down routes, and related flows/pages/models.
    - `05-models/**` for system-understanding models.
    - `06-decisions.md` for current active decisions and tradeoffs.
 5. Read the matching writing guidance before editing. When writing or updating `wiki/01-system.md`, read `../references/writing-guidance/system-overview.md`.
-   - When writing or updating a canonical module owner page, read `../references/writing-guidance/module-page.md`.
-   - When writing or updating a directory-level module overview or module map such as `wiki/04-modules/module-map.md`, read `../references/writing-guidance/module-overview.md`.
+   - When writing or updating any canonical module owner page under `wiki/04-modules/**`, including former `module-map.md` pages whose enclosing C2 runtime unit or stable subsystem is confirmed as a canonical module, read `../references/writing-guidance/module-page.md`.
+   - Do not create ownerless directory-level module overview pages. If a proposed `module-map.md` does not have a confirmed canonical module name, owner page, and boundary, ask for confirmation instead of writing it as a separate overview page family.
 6. Read the relevant writing blocks for the content shape:
    - `canonical-index.md` for any new or updated stable name, owner route, boundary, or catalog README entry.
    - `evidence-anchor.md` for stable facts, uncertainty, candidate notes, code anchors, user confirmations, or other short evidence support.
    - `activity-map.md`, `sequence.md`, or `state-transition.md` for flow content.
    - `model-relation.md` or `state-transition.md` for model relationships, lifecycle, source-of-truth facts, or stable states.
    - `public-surface.md` for system, module, or page surfaces such as APIs, tools, routes, page entries, events, or capabilities.
-   - `whitebox-component.md` for every canonical module owner page's required Whitebox Component Diagram / Module Boundary Map, and for any module overview page that uses Whitebox.
+   - `whitebox-component.md` for every canonical module owner page's required Whitebox Component Diagram / Module Boundary Map.
    - `module-boundary.md` for module responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and module rules.
    - `page-navigation.md` for README/catalog routing and user-visible page navigation.
    - `page-layout.md` for page visible regions, stable components, overlays, drawers, tabs, page variants, visible state projection, and page-level layout.
    - `dependency-map.md` or `decision-tradeoff.md` for stable dependencies, active decisions, and current tradeoffs.
 7. When writing or updating a canonical module owner page under `wiki/04-modules/**`, follow `../references/writing-guidance/module-page.md`. Route its required Whitebox Component Diagram / Module Boundary Map work to `../references/writing-blocks/whitebox-component.md`, and write only facts confirmed by repo evidence, existing wiki facts, or user confirmation.
-8. When writing or updating a module overview or module-map page under `wiki/04-modules/**`, treat it as the Module Overview page family and follow `../references/writing-guidance/module-overview.md`. If the overview uses Whitebox, route all Whitebox source, rendering, derived-view, linking, evidence, and fallback mechanics to `../references/writing-blocks/whitebox-component.md`.
+8. When writing or updating a former module overview or module-map page under `wiki/04-modules/**`, first confirm the enclosing boundary as a canonical module in `wiki/04-modules/README.md`. Then treat the page as a canonical module owner page and follow `../references/writing-guidance/module-page.md`. If that confirmation is missing, ask the user instead of inventing a module or preserving an ownerless overview page family.
 9. Update the owner page and its canonical index together when the name, owner page, and boundary are confirmed. If a name conflict, unclear boundary, or unconfirmed owner would cause meaning loss, ask the user or leave it out instead of canonicalizing it.
 10. Ask the user before writing business intent, design rationale, page names, module names, or boundary decisions when evidence is not enough.
 11. Keep edits human-readable and concise. Prefer stable wiki content over raw notes.
@@ -75,7 +75,7 @@ Report:
 
 - Wiki pages created or updated.
 - Module Whitebox Component Diagram source models, complete SVGs, and non-empty derived SVGs created, updated, rendered, validated, and linked, or why they were left incomplete.
-- Module overview or module-map pages created or updated, including how `module-overview.md` was applied.
+- Module owner pages created or updated, including former module-map pages converted to confirmed owner pages.
 - Canonical indexes maintained, or why an index update was skipped.
 - What evidence or confirmation supported the write.
 - Any knowledge intentionally left out because it was unconfirmed or too implementation-local.
