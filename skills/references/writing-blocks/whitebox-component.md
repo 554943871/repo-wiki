@@ -17,19 +17,21 @@ Module Overview / Module Map pages may also use a Whitebox Component Diagram whe
 - Source model 不写 `views`、`derivedViews`、`include_parts`、`include_connectors` 或其他展示选择字段。Derived views 由 renderer 根据拓扑和 connector 类型自动生成。
 - 如果 source model 和 SVG 不一致，以 `.whitebox.yaml` 为准，并重新渲染 SVG。
 
-## Markdown Linking Convention
+## Markdown Caption And Linking Convention
 
-Module owner pages and Module Overview pages that use Whitebox both link SVG and source model at the diagram location. Source model 与 Markdown page 平级；完整图和派生 SVG 放在同目录的 `assets/` 子目录，使用稳定的相对路径：
+Module owner pages and Module Overview pages that use Whitebox both link SVG and source model at the diagram location. Source model 与 Markdown page 平级；完整图和派生 SVG 放在同目录的 `assets/` 子目录，使用稳定的相对路径。
+
+The source model link must appear as a short, low-friction caption immediately beside the diagram. Prefer `图源：[...]` or another equally short caption. Do not put source/rendering mechanics in the reader scan path; keep those rules in this block instead.
 
 ```md
 ## 模块边界图（Module Boundary Map）
 
 ![Checkout Module whitebox component diagram](./assets/checkout.whitebox.svg)
 
-Source model: [`checkout.whitebox.yaml`](./checkout.whitebox.yaml) for the complete diagram and any derived views below.
+图源：[`checkout.whitebox.yaml`](./checkout.whitebox.yaml)
 ```
 
-For dense diagrams, keep the complete view first, keep the source model link visible beside the generated diagrams, and embed only non-empty generated Derived Whitebox Views immediately after the complete diagram and source model link:
+For dense diagrams, keep the complete view first, keep the short source-model caption visible beside the generated diagrams, and embed only non-empty generated Derived Whitebox Views immediately after the complete diagram and caption:
 
 ```md
 ### Boundary Derived Whitebox View

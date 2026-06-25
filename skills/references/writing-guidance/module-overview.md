@@ -45,8 +45,8 @@ This is an ordering and responsibility model, not a rigid template. Do not force
 - Replacing concrete module owner pages; each canonical module still needs its own owner page.
 - Turning the overview into a package tree, service inventory, deployment map, or complete request sequence.
 - Using private helpers, DTOs, SQL objects, files, or adapter internals as stable module concepts.
-- Treating generated SVGs, Mermaid, PlantUML, draw.io XML, screenshots, or Markdown prose as diagram fact sources.
 - Splitting the page into mandatory `Human View` and `Agent Context` sections instead of choosing natural headings that preserve the human-first scan path and downstream structured context.
+- Restating Whitebox mechanics instead of referring to `skills/references/writing-blocks/whitebox-component.md`.
 
 ## Recommended Shape
 
@@ -65,17 +65,16 @@ These are writing suggestions, not fixed fields. Put the fastest human scan path
 
 ## Whitebox Use On Overview Pages
 
-Module Overview pages may use a Whitebox Component Diagram when the overview needs to show one confirmed enclosing system or subsystem boundary with boundary ports, external interactions, internal participants, and connector direction.
+Module Overview pages may use the Whitebox Component Diagram block when the overview needs to show one confirmed enclosing system or subsystem boundary.
+
+Follow `skills/references/writing-blocks/whitebox-component.md` for all Whitebox mechanics.
 
 When a Module Overview page uses Whitebox:
 
 - The page remains a Module Overview page; the enclosing component is an overview boundary, not automatically a canonical module.
 - The page must state the overview scope and point canonical module ownership back to `wiki/04-modules/README.md`.
-- The `.whitebox.yaml` source model stays beside the overview Markdown page.
-- Generated complete and derived `.whitebox*.svg` files live under the same directory's `assets/` subdirectory.
-- The `.whitebox.yaml` is the only diagram fact source; generated SVGs and old sketches are derived or migration material only.
-- Supporting participants can appear as internal parts only when they are confirmed and help explain collaboration; their appearance must not promote them into canonical modules.
-- If the existing content does not confirm legal Whitebox facts such as boundary ports, external nodes, connector direction, internal parts, interface roles, or evidence, do not invent a placeholder diagram. Use a Dependency Map, prose, table, or report the gap instead.
+- Supporting participants can appear only when they help explain collaboration; their appearance must not promote them into canonical modules.
+- If the existing evidence is not strong enough for Whitebox, do not invent a placeholder diagram. Use a Dependency Map, prose, table, or report the gap instead.
 
 ## Relationship To Module Owner Pages
 
@@ -93,6 +92,6 @@ When a Module Overview page uses Whitebox:
 - Does it link to the canonical module index instead of creating a parallel module list?
 - Are canonical modules and supporting participants visually or textually distinguished?
 - Does every supporting participant have a clear "do not read as canonical module" interpretation when promotion would be tempting?
-- If a Whitebox Component Diagram is present, is `.whitebox.yaml` the only fact source and are generated SVGs linked from `./assets/`?
+- If a Whitebox Component Diagram is present, does the page point to `skills/references/writing-blocks/whitebox-component.md` instead of restating Whitebox mechanics?
 - Does the overview preserve cross-module direction and evidence without becoming a request sequence, deployment topology, package dependency graph, or helper inventory?
 - Does the page point readers to the concrete owner pages and related flows/pages/models/decisions for detail?
