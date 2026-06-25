@@ -27,6 +27,18 @@ After the primary visual, give reader routes to the concrete places they should 
 
 Prose supports the visual path; it does not replace it. Keep pre-map prose short, and use later prose to explain how to read the map, preserve programming context, and prevent common misreadings.
 
+## Downstream Code Agent Context
+
+Module Overview pages are responsible for retaining Code Agent context. Do not leave stable programming interpretation only in source code, generated diagrams, local fixtures, skill notes, or issue discussion when the overview needs that context to be reused safely.
+
+Place detailed Code Agent context downstream of the human scan path: after the short scope statement, primary visual or structural table, compact legend or caption, and immediate reader routes. This keeps the page scannable for humans while still preserving the structured context that Code Agents need for planning and code changes.
+
+Use structured semantic blocks where they help, without requiring fixed heading names. Useful blocks can include diagram fact source, boundary rules, evidence anchors, node notes, collaboration notes, reader routes, provenance notes, and anti-misread notes. Name, merge, split, or reorder those blocks to fit the page as long as the human-first scan path stays first and the Code Agent context remains easy to find.
+
+Keep primary visual explanation distinct from evidence, provenance, and anti-misread support. The map legend or caption should explain the visible topology just enough for fast reading; downstream evidence and provenance should show why the map is trustworthy, and downstream anti-misread notes should state what the map must not be taken to mean.
+
+Preserve context that code alone does not contain, such as confirmed boundary interpretation, why a supporting participant is not canonical, collaboration direction, overview-only groupings, source-backed naming decisions, evidence anchors, reader routes, and non-goals.
+
 ## Should Help Readers Answer
 
 - Which confirmed canonical modules are in scope.
@@ -36,6 +48,7 @@ Prose supports the visual path; it does not replace it. Keep pre-map prose short
 - Where to drill down for each module's owner page, related flows, related pages, related models, or decisions.
 - Which boundaries are overview-only and must not be read as complete request sequence, deployment topology, package dependency, or ownership promotion.
 - Which downstream context Code Agents can rely on when planning or changing code, including confirmed collaboration direction, stable names, boundary interpretations, evidence anchors, and non-goals.
+- Which evidence, provenance, and anti-misread notes support the map without replacing the primary visual explanation.
 
 ## Suitable Content
 
@@ -48,7 +61,7 @@ Prose supports the visual path; it does not replace it. Keep pre-map prose short
 - A table that separates map nodes from owner pages and states how readers should and should not interpret each node.
 - Reader routes to related flows, pages, models, and decisions.
 - Boundary rules that prevent common misreadings.
-- Structured downstream context for Code Agents, such as collaboration tables, node interpretation tables, evidence anchors, and non-goal notes that preserve programming context after the initial human scan path.
+- Structured downstream context for Code Agents, such as diagram fact source, collaboration tables, node interpretation tables, evidence anchors, provenance notes, boundary rules, reader routes, and non-goal or anti-misread notes that preserve programming context after the initial human scan path.
 
 ## Avoid
 
@@ -61,6 +74,8 @@ Prose supports the visual path; it does not replace it. Keep pre-map prose short
 - Splitting the page into mandatory `Human View` and `Agent Context` sections instead of choosing natural headings that preserve the human-first scan path and downstream structured context.
 - Starting with long prose, node interpretation tables, evidence blocks, caveats, source model explanations, or rendering mechanics before the primary map or structural table.
 - Letting prose-only description stand in for the main map when a topology map or compact structural table is needed for fast human orientation.
+- Hiding Code Agent context outside the page when the overview relies on that context to prevent boundary, evidence, provenance, or ownership misreadings.
+- Treating downstream semantic blocks as mandatory fixed headings or letting them interrupt the opening scope, primary visual, legend, or immediate reader routes.
 - Restating Whitebox mechanics instead of referring to `skills/references/writing-blocks/whitebox-component.md`.
 
 ## Recommended Shape
@@ -75,6 +90,7 @@ A useful Module Overview page usually combines:
 - Supporting participants in scope, explicitly marked as non-canonical modules.
 - Node interpretation table.
 - Collaboration relationship table.
+- Diagram fact source, evidence anchors, provenance notes, or source-backed naming notes where they preserve meaning that code alone does not contain.
 - Boundary rules and known non-goals.
 
 These are writing suggestions, not fixed fields. Put the fastest human scan path before denser interpretation, evidence, and programming context, and keep prose in service of that visual route. The downstream structured context still matters; it is what lets Code Agents reuse the overview safely without treating diagram nodes as new module ownership.
@@ -108,7 +124,11 @@ When a Module Overview page uses Whitebox:
 - Does the page give readers concrete routes after the primary visual?
 - Does the page give humans a fast scan path before detailed context?
 - Does the prose support the visual path instead of replacing it?
-- Does the page still preserve structured downstream Code Agent context such as node meaning, collaboration direction, evidence, boundaries, routes, and non-goals?
+- Does the page itself preserve structured downstream Code Agent context such as node meaning, collaboration direction, evidence, provenance, boundaries, routes, anti-misread notes, and non-goals?
+- Does detailed Code Agent context come after the short scope statement, primary visual or structural table, compact legend or caption, and immediate reader routes?
+- Does the page allow useful semantic blocks without enforcing fixed heading names?
+- Does it keep evidence, provenance, and anti-misread support distinct from the primary visual explanation?
+- Does it retain context code alone does not contain?
 - Does the page avoid mandatory `Human View` / `Agent Context` headings or another hard split while still serving both readers?
 - Does it link to the canonical module index instead of creating a parallel module list?
 - Are canonical modules and supporting participants visually or textually distinguished?
