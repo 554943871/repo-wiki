@@ -22,7 +22,7 @@ This guidance is for canonical module owner pages. Directory-level pages such as
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
 - 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
-- Module Boundary Map：每个 canonical module owner page 都必须包含完整的 Whitebox Component Diagram，并以 owner page 平级的 `.whitebox.yaml` 作为 diagram fact source、同目录 `assets/` 子目录里的 generated `.whitebox.svg` 作为 reader-facing rendering。Dense 图如果生成非空 Derived Whitebox Views，必须把这些派生阅读视图从同一个 `assets/` 目录直接嵌入在完整图和 source model link 之后。细节见 `skills/references/writing-blocks/whitebox-component.md`。
+- Module Boundary Map：每个 canonical module owner page 都必须包含完整的 Whitebox Component Diagram，并以 owner page 平级的 `.whitebox.yaml` 作为 diagram fact source、同目录 `assets/` 子目录里的 generated `.whitebox.svg` 作为 reader-facing rendering。Generated derived SVGs 仍放在同一个 `assets/` 目录，但 Markdown 只按 `skills/references/writing-blocks/whitebox-component.md` 的 reader-purpose threshold 选择性嵌入；不要机械地嵌入所有 generated derived views。细节见 `skills/references/writing-blocks/whitebox-component.md`。
 - 内部重要能力的自然语言说明；当内部能力和 public surfaces 的支撑关系会影响理解时，在 Whitebox Component Diagram 旁补充短段落、Public Surface table 或 Module Boundary block，不要用 prose 代替 diagram fact source。
 - Module rules：当前仍有效的边界约束、必须遵守 / 不应做、owner decision 或非显然约定。
 - 协作关系的方向、类型、稳定性和证据；关系复杂时使用 Dependency Map block。
@@ -49,7 +49,7 @@ Module 页面可以自然组合：
 
 - 模块定位。
 - 负责 / 不负责（Owns / Does not own）。
-- 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 必须先展示 `./assets/<name>.whitebox.svg`，紧挨着保留平级 `.whitebox.yaml` source model link，并从 `.whitebox.yaml` 重新渲染所有 SVG 到同目录 `assets/` 子目录。Dense 图如果生成非空 Derived Whitebox Views，应在完整图和 source model link 后直接从 `./assets/` 内嵌展示；每个派生图使用清楚的 `... Derived Whitebox View` 标题和 alt text，说明它们只是同一 source model 的派生阅读视图。
+- 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 必须先展示 `./assets/<name>.whitebox.svg`，紧挨着保留平级 `.whitebox.yaml` source model link，并从 `.whitebox.yaml` 重新渲染所有 SVG 到同目录 `assets/` 子目录。Derived Whitebox Views 只有在回答明确读者问题或显著降低 dense diagram 理解成本时才嵌入；每个嵌入的派生图使用清楚的 `... Derived Whitebox View` 标题、alt text 和 reader-purpose 说明，表明它们只是同一 source model 的派生阅读视图。
 - 对外入口（Public Surface table）或关键入口。
 - 协作对象（Collaborates with）。
 - 重要内部能力（Important internal capabilities）。
@@ -67,7 +67,7 @@ Module 页面可以自然组合：
 
 - 页面是否能让读者判断某个责任该不该归这个 module？
 - 是否区分了 module 边界和代码目录结构？
-- 是否包含 Whitebox Component Diagram 作为 Module Boundary Map，并同时链接 `./assets/` 下的 generated SVG 和平级 `.whitebox.yaml` source model？完整图是否永远排在第一位、没有被 Derived Whitebox Views 替代？Dense 图的非空 Derived Whitebox Views 是否在完整图和 source model link 之后直接从 `./assets/` 展示，且标题、alt text 和说明都表明它们只是同一 source model 的派生阅读视图？
+- 是否包含 Whitebox Component Diagram 作为 Module Boundary Map，并同时链接 `./assets/` 下的 generated SVG 和平级 `.whitebox.yaml` source model？完整图是否永远排在第一位、没有被 Derived Whitebox Views 替代？如果页面嵌入 Derived Whitebox Views，是否是按 `skills/references/writing-blocks/whitebox-component.md` 的 reader-purpose threshold 选择性嵌入，且标题、alt text 和说明都表明它们只是同一 source model 的派生阅读视图？
 - `.whitebox.yaml` 是否是唯一 fact source；SVG、Mermaid、PlantUML、draw.io XML、Markdown prose 或生成图片是否只作为 derived/rendered/sketch material？
 - 图中是否至少有一个 confirmed boundary port 连接到 external node；simple module 是否使用合法 empty whitebox 而不是无事实空盒？
 - 图中的 components、parts、ports、interfaces、externals 和 connectors 是否都有足够 evidence 或用户确认，没有把猜测写成稳定事实？

@@ -21,9 +21,14 @@ Whitebox files refreshed:
 - `wiki/04-modules/assets/fulfillment.whitebox.assembly.svg`: non-empty Assembly Derived Whitebox View rendered from the same source model.
 - `wiki/04-modules/assets/fulfillment.whitebox.interfaces.svg`: non-empty Interfaces Derived Whitebox View rendered from the same source model.
 
-Derived Whitebox Views embedded after the complete diagram:
+Reader-purpose Derived Whitebox Views embedded after the complete diagram:
 
-- Boundary, Delegation, Assembly, and Interfaces views are reader aids only; they do not replace the complete diagram and are not fact sources.
+- Boundary: isolates who can call Fulfillment and which boundary ports they use.
+- Assembly: isolates the internal persistence and audit chain after intake accepts an order.
+
+Generated but not embedded:
+
+- Delegation and Interfaces views remain renderer-produced artifacts from the same source model, but they are not embedded because the complete diagram plus selected views already carry the needed reader path.
 
 Information preserved:
 

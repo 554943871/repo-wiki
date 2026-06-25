@@ -8,27 +8,23 @@ Related reading: [Checkout flow](../02-flows/checkout.md) and [Inventory model](
 
 ![Fulfillment Module whitebox component diagram](./assets/fulfillment.whitebox.svg)
 
-Source model: [`fulfillment.whitebox.yaml`](./fulfillment.whitebox.yaml) for the complete diagram and derived views below.
+Source model: [`fulfillment.whitebox.yaml`](./fulfillment.whitebox.yaml) for the complete diagram and generated derived views.
 
 ### Boundary Derived Whitebox View
 
+Reader purpose: Boundary view isolates who can call Fulfillment and which boundary ports they use.
+
 ![Fulfillment Module Boundary Derived Whitebox View](./assets/fulfillment.whitebox.boundary.svg)
-
-### Delegation Derived Whitebox View
-
-![Fulfillment Module Delegation Derived Whitebox View](./assets/fulfillment.whitebox.delegation.svg)
 
 ### Assembly Derived Whitebox View
 
+Reader purpose: Assembly view isolates the internal persistence and audit chain after intake accepts an order.
+
 ![Fulfillment Module Assembly Derived Whitebox View](./assets/fulfillment.whitebox.assembly.svg)
 
-### Interfaces Derived Whitebox View
+Generated derived views are reader aids from the same source model; only reader-purpose views are embedded here, and none replace the complete diagram.
 
-![Fulfillment Module Interfaces Derived Whitebox View](./assets/fulfillment.whitebox.interfaces.svg)
-
-Derived views are reader aids generated from the same source model; they do not replace the complete diagram.
-
-Converted from the old module map without changing these confirmed facts:
+Current Whitebox facts preserve these confirmed boundary details:
 
 - Checkout flow starts fulfillment through the Submit Fulfillment boundary port.
 - Returns flow asks Fulfillment through the Cancel Fulfillment boundary port.

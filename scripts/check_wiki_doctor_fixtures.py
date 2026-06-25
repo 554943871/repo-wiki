@@ -24,6 +24,11 @@ from check_whitebox_fixtures import (
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "tests" / "wiki-doctor" / "fixtures"
 DOC_ROOT = ROOT / "tests" / "wiki-doctor"
+MODULE_OVERVIEW_GUIDANCE = ROOT / "skills" / "references" / "writing-guidance" / "module-overview.md"
+MODULE_PAGE_GUIDANCE = ROOT / "skills" / "references" / "writing-guidance" / "module-page.md"
+WHITEBOX_BLOCK = ROOT / "skills" / "references" / "writing-blocks" / "whitebox-component.md"
+WIKI_SINK_SKILL = ROOT / "skills" / "wiki-sink" / "SKILL.md"
+WIKI_DOCTOR_SKILL = ROOT / "skills" / "wiki-doctor" / "SKILL.md"
 
 REQUIRED_BEHAVIORS = {
     "active_drift_page_stops_before_audit_or_rewrite",
@@ -76,6 +81,14 @@ BOUNDARY_WORDING_PATTERNS = [
     re.compile(r"\bproves? wiki meaning\b", re.IGNORECASE),
 ]
 MARKDOWN_IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+SUPERSEDED_DIAGRAM_PAGE_PATTERNS = [
+    re.compile(r"```mermaid", re.IGNORECASE),
+    re.compile(r"@startuml", re.IGNORECASE),
+    re.compile(r"<mxfile", re.IGNORECASE),
+    re.compile(r"\bconverted from\b", re.IGNORECASE),
+    re.compile(r"\bold module map\b", re.IGNORECASE),
+    re.compile(r"\blegacy diagram\b", re.IGNORECASE),
+]
 
 
 def markdown_images(markdown: str) -> list[tuple[str, str, int, int]]:
@@ -117,6 +130,30 @@ def rel(path: Path) -> str:
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def check_required_phrase(path: Path, text: str, phrase: str, why: str) -> list[str]:
+    if phrase in text:
+        return []
+    return [f"{rel(path)} must mention {phrase!r} to cover {why}"]
+
+
+def check_forbidden_phrase(path: Path, text: str, phrase: str, why: str) -> list[str]:
+    if phrase not in text:
+        return []
+    return [f"{rel(path)} must not keep {phrase!r}; {why}"]
+
+
+def check_phrase_order(path: Path, text: str, first: str, second: str, why: str) -> list[str]:
+    first_index = text.find(first)
+    second_index = text.find(second)
+    if first_index == -1:
+        return [f"{rel(path)} must mention {first!r} to cover {why}"]
+    if second_index == -1:
+        return [f"{rel(path)} must mention {second!r} to cover {why}"]
+    if first_index > second_index:
+        return [f"{rel(path)} must place {first!r} before {second!r}; {why}"]
+    return []
 
 
 def load_case(case_dir: Path) -> tuple[dict[str, object] | None, list[str]]:
@@ -260,8 +297,9 @@ def check_module_page_whitebox_embeds(
     module_page: str,
     source_name: str,
     complete_svg_target: str,
-    expected_derived_views: dict[str, str],
-    generated_derived_views: set[str],
+    generated_derived_targets: dict[str, str],
+    embedded_derived_purposes: dict[str, str],
+    generated_derived_view_names: set[str],
 ) -> list[str]:
     errors: list[str] = []
     images = markdown_images(module_page)
@@ -299,7 +337,20 @@ def check_module_page_whitebox_embeds(
         errors.append(f"{rel(module_page_path)} must keep the source model link after the complete diagram")
 
     first_derived_start: int | None = None
-    for view_name, derived_target in expected_derived_views.items():
+    for view_name, purpose in embedded_derived_purposes.items():
+        derived_target = generated_derived_targets.get(view_name)
+        if derived_target is None:
+            errors.append(
+                f"{rel(module_page_path)} must only embed generated {view_name} Derived Whitebox Views"
+            )
+            continue
+        if not purpose:
+            errors.append(f"{rel(module_page_path)} must state why the {view_name} derived view helps readers")
+        elif purpose not in module_page:
+            errors.append(
+                f"{rel(module_page_path)} must include reader-purpose text for the {view_name} derived view: {purpose!r}"
+            )
+
         derived_images = [
             (alt, target, start, end)
             for alt, target, start, end in whitebox_images
@@ -326,7 +377,7 @@ def check_module_page_whitebox_embeds(
 
     previous_position = source_index if source_index != -1 else complete_end
     for view_name in DERIVED_VIEW_NAMES:
-        if view_name not in expected_derived_views:
+        if view_name not in embedded_derived_purposes:
             continue
         heading = f"### {DERIVED_VIEW_LABELS[view_name]}"
         position = module_page.find(heading)
@@ -336,13 +387,37 @@ def check_module_page_whitebox_embeds(
             errors.append(f"{rel(module_page_path)} must preserve derived view order after the source model link")
         previous_position = position
 
+    for view_name, derived_target in generated_derived_targets.items():
+        if view_name in embedded_derived_purposes:
+            continue
+        if any(markdown_target_path(target) == derived_target for _, target, _, _ in whitebox_images):
+            errors.append(
+                f"{rel(module_page_path)} must not mechanically embed generated {view_name} Derived Whitebox View without reader purpose"
+            )
+        heading = f"### {DERIVED_VIEW_LABELS[view_name]}"
+        if heading in module_page:
+            errors.append(
+                f"{rel(module_page_path)} must not keep {heading!r} without reader-purpose embedding"
+            )
+
     for view_name in DERIVED_VIEW_NAMES:
-        if view_name in generated_derived_views:
+        if view_name in generated_derived_view_names:
             continue
         empty_view_file = derived_svg_file_name(Path(source_name), view_name)
         if empty_view_file in module_page:
             errors.append(f"{rel(module_page_path)} must not embed empty {view_name} Derived Whitebox View")
 
+    return errors
+
+
+def check_no_superseded_diagram_markers(module_page_path: Path, module_page: str) -> list[str]:
+    errors: list[str] = []
+    for pattern in SUPERSEDED_DIAGRAM_PAGE_PATTERNS:
+        match = pattern.search(module_page)
+        if match:
+            errors.append(
+                f"{rel(module_page_path)} must not retain superseded diagram or migration wording near {match.group(0)!r}"
+            )
     return errors
 
 
@@ -488,8 +563,10 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
     source_value = metadata.get("whitebox_source")
     svg_value = metadata.get("whitebox_svg")
     derived_value = metadata.get("whitebox_derived_svgs", {})
+    embedded_value = metadata.get("embedded_derived_views")
     module_page_value = metadata.get("module_page")
     derived_paths: dict[str, str] = {}
+    embedded_derived_purposes: dict[str, str] = {}
     if not isinstance(source_value, str) or not source_value.endswith(".whitebox.yaml"):
         errors.append(f"{rel(case_dir / 'case.json')} must set whitebox_source")
         source_path = None
@@ -536,6 +613,23 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                     errors.append(path_error)
             derived_paths[view_name] = path_value
 
+    if embedded_value is None:
+        errors.append(f"{rel(case_dir / 'case.json')} must declare embedded_derived_views")
+    elif not isinstance(embedded_value, dict):
+        errors.append(f"{rel(case_dir / 'case.json')} embedded_derived_views must be an object")
+    else:
+        for view_name, purpose_value in embedded_value.items():
+            if view_name not in DERIVED_VIEW_NAMES:
+                errors.append(f"{rel(case_dir / 'case.json')} has unknown embedded derived view {view_name!r}")
+                continue
+            if view_name not in derived_paths:
+                errors.append(f"{rel(case_dir / 'case.json')} must only embed listed generated derived views")
+                continue
+            if not isinstance(purpose_value, str) or not purpose_value.strip():
+                errors.append(f"{rel(case_dir / 'case.json')} must explain the reader purpose for {view_name}")
+                continue
+            embedded_derived_purposes[view_name] = purpose_value
+
     if module_page_path and source_value and svg_value and module_page_path.exists():
         module_page = read_text(module_page_path)
         source_name = Path(source_value).name
@@ -551,9 +645,11 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                 source_name,
                 svg_target,
                 derived_targets,
+                embedded_derived_purposes,
                 set(derived_paths),
             )
         )
+        errors.extend(check_no_superseded_diagram_markers(module_page_path, module_page))
 
     if source_path and source_path.exists():
         source_text = read_text(source_path)
@@ -609,6 +705,7 @@ def check_old_module_map_safe_whitebox(case_dir: Path, metadata: dict[str, objec
                                 view_name: expected_markdown_target(module_page_value, path_value)
                                 for view_name, path_value in derived_paths.items()
                             },
+                            embedded_derived_purposes,
                             generated_views,
                         )
                     )
@@ -659,6 +756,152 @@ def check_boundary_wording() -> list[str]:
     return errors
 
 
+def check_module_overview_guidance_contract() -> list[str]:
+    errors: list[str] = []
+    text = read_text(MODULE_OVERVIEW_GUIDANCE)
+
+    errors.extend(
+        check_required_phrase(
+            MODULE_OVERVIEW_GUIDANCE,
+            text,
+            "The primary visual comes before detailed context, caveats, evidence, source mechanics, node tables, or long explanatory prose.",
+            "Module Overview human scan path before dense context",
+        )
+    )
+    errors.extend(
+        check_required_phrase(
+            MODULE_OVERVIEW_GUIDANCE,
+            text,
+            "Code Agents get stable programming context downstream",
+            "Code Agent context retention",
+        )
+    )
+    errors.extend(
+        check_required_phrase(
+            MODULE_OVERVIEW_GUIDANCE,
+            text,
+            "Do not leave stable programming interpretation only in source code, generated diagrams, local fixtures, skill notes, or issue discussion",
+            "downstream Code Agent context must not be removed",
+        )
+    )
+    errors.extend(
+        check_phrase_order(
+            MODULE_OVERVIEW_GUIDANCE,
+            text,
+            "## Human Scan Path",
+            "## Downstream Code Agent Context",
+            "Module Overview should keep fast reader orientation before Code Agent detail",
+        )
+    )
+    errors.extend(
+        check_required_phrase(
+            MODULE_OVERVIEW_GUIDANCE,
+            text,
+            "Restating Whitebox mechanics instead of referring to `skills/references/writing-blocks/whitebox-component.md`.",
+            "Module Overview should route Whitebox mechanics to the shared block",
+        )
+    )
+    return errors
+
+
+def check_whitebox_guidance_contract() -> list[str]:
+    errors: list[str] = []
+    text = read_text(WHITEBOX_BLOCK)
+
+    for phrase, why in [
+        (
+            "delete the superseded artifact from the repo-local wiki unless the user explicitly says that older artifact remains current.",
+            "superseded old diagrams should not remain competing fact sources",
+        ),
+        (
+            "they become competing fact sources for later readers and agents.",
+            "superseded old diagrams should not remain competing fact sources",
+        ),
+        (
+            "Embed a derived view only when it answers a clear reader question or materially improves understanding",
+            "derived views need a reader purpose",
+        ),
+        (
+            "Do not mechanically embed every generated derived view.",
+            "derived views should not be embedded just because the renderer produced them",
+        ),
+    ]:
+        errors.extend(check_required_phrase(WHITEBOX_BLOCK, text, phrase, why))
+
+    return errors
+
+
+def check_module_page_guidance_contract() -> list[str]:
+    errors: list[str] = []
+    text = read_text(MODULE_PAGE_GUIDANCE)
+
+    errors.extend(
+        check_required_phrase(
+            MODULE_PAGE_GUIDANCE,
+            text,
+            "按 `skills/references/writing-blocks/whitebox-component.md` 的 reader-purpose threshold 选择性嵌入",
+            "module pages should route derived-view embedding policy to Whitebox guidance",
+        )
+    )
+    errors.extend(
+        check_required_phrase(
+            MODULE_PAGE_GUIDANCE,
+            text,
+            "不要机械地嵌入所有 generated derived views",
+            "module pages should not require every generated derived view to be embedded",
+        )
+    )
+    for phrase in [
+        "必须把这些派生阅读视图",
+        "Dense 图的非空 Derived Whitebox Views 是否在完整图和 source model link 之后直接从 `./assets/` 展示",
+    ]:
+        errors.extend(
+            check_forbidden_phrase(
+                MODULE_PAGE_GUIDANCE,
+                text,
+                phrase,
+                "derived-view embedding is governed by reader purpose in whitebox-component.md",
+            )
+        )
+
+    return errors
+
+
+def check_skill_reference_routing() -> list[str]:
+    errors: list[str] = []
+    detailed_whitebox_phrases = [
+        "Generated Derived Whitebox Views may exist under `assets/`",
+        "Do not mechanically embed every generated derived view.",
+        "When a `.whitebox.yaml` source model supersedes",
+        "The first standard derived views are:",
+    ]
+
+    for path in [WIKI_SINK_SKILL, WIKI_DOCTOR_SKILL]:
+        text = read_text(path)
+        for phrase, why in [
+            (
+                "../references/writing-guidance/module-overview.md",
+                "module overview work should route to Module Overview guidance",
+            ),
+            (
+                "../references/writing-blocks/whitebox-component.md",
+                "Whitebox mechanics should route to the shared Whitebox block",
+            ),
+        ]:
+            errors.extend(check_required_phrase(path, text, phrase, why))
+        for phrase in detailed_whitebox_phrases:
+            errors.extend(
+                check_forbidden_phrase(
+                    path,
+                    text,
+                    phrase,
+                    "skill entrypoints should route to references instead of duplicating detailed Whitebox rules",
+                )
+            )
+
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     cases: list[tuple[Path, dict[str, object]]] = []
@@ -702,6 +945,10 @@ def main() -> int:
             errors.extend(check(case_dir, metadata))
 
     errors.extend(check_boundary_wording())
+    errors.extend(check_module_overview_guidance_contract())
+    errors.extend(check_whitebox_guidance_contract())
+    errors.extend(check_module_page_guidance_contract())
+    errors.extend(check_skill_reference_routing())
 
     if errors:
         print("Boundary check found problems:")
@@ -713,6 +960,7 @@ def main() -> int:
     print("Covered behaviors:")
     for behavior in sorted(seen_behaviors):
         print(f"- {behavior}")
+    print("Checked Module Overview, Whitebox, module-page, and skill routing guidance contracts.")
     print(
         "This only checks fixture coverage and boundary wording; "
         "it does not prove wiki meaning is right."
