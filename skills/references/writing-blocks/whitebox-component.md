@@ -41,7 +41,11 @@ The source model link must appear as a short, low-friction caption immediately b
 图源：[`checkout.whitebox.yaml`](./checkout.whitebox.yaml)
 ```
 
-For dense diagrams, keep the complete view first, keep the short source-model caption visible beside the generated diagrams, and embed only non-empty generated Derived Whitebox Views immediately after the complete diagram and caption:
+The complete Whitebox Component Diagram is the primary reader-facing view by default. Keep it first, keep the short source-model caption visible beside the diagram, and do not let derived views replace or precede the complete view.
+
+Generated Derived Whitebox Views may exist under `assets/` as renderer-produced artifacts, but artifact existence is not the same as reader-facing embedding. Embed a derived view only when it answers a clear reader question or materially improves understanding, such as isolating external boundary contracts, delegation paths, internal assembly, or interface-role relationships in a dense diagram.
+
+Do not mechanically embed every generated derived view. If the complete view is readable enough, or if a generated slice does not add a distinct reader benefit, leave the derived SVG as an artifact and show only the complete diagram. When derived views do meet the reader-benefit threshold, embed only those non-empty views immediately after the complete diagram and caption. For example, if boundary, delegation, and assembly views each answer a distinct reader question:
 
 ```md
 ### Boundary Derived Whitebox View
