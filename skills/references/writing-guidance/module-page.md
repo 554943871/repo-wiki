@@ -1,6 +1,8 @@
 # Module Page Guidance
 
-Module 页面解释人类可理解的能力和职责边界。Module 不等于代码目录、页面、服务进程或 package。
+Module 页面解释一个 canonical module 的人类可理解能力和职责边界。Module 不等于代码目录、页面、服务进程或 package。
+
+This guidance is for canonical module owner pages. Directory-level pages such as `wiki/04-modules/module-map.md` use `module-overview.md`: they explain cross-module topology and reader routing, but they do not create or own a canonical module.
 
 ## 应该帮助读者回答
 
@@ -20,7 +22,7 @@ Module 页面解释人类可理解的能力和职责边界。Module 不等于代
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
 - 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
-- Module Boundary Map：每个 module 页面都必须包含完整的 Whitebox Component Diagram，并以 module page 平级的 `.whitebox.yaml` 作为 diagram fact source、同目录 `assets/` 子目录里的 generated `.whitebox.svg` 作为 reader-facing rendering。Dense 图如果生成非空 Derived Whitebox Views，必须把这些派生阅读视图从同一个 `assets/` 目录直接嵌入在完整图和 source model link 之后。细节见 `skills/references/writing-blocks/whitebox-component.md`。
+- Module Boundary Map：每个 canonical module owner page 都必须包含完整的 Whitebox Component Diagram，并以 owner page 平级的 `.whitebox.yaml` 作为 diagram fact source、同目录 `assets/` 子目录里的 generated `.whitebox.svg` 作为 reader-facing rendering。Dense 图如果生成非空 Derived Whitebox Views，必须把这些派生阅读视图从同一个 `assets/` 目录直接嵌入在完整图和 source model link 之后。细节见 `skills/references/writing-blocks/whitebox-component.md`。
 - 内部重要能力的自然语言说明；当内部能力和 public surfaces 的支撑关系会影响理解时，在 Whitebox Component Diagram 旁补充短段落、Public Surface table 或 Module Boundary block，不要用 prose 代替 diagram fact source。
 - Module rules：当前仍有效的边界约束、必须遵守 / 不应做、owner decision 或非显然约定。
 - 协作关系的方向、类型、稳定性和证据；关系复杂时使用 Dependency Map block。

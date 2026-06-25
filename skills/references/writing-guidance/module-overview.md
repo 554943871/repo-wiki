@@ -1,0 +1,81 @@
+# Module Overview Guidance
+
+A Module Overview page explains how confirmed modules in `wiki/04-modules/` fit together. It is a directory-level reader entry for cross-module topology, not a canonical module owner page.
+
+Common filenames include `module-map.md` or another explicitly named overview page under `wiki/04-modules/`.
+
+## Should Help Readers Answer
+
+- Which confirmed canonical modules are in scope.
+- How those modules collaborate at a stable responsibility-boundary level.
+- Which supporting participants, internal layers, stores, adapters, runtimes, or queues help explain the topology.
+- Which supporting participants are not canonical modules.
+- Where to drill down for each module's owner page, related flows, related pages, related models, or decisions.
+- Which boundaries are overview-only and must not be read as complete request sequence, deployment topology, package dependency, or ownership promotion.
+
+## Suitable Content
+
+- A short opening statement that names the overview scope and says it does not create canonical modules.
+- A link back to `wiki/04-modules/README.md` as the canonical module index.
+- A short list or table of canonical modules shown in the map.
+- Cross-module topology, dependency direction, or collaboration relationships that are already confirmed.
+- Supporting participants such as stores, adapters, queues, runtimes, tools, or internal layers when they are needed to understand module collaboration.
+- A table that separates map nodes from owner pages and states how readers should and should not interpret each node.
+- Reader routes to related flows, pages, models, and decisions.
+- Boundary rules that prevent common misreadings.
+
+## Avoid
+
+- Treating the overview page as a new canonical module.
+- Adding modules to the canonical module set without updating `wiki/04-modules/README.md` from confirmed owner and boundary evidence.
+- Promoting supporting participants to canonical modules just because they appear in the map.
+- Replacing concrete module owner pages; each canonical module still needs its own owner page.
+- Turning the overview into a package tree, service inventory, deployment map, or complete request sequence.
+- Using private helpers, DTOs, SQL objects, files, or adapter internals as stable module concepts.
+- Treating generated SVGs, Mermaid, PlantUML, draw.io XML, screenshots, or Markdown prose as diagram fact sources.
+
+## Recommended Shape
+
+A useful Module Overview page usually combines:
+
+- Scope note: what system or subsystem this overview explains.
+- Canonical modules in scope.
+- Supporting participants in scope, explicitly marked as non-canonical modules.
+- Overview topology diagram or map.
+- Node interpretation table.
+- Collaboration relationship table.
+- Reader routes to flows, pages, models, decisions, and module owner pages.
+- Boundary rules and known non-goals.
+
+These are writing suggestions, not fixed fields.
+
+## Whitebox Use On Overview Pages
+
+Module Overview pages may use a Whitebox Component Diagram when the overview needs to show one confirmed enclosing system or subsystem boundary with boundary ports, external interactions, internal participants, and connector direction.
+
+When a Module Overview page uses Whitebox:
+
+- The page remains a Module Overview page; the enclosing component is an overview boundary, not automatically a canonical module.
+- The page must state the overview scope and point canonical module ownership back to `wiki/04-modules/README.md`.
+- The `.whitebox.yaml` source model stays beside the overview Markdown page.
+- Generated complete and derived `.whitebox*.svg` files live under the same directory's `assets/` subdirectory.
+- The `.whitebox.yaml` is the only diagram fact source; generated SVGs and old sketches are derived or migration material only.
+- Supporting participants can appear as internal parts only when they are confirmed and help explain collaboration; their appearance must not promote them into canonical modules.
+- If the existing content does not confirm legal Whitebox facts such as boundary ports, external nodes, connector direction, internal parts, interface roles, or evidence, do not invent a placeholder diagram. Use a Dependency Map, prose, table, or report the gap instead.
+
+## Relationship To Module Owner Pages
+
+- `wiki/04-modules/README.md` owns the canonical module index.
+- A Module Overview page explains cross-module topology and reader routing.
+- A canonical module owner page explains one module's responsibility boundary, public surfaces, internal capabilities, module rules, related flows/pages/models, code anchors, and required Module Boundary Map.
+- The overview can link to owner pages, but it must not duplicate or override their ownership decisions.
+
+## LLM Semantic Checks
+
+- Does the page clearly say it is an overview and not a canonical module owner page?
+- Does it link to the canonical module index instead of creating a parallel module list?
+- Are canonical modules and supporting participants visually or textually distinguished?
+- Does every supporting participant have a clear "do not read as canonical module" interpretation when promotion would be tempting?
+- If a Whitebox Component Diagram is present, is `.whitebox.yaml` the only fact source and are generated SVGs linked from `./assets/`?
+- Does the overview preserve cross-module direction and evidence without becoming a request sequence, deployment topology, package dependency graph, or helper inventory?
+- Does the page point readers to the concrete owner pages and related flows/pages/models/decisions for detail?

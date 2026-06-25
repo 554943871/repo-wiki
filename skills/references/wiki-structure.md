@@ -158,6 +158,8 @@ flowchart LR
 
 本目录解释人类可理解的能力、职责边界、稳定入口、内部能力和协作规则。Module 可以和代码目录一致，也可以不一致。
 
+当多个 confirmed modules 需要一个总览入口时，可以增加 `module-map.md` 作为模块地图（Module Map / Module Overview）。它解释跨模块拓扑和读者路线，但不新增 canonical module；标准模块名称仍以本 README 的 Canonical Module Index 为准。
+
 适合写：
 - 模块负责什么。
 - 模块不负责什么。

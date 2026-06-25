@@ -158,6 +158,10 @@ _Avoid_: database ER dump, runtime call graph, vague dependency table
 A module-detail writing block for stable responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and current module rules. It explains what neighboring flows, pages, modules, or systems can rely on without turning private helpers or package trees into contracts.
 _Avoid_: package tree, helper list, deployment inventory, unconfirmed ownership
 
+**Module Overview Page**:
+A directory-level page under `wiki/04-modules/`, often named `module-map.md`, that explains how confirmed canonical modules and supporting participants fit together. It is a reader route and cross-module topology page, not a canonical module owner page; `wiki/04-modules/README.md` remains the Canonical Module Index.
+_Avoid_: new canonical module, parallel module index, supporting participant promotion, package/deployment map
+
 **Whitebox Component Diagram**:
 A module-boundary diagram that shows one enclosing component's boundary ports, internal components, internal ports, interface roles, and connector semantics so readers can see how exposed capabilities are delegated and assembled inside the boundary.
 _Avoid_: UML-complete model, package dependency map, image-only architecture sketch
@@ -199,8 +203,8 @@ Renderer-generated SVG metadata that records the selected layout policy, selecte
 _Avoid_: source-level layout field, full layout decision log, manual candidate selection, hidden renderer choice
 
 **Whitebox Asset Directory**:
-The module-local `assets/` subdirectory that stores generated complete and derived Whitebox SVG files for a module page. The `.whitebox.yaml` Diagram Source Model stays beside the module Markdown page, while generated `.whitebox*.svg` files live under `assets/` and are linked from Markdown as reader-facing outputs.
-_Avoid_: source model in assets, generated SVG beside module page, global image dump, SVG as fact source
+The page-local `assets/` subdirectory that stores generated complete and derived Whitebox SVG files for a canonical module owner page or Module Overview page. The `.whitebox.yaml` Diagram Source Model stays beside the Markdown page, while generated `.whitebox*.svg` files live under `assets/` and are linked from Markdown as reader-facing outputs.
+_Avoid_: source model in assets, generated SVG beside Markdown page, global image dump, SVG as fact source
 
 **Whitebox Renderer Dependency Boundary**:
 The rule that layout/rendering dependencies such as `elkjs` are installed only while developing or upgrading the Repo Wiki Skill Suite itself, not during ordinary Skill execution against a Target Repository. A renderer may check for required dependencies and fail loudly with a setup diagnostic, but it must not run package installation as part of rendering.

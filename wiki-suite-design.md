@@ -221,8 +221,9 @@ New blocks:
 - `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动节点使用 confirmed Subject + SVO 业务动作短句，不同 Subject 用不同 Mermaid class / classDef 或等价样式分色；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
 - `evidence-anchor`: short traceable evidence support for stable wiki facts, uncertainty, and candidate notes. It borrows the useful verification discipline from mem-style evidence docs without adding a separate evidence family or verification matrix to repo-wiki V1.
 - `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
+- `module-overview`: `wiki/04-modules/` 下的目录级模块地图 / 模块总览页，解释多个 confirmed canonical modules 如何协作、哪些 supporting participants 只是支撑层、读者应下钻到哪里。它 must not create canonical modules, replace module owner pages, or promote stores/adapters/queues/runtimes into modules just because they appear in the map.
 - `module-boundary`: module边界表达；说明 stable responsibility boundary、public surfaces、internal capabilities、collaboration direction 和 current module rules。它 must not turn package trees, private helpers, deployment inventory, or unconfirmed ownership into module contracts.
-- `whitebox-component`: module page 的必备 Module Boundary Map；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达 module 内部组装关系。
+- `whitebox-component`: canonical module owner page 的必备 Module Boundary Map，也可用于 module overview page 的 confirmed overview boundary；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达边界内部组装关系。
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
 - `public-surface`: stable public entry points, user-facing surfaces, tools, APIs, or module capabilities needed to understand a boundary.
 - `page-layout`: page detail expression for stable visible regions, major components, overlays, drawers, tabs, placeholders, page variants, visible state projection, and page-level interaction surfaces. It must not become DOM/CSS/component-library documentation or a screenshot archive.
@@ -311,7 +312,7 @@ Explains user-visible pages, entry points, navigation, visible regions, page var
 
 ### 04-modules/
 
-Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, and related flows/pages/models. A module may or may not match a code directory, page, service process, or package.
+Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, module overview maps, and related flows/pages/models. A module may or may not match a code directory, page, service process, or package. `README.md` owns the Canonical Module Index; optional pages such as `module-map.md` may explain cross-module topology and reader routes without creating new canonical modules.
 
 ### 05-models/
 
