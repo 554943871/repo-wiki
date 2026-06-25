@@ -4,6 +4,17 @@ A Module Overview page explains how confirmed modules in `wiki/04-modules/` fit 
 
 Common filenames include `module-map.md` or another explicitly named overview page under `wiki/04-modules/`.
 
+## Page-Family Contract
+
+Module Overview is a distinct page family. It covers directory-level or cross-module topology pages that help readers see how confirmed canonical modules and supporting participants collaborate, while canonical module owner pages still own individual module responsibility boundaries.
+
+Module Overview pages serve two readers in one natural document:
+
+- Human readers get the scan path first: scope, canonical modules in view, key topology, supporting participants, and where to drill down.
+- Code Agents get stable programming context downstream: structured interpretation of nodes, collaboration direction, evidence, boundaries, reader routes, and explicit non-goals that code alone does not carry.
+
+This is an ordering and responsibility model, not a rigid template. Do not force fixed `Human View` and `Agent Context` headings, parallel halves, or any other hard split. Use headings that fit the page, but make sure fast human orientation comes before detailed structured context.
+
 ## Should Help Readers Answer
 
 - Which confirmed canonical modules are in scope.
@@ -12,6 +23,7 @@ Common filenames include `module-map.md` or another explicitly named overview pa
 - Which supporting participants are not canonical modules.
 - Where to drill down for each module's owner page, related flows, related pages, related models, or decisions.
 - Which boundaries are overview-only and must not be read as complete request sequence, deployment topology, package dependency, or ownership promotion.
+- Which downstream context Code Agents can rely on when planning or changing code, including confirmed collaboration direction, stable names, boundary interpretations, evidence anchors, and non-goals.
 
 ## Suitable Content
 
@@ -23,6 +35,7 @@ Common filenames include `module-map.md` or another explicitly named overview pa
 - A table that separates map nodes from owner pages and states how readers should and should not interpret each node.
 - Reader routes to related flows, pages, models, and decisions.
 - Boundary rules that prevent common misreadings.
+- Structured downstream context for Code Agents, such as collaboration tables, node interpretation tables, evidence anchors, and non-goal notes that preserve programming context after the initial human scan path.
 
 ## Avoid
 
@@ -33,6 +46,7 @@ Common filenames include `module-map.md` or another explicitly named overview pa
 - Turning the overview into a package tree, service inventory, deployment map, or complete request sequence.
 - Using private helpers, DTOs, SQL objects, files, or adapter internals as stable module concepts.
 - Treating generated SVGs, Mermaid, PlantUML, draw.io XML, screenshots, or Markdown prose as diagram fact sources.
+- Splitting the page into mandatory `Human View` and `Agent Context` sections instead of choosing natural headings that preserve the human-first scan path and downstream structured context.
 
 ## Recommended Shape
 
@@ -47,7 +61,7 @@ A useful Module Overview page usually combines:
 - Reader routes to flows, pages, models, decisions, and module owner pages.
 - Boundary rules and known non-goals.
 
-These are writing suggestions, not fixed fields.
+These are writing suggestions, not fixed fields. Put the fastest human scan path before denser interpretation, evidence, and programming context. The downstream structured context still matters; it is what lets Code Agents reuse the overview safely without treating diagram nodes as new module ownership.
 
 ## Whitebox Use On Overview Pages
 
@@ -73,6 +87,9 @@ When a Module Overview page uses Whitebox:
 ## LLM Semantic Checks
 
 - Does the page clearly say it is an overview and not a canonical module owner page?
+- Does the page give humans a fast scan path before detailed context?
+- Does the page still preserve structured downstream Code Agent context such as node meaning, collaboration direction, evidence, boundaries, routes, and non-goals?
+- Does the page avoid mandatory `Human View` / `Agent Context` headings or another hard split while still serving both readers?
 - Does it link to the canonical module index instead of creating a parallel module list?
 - Are canonical modules and supporting participants visually or textually distinguished?
 - Does every supporting participant have a clear "do not read as canonical module" interpretation when promotion would be tempting?
