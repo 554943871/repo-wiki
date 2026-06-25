@@ -19,9 +19,9 @@ This is an ordering and responsibility model, not a rigid template. Do not force
 
 Open with a short scope statement before the main map. In one to three sentences, name the system, subsystem, or directory-level relationship being explained, link canonical module ownership back to `wiki/04-modules/README.md` when useful, and say that the overview does not create canonical modules.
 
-Place the primary topology map, dependency map, Whitebox view, or equivalent structural table near the top, immediately after the scope statement and any short canonical-index pointer. The primary visual comes before detailed context, caveats, evidence, source mechanics, node tables, or long explanatory prose.
+Place the primary topology map, dependency map, Whitebox view, or equivalent structural table near the top, immediately after the scope statement and any short canonical-index pointer. Do not insert a standalone canonical module list before this primary visual; `wiki/04-modules/README.md` remains the canonical module index. The primary visual comes before detailed context, caveats, evidence, source mechanics, node tables, or long explanatory prose.
 
-Give the primary visual a compact legend or caption for high-impact semantics. Define distinctions readers could otherwise misread, such as canonical module versus supporting participant, direction of collaboration, external boundary, store, adapter, queue, runtime, or overview-only grouping. Do not make readers infer those semantics later from dense prose.
+Give the primary visual a compact legend or caption for high-impact semantics. Define distinctions readers could otherwise misread, such as canonical module versus supporting participant, direction of collaboration, external boundary, store, adapter, queue, runtime, or overview-only grouping. If a legend would overload the visual, use a short table immediately after the map to identify which visible nodes are canonical modules and which are supporting participants. Do not make readers infer those semantics later from dense prose.
 
 After the primary visual, give reader routes to the concrete places they should drill into next: module owner pages, related flows, related pages, related models, decisions, or source-backed evidence sections. Then add denser node interpretation, collaboration details, boundaries, evidence anchors, and non-goals.
 
@@ -54,7 +54,7 @@ Preserve context that code alone does not contain, such as confirmed boundary in
 
 - A short opening statement that names the overview scope and says it does not create canonical modules.
 - A link back to `wiki/04-modules/README.md` as the canonical module index.
-- A short list or table of canonical modules shown in the map.
+- A compact legend or short post-map table that distinguishes canonical modules shown in the map from supporting participants.
 - Cross-module topology, dependency direction, or collaboration relationships that are already confirmed.
 - A compact legend or caption beside the primary map or structural table when map semantics carry ownership, direction, boundary, or supporting-participant meaning.
 - Supporting participants such as stores, adapters, queues, runtimes, tools, or internal layers when they are needed to understand module collaboration.
@@ -67,7 +67,9 @@ Preserve context that code alone does not contain, such as confirmed boundary in
 
 - Treating the overview page as a new canonical module.
 - Adding modules to the canonical module set without updating `wiki/04-modules/README.md` from confirmed owner and boundary evidence.
+- Putting a standalone canonical module list before the primary map; keep that list in `wiki/04-modules/README.md`, or represent visible map membership in the legend or a short post-map table.
 - Promoting supporting participants to canonical modules just because they appear in the map.
+- Listing stores, adapters, skills, runtime participants, or internal layers under the same heading as canonical modules unless they are clearly marked as supporting and non-canonical.
 - Replacing concrete module owner pages; each canonical module still needs its own owner page.
 - Turning the overview into a package tree, service inventory, deployment map, or complete request sequence.
 - Using private helpers, DTOs, SQL objects, files, or adapter internals as stable module concepts.
@@ -85,8 +87,9 @@ A useful Module Overview page usually combines:
 - Short scope note: what system or subsystem this overview explains, and that it does not create canonical modules.
 - Primary overview topology diagram, dependency map, Whitebox view, or compact structural table near the top.
 - Legend or caption for high-impact map semantics, especially ownership, direction, boundary, external, store, adapter, queue, runtime, or supporting-participant meaning.
+- Short post-map table, if needed, that separates canonical modules from supporting participants without becoming a second canonical index.
 - Reader routes to module owner pages, flows, pages, models, decisions, and evidence sections.
-- Canonical modules in scope, if not already clear from the primary visual.
+- Canonical modules in scope, if not already clear from the primary visual, shown after the map as map interpretation and linked back to `wiki/04-modules/README.md`.
 - Supporting participants in scope, explicitly marked as non-canonical modules.
 - Node interpretation table.
 - Collaboration relationship table.
@@ -121,6 +124,7 @@ When a Module Overview page uses Whitebox:
 - Does the page open with a short scope statement before the primary map or structural table?
 - Does the primary map or equivalent structural table appear near the top, before detailed context, caveats, evidence, source mechanics, or node tables?
 - Does the primary visual include a compact legend or caption for high-impact semantics?
+- If canonical modules and supporting participants both appear, does the legend or a short post-map table distinguish them without creating a second canonical index?
 - Does the page give readers concrete routes after the primary visual?
 - Does the page give humans a fast scan path before detailed context?
 - Does the prose support the visual path instead of replacing it?
@@ -131,6 +135,7 @@ When a Module Overview page uses Whitebox:
 - Does it retain context code alone does not contain?
 - Does the page avoid mandatory `Human View` / `Agent Context` headings or another hard split while still serving both readers?
 - Does it link to the canonical module index instead of creating a parallel module list?
+- Does it avoid putting a standalone canonical module list before the primary map or structural table?
 - Are canonical modules and supporting participants visually or textually distinguished?
 - Does every supporting participant have a clear "do not read as canonical module" interpretation when promotion would be tempting?
 - If a Whitebox Component Diagram is present, does the page point to `skills/references/writing-blocks/whitebox-component.md` instead of restating Whitebox mechanics?
