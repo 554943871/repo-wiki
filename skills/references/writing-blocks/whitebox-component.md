@@ -11,11 +11,21 @@ Module Overview / Module Map pages may also use a Whitebox Component Diagram whe
 - `.whitebox.yaml` 是唯一可修改的 diagram fact source。Agent 修改 diagram 时只改 source model，再重新生成 SVG。
 - `.whitebox.svg` 是 reader-facing rendering，必须从同一份 `.whitebox.yaml` 派生。SVG 和其他生成图片都不是事实源。
 - Generated SVGs belong in an `assets/` subdirectory beside the module or module-overview page, not beside the Markdown page itself. Keep the `.whitebox.yaml` source model beside the Markdown page so agents can find the fact source directly, and keep complete/derived `.whitebox*.svg` files under `./assets/`.
-- Mermaid、PlantUML、draw.io XML、Markdown prose、截图、手绘图片和生成图片都不能作为 Whitebox Component Diagram 的 diagram fact source。它们可以作为旧草图、临时说明或迁移输入，但不能替代 `.whitebox.yaml`。
+- Mermaid、PlantUML、draw.io XML、Markdown prose、截图、手绘图片和生成图片都不能作为 Whitebox Component Diagram 的 diagram fact source。它们可以在转换过程中作为输入，但 Whitebox adoption 之后不能继续作为旧草图、迁移说明或并行事实源留在 wiki。
 - Source model 只写 topology 和语义关系；不要写坐标、布局、排序、routing、canvas size、样式或 renderer hints。布局由 renderer 决定。
 - Source model 不写 aspect ratio、direction、wrapping、candidate selection 或 viewport-readability fields。Viewport-readable layout belongs to the renderer policy and generated SVG metadata only.
 - Source model 不写 `views`、`derivedViews`、`include_parts`、`include_connectors` 或其他展示选择字段。Derived views 由 renderer 根据拓扑和 connector 类型自动生成。
 - 如果 source model 和 SVG 不一致，以 `.whitebox.yaml` 为准，并重新渲染 SVG。
+
+## Current Artifact Policy
+
+Wiki content reflects the current understanding of the module or overview boundary, not the migration process that produced it.
+
+When a `.whitebox.yaml` source model supersedes an older Mermaid block, PlantUML file, draw.io export, PNG, screenshot, hand-drawn image, generated image, or manual diagram file, delete the superseded artifact from the repo-local wiki unless the user explicitly says that older artifact remains current.
+
+Do not leave superseded diagrams in the page, beside the page, under `assets/`, or as unlinked archive files. Even when labelled `legacy`, `old`, `before`, or `migration`, they become competing fact sources for later readers and agents.
+
+Do not add migration notes such as "converted from Mermaid" or "old diagram replaced by Whitebox" to reader-facing wiki pages. If an older artifact remains current, state its current reader purpose and keep it consistent with the `.whitebox.yaml`; otherwise remove it.
 
 ## Markdown Caption And Linking Convention
 
@@ -104,7 +114,7 @@ If no boundary port or external interaction is confirmed, the canonical module o
 
 When converting an older Module Boundary block, Mermaid diagram, table, prose map, PlantUML sketch, draw.io export, or image into a Whitebox Component Diagram:
 
-- Preserve every unique boundary fact, evidence anchor, uncertainty, and naming clue from the old map.
+- Preserve every unique boundary fact, evidence anchor, uncertainty, and naming clue from the old map by moving it into the current Whitebox source model or current page text, not by retaining the old artifact.
 - Convert only facts that already identify legal whitebox concepts: boundary ports, externals, internal parts, part ports, interface roles, and typed connectors.
 - If the old map combines multiple concepts in one arrow or row, split only when the split is explicit in the old content.
 - If conversion would choose a new owner, hide uncertainty, drop evidence, or turn private implementation details into stable contracts, report `meaning_loss_risk`.
