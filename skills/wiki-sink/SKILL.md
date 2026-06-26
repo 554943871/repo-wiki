@@ -58,7 +58,7 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - `canonical-index.md` for any new or updated stable name, owner route, boundary, or catalog README entry.
    - `evidence-anchor.md` for stable facts, uncertainty, candidate notes, code anchors, user confirmations, or other short evidence support.
    - `activity-map.md`, `sequence.md`, or `state-transition.md` for flow content.
-   - `model-relation.md` or `state-transition.md` for model relationships, lifecycle, source-of-truth facts, or stable states.
+   - `model-relation.md` for model relationship graph body and relation evidence; `state-transition.md` for stable states. Use `model-page.md` guidance for lifecycle and source-of-truth facts.
    - `public-surface.md` for system, module, or page surfaces such as APIs, tools, routes, page entries, events, or capabilities.
    - `whitebox-component.md` for every canonical module owner page's required Whitebox Component Diagram / Module Boundary Map.
    - `module-boundary.md` for module responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and module rules.

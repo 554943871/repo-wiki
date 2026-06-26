@@ -159,8 +159,8 @@ A short, traceable support note for stable wiki facts, uncertainty, and candidat
 _Avoid_: raw transcript, full log dump, local absolute path, unsupported conclusion
 
 **Model Relation Map**:
-A graph-first writing block for stable model relationships and fact sources. It uses relationship labels such as `泛化`, `组成`, `引用`, `衍生`, and `事实源`; tables should supplement evidence and uncertainty, not replace relation topology.
-_Avoid_: database ER dump, runtime call graph, vague dependency table
+A graph-first writing block for stable relationships between Model nodes and fact-source subjects. Model-to-model edges use `泛化`, `组成`, `引用`, or `衍生`; Canonical Role / Canonical External System to Model edges use `事实源`; tables should supplement evidence and uncertainty, not replace relation topology.
+_Avoid_: database ER dump, runtime call graph, vague dependency table, field node, Service as fact source
 
 **Module Boundary Map**:
 A module-detail writing block for stable responsibility boundaries, public surfaces, internal capabilities, collaboration direction, and current module rules. It explains what neighboring flows, pages, modules, or systems can rely on without turning private helpers or package trees into contracts.

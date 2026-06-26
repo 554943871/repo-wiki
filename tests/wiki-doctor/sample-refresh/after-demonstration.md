@@ -76,10 +76,10 @@ Suggested shape for `wiki/05-models/turn-event-and-candidate-set.md`:
 | From | Relationship | To | Meaning | Existing wiki evidence | Uncertainty |
 | --- | --- | --- | --- | --- | --- |
 | `Event` | 组成 | `Turn` | Events are ordered by `seq` inside one conversation turn. | `conversation_events` stores turn events for SSE, H5, history, and replay. | None introduced by this rewrite. |
-| `Response backlog` | 引用 | latest `Turn` events | Backlog keeps the latest per-user turn events, seq, consume progress, and terminal state for delivery. | The existing wiki says it is a Web-layer memory buffer. | It is not a long-term fact source. |
-| `conversation_events` | 事实源 | replayed UI behavior | Replay reads saved events from storage. | The sample says replay uses saved turn/event data and does not re-run the Agent. | None introduced by this rewrite. |
-| `Candidate set` | 引用 | `structured_search` result | A candidate set points to returned goods and applied filters for later Tools. | The page names `candidate_set_id`, `applied_filters`, and `goods`. | The retention count should be checked by drift radar if current code changes. |
-| `profits_analysis` | 引用 | `Candidate set` | Profit analysis uses `candidate_set_id` in the same session scope instead of searching again. | Existing wiki explicitly says `profits_analysis` does not re-search. | None introduced by this rewrite. |
+| `Response backlog` | 引用 | `TurnEvent` | Backlog keeps latest per-user turn events, seq, consume progress, and terminal state for delivery. | The existing wiki says it is a Web-layer memory buffer. | It is not a long-term fact source. |
+| `TurnEvent` | 衍生 | `ReplayEventStream` | Replay reads saved turn events and produces replayable UI event output without re-running the Agent. | The sample says replay uses saved turn/event data and does not re-run the Agent. | None introduced by this rewrite. |
+| `Candidate set` | 引用 | `StructuredSearchResult` | A candidate set points to returned goods and applied filters for later Tools. | The page names `candidate_set_id`, `applied_filters`, and `goods`. | The retention count should be checked by drift radar if current code changes. |
+| `ProfitAnalysis` | 引用 | `Candidate set` | Profit analysis uses `candidate_set_id` in the same session scope instead of searching again. | Existing wiki explicitly says `profits_analysis` does not re-search. | None introduced by this rewrite. |
 
 Suggested source-of-truth table across `slots.md` and
 `turn-event-and-candidate-set.md`:
