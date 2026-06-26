@@ -771,7 +771,11 @@ def check_module_overview_guidance_contract() -> list[str]:
         ),
         (
             "must follow [`module-page.md`](./module-page.md)",
-            "confirmed C2/subsystem maps should route to module-page guidance",
+            "confirmed C2 root maps should route to module-page guidance",
+        ),
+        (
+            "tied to a C2 root module",
+            "lower-level subsystem maps should require a C2-root relationship",
         ),
         (
             "Do not promote stores, adapters, queues, helper layers, or runtime participants into canonical modules",

@@ -2,7 +2,7 @@
 
 Whitebox Component Diagram 是 canonical module owner page 的必备 Module Boundary Map。它解释一个 enclosing module 如何通过 boundary ports 暴露能力、如何把这些能力委派给内部 components、内部 components 如何协作，以及哪些 interface roles 被满足。
 
-Former Module Overview / Module Map pages that draw one confirmed C2 runtime unit or stable subsystem as the enclosing component are canonical module owner pages in the current model. The enclosing component must be named in `wiki/04-modules/README.md`, while module-to-module drill-down and cross-module topology are explained inside owner pages rather than in a separate overview page family.
+Former Module Overview / Module Map pages that draw one confirmed C2 runtime unit as the enclosing component are C2 root module owner pages in the current model. Stable subsystems, code modules, or other lower-level modules become owner pages only when they are tied to a C2 root page through Whitebox internal parts, existing wiki content, repo evidence, or explicit user confirmation. The enclosing component must be named in `wiki/04-modules/README.md`, while module-to-module drill-down and cross-module topology are explained inside owner pages rather than in a separate overview page family.
 
 它不是 UML 完整模型、package dependency map、调用链、文件树或截图式架构图。它只记录已经确认的 module 边界事实。
 
@@ -92,7 +92,7 @@ These tables supplement the diagram. They do not replace `.whitebox.yaml` as the
 Use the current Whitebox Component Diagram source model:
 
 - `kind: whitebox_component_diagram` and `version: 1`.
-- `component`: the enclosing canonical module boundary. It may be a code module, C2 runtime unit, or stable subsystem, but it must be confirmed as a canonical module owner page. It owns boundary `ports` and must have evidence.
+- `component`: the enclosing canonical module boundary. For first-level module generation it should be a confirmed C2 runtime unit. For lower-level diagrams it may be a stable subsystem, code module, or other confirmed module only when tied to a C2 root module or upper owner page. It owns boundary `ports` and must have evidence.
 - `parts`: optional internal components inside the enclosing boundary. Use only for confirmed internal responsibilities that help explain how public capability is assembled. Parts may include canonical modules and supporting participants, but supporting participants must not be promoted into canonical modules by appearing in the diagram.
 - `ports`: named interaction points. A port may carry a highly related group of contracts. Port direction is not a field; interaction direction is expressed by connectors.
 - `interfaces`: optional interface contracts that can be attached to ports as `provides` or `requires`.

@@ -46,6 +46,7 @@ skills/
     wiki-structure.md
     drift-page-rules.md
     writing-guidance/
+      wiki-root.md
       system-overview.md
       flow-page.md
       page-page.md
@@ -79,9 +80,9 @@ The suite deliberately avoids schema-oriented language. Do not introduce Doc Sch
 
 `wiki-guidance-principles.md` is the shared principle layer for all wiki skills. It records cross-cutting rules such as Information Preservation, reader-first structure, evidence-aware writing, canonical naming, no guessing stable knowledge, and no mechanical correctness theater.
 
-Every skill's Required References must list `wiki-guidance-principles.md` before narrower page-family guidance, writing blocks, or workflow-specific references. The principles are the shared reader-quality baseline; narrower references explain how to apply them to a page family, block type, or drift lifecycle.
+Every skill's Required References must list `wiki-guidance-principles.md` before narrower page-family guidance, block-family guidance, or workflow-specific references. The principles are the shared reader-quality baseline; narrower references explain how to apply them to a page family, block family, or drift lifecycle.
 
-`writing-guidance/` holds central quality guidance for each wiki page family. `writing-blocks/` holds reusable writing patterns for common explanatory blocks. These files are semantic standards for LLM writing and review, not schemas or mechanically checked templates.
+`writing-guidance/` holds central quality guidance for each wiki page family. Every active page family has exactly one primary meta-knowledge document in this directory. Detailed rules for one page family must not be split across multiple page-family documents, copied into `wiki-structure.md`, or hidden inside skill instructions. `writing-blocks/` holds block-family guidance: reusable semantic expression families for common explanatory blocks that may appear inside multiple page families. These files are semantic standards for LLM writing and review, not schemas or mechanically checked templates.
 
 Guidance and block files must be self-contained. They may be authored from prior documentation experience, but they must not advertise inheritance from another documentation system or create compatibility expectations.
 
@@ -89,7 +90,24 @@ Guidance and block files use Chinese prose by default, while keeping English fil
 
 The suite should absorb useful fine-grained writing lessons from mem-style Doc Schema and Fragment Schema work, but only as natural-language guidance. It must not import schema names, schema gates, validators, PASS/FAIL states, or mechanical compliance claims.
 
-`caliber-map` is intentionally out of scope for V1. If a target repo has a few important field meanings, they belong in model pages as key fields. If it needs full field-caliber governance, that is a later design question, not part of the first wiki readability improvement.
+## Page-Family Meta-Knowledge Ownership
+
+Each active page family owns one dedicated and exclusive meta-knowledge document under `skills/references/writing-guidance/`. `wiki-structure.md` may initialize the fixed skeleton and minimal starter text, but it must defer detailed page-family rules to the owner document below.
+
+| Page family | Target wiki pages | Primary meta-knowledge document |
+| --- | --- | --- |
+| Wiki Root | `wiki/README.md` | `skills/references/writing-guidance/wiki-root.md` |
+| System Overview | `wiki/01-system.md` | `skills/references/writing-guidance/system-overview.md` |
+| Flow Pages | `wiki/02-flows/README.md`, `wiki/02-flows/*.md` | `skills/references/writing-guidance/flow-page.md` |
+| Page Pages | `wiki/03-pages/README.md`, `wiki/03-pages/*.md` | `skills/references/writing-guidance/page-page.md` |
+| Module Pages | `wiki/04-modules/README.md`, `wiki/04-modules/*.md` | `skills/references/writing-guidance/module-page.md` |
+| Model Family Pages | `wiki/05-models/README.md`, `wiki/05-models/*.md` | `skills/references/writing-guidance/model-page.md` |
+| Decision Map | `wiki/06-decisions.md` | `skills/references/writing-guidance/decision-map.md` |
+| Drift Page | `wiki/07-drift.md` | `skills/references/writing-guidance/drift-page.md` plus `skills/references/drift-page-rules.md` for workflow ownership and lifecycle |
+
+`module-overview.md` is compatibility guidance for older terminology only. It is not an active page-family owner; confirmed C2-root module-map or overview content is routed to `module-page.md`, while stable-subsystem or code-module maps need an explicit C2-root or upper-owner relationship before they become lower-level module pages. Unclear ownerless overviews are reported as `meaning_loss_risk`.
+
+`caliber-map` is intentionally out of scope for V1. If a target repo has a few important field meanings, they belong in model family pages as key fields. If it needs full field-caliber governance, that is a later design question, not part of the first wiki readability improvement.
 
 ### wiki-sink
 
@@ -206,7 +224,7 @@ The Repo-Local Wiki does not use a separate glossary page. Canonical naming and 
 
 `wiki/01-system.md` should provide repo-wide Canonical Roles, Canonical External Systems, and Main Runtime Units. Other pages should reuse those names rather than inventing synonyms.
 
-Catalog README files are canonical indexes for their own family. They are not passive directories; they route readers and agents to the right flow, page, module, or model page.
+Catalog README files are canonical indexes for their own family. They are not passive directories; they route readers and agents to the right flow, page, module, or model family page.
 
 `wiki-sink` must maintain canonical indexes when writing new stable knowledge whose name, owner, and boundary are confirmed. `wiki-doctor` may rebuild or update canonical indexes from existing wiki pages. `wiki-drift-radar` reads canonical indexes to judge coverage and owner pages but does not write them. `wiki-drift-govern` must update canonical indexes when resolving Wiki Drift or Coverage Gap items that change stable wiki content.
 
@@ -216,12 +234,14 @@ If names conflict, boundaries are unclear, or owner pages are not confirmed, the
 
 V1 should strengthen the Wiki Guidance System with fine-grained writing blocks inspired by mem-style fragment guidance, while keeping them as prose guidance.
 
+A block family is a reusable semantic expression family under `skills/references/writing-blocks/`. It defines when to use that expression, what reader question it answers, preferred diagram/table/prose shape, evidence and uncertainty rules, and common anti-patterns. It is not a required section schema.
+
 New blocks:
 
 - `activity-map`: flow主链路表达；默认用 Mermaid `flowchart` 承载复杂业务主活动图，说明谁在什么条件下做什么业务动作，表达分支、汇合、异常和跨角色交接；活动节点使用 confirmed Subject + SVO 业务动作短句，不同 Subject 用不同 Mermaid class / classDef 或等价样式分色；活动表只用于短线性 flow 或作为 Mermaid 的证据补充。它 does not turn Controller/Service/SQL/runtime/adapter/payload into business activities.
 - `evidence-anchor`: short traceable evidence support for stable wiki facts, uncertainty, and candidate notes. It borrows the useful verification discipline from mem-style evidence docs without adding a separate evidence family or verification matrix to repo-wiki V1.
 - `model-relation`: model关系表达；默认用 Mermaid `flowchart` 或等价关系图表达多节点、多方向、事实源或拓扑关系，表格用于补充 evidence 和 uncertainty；推荐使用 `泛化`、`组成`、`引用`、`衍生`、`事实源` as semantic relationship labels. It must preserve the distinction between `引用` and `衍生`.
-- `module-drill-down`: module owner page 内的读者路线表达；当一个 confirmed C2 runtime unit、stable subsystem 或代码模块把其他 canonical modules 作为 internal parts 展示时，用 `内部模块` 摘要表和 related-module links 引导下钻，不在 `README.md` 中制造强制模块树，也不创建 ownerless overview page。
+- `module-drill-down`: module owner page 内的读者路线表达；先从 confirmed C2 runtime unit 生成 root module owner page，再在 root page 或上层 owner page 的 internal parts 中识别可下钻的 canonical child modules。用 `内部模块` 摘要表和 related-module links 引导下钻，不在 `README.md` 中制造强制模块树，也不创建 ownerless overview page。
 - `module-boundary`: module边界表达；说明 stable responsibility boundary、public surfaces、internal capabilities、collaboration direction 和 current module rules。它 must not turn package trees, private helpers, deployment inventory, or unconfirmed ownership into module contracts.
 - `whitebox-component`: canonical module owner page 的必备 Module Boundary Map；以 `.whitebox.yaml` 作为唯一 diagram fact source，生成 SVG 作为 reader-facing rendering，并用 confirmed boundary ports、externals、internal parts、interface roles 和 typed connectors 表达边界内部组装关系。Reader-facing Markdown 可在图旁补 `内部模块` 表和 per-port contract tables，但这些不进入 source model。
 - `canonical-index`: repo-wide and catalog-wide naming/navigation rules.
@@ -294,7 +314,7 @@ Top-level content pages and folders use numeric prefixes for reading order. `REA
 
 ### README.md
 
-Explains how to read the wiki and what each top-level section contains.
+Explains how to read the wiki and what each top-level section contains. Detailed reader-entry rules live in `skills/references/writing-guidance/wiki-root.md`; `wiki-structure.md` only carries the initial skeleton text.
 
 ### 01-system.md
 
@@ -312,11 +332,11 @@ Explains user-visible pages, entry points, navigation, visible regions, page var
 
 ### 04-modules/
 
-Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, module-to-module drill-down routes, and related flows/pages/models. A module may or may not match a code directory, page, service process, C2 runtime unit, stable subsystem, or package. `README.md` owns the flat Canonical Module Index; former `module-map.md`-style pages must be canonical module owner pages when they draw a confirmed C2 runtime unit or subsystem as the enclosing component.
+Explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, module-to-module drill-down routes, and related flows/pages/models. Module generation starts from confirmed C2 runtime units, which become C2 root module owner pages. Stable subsystems, code modules, or other lower-level modules may become child or collaborating module owner pages only when tied to a C2 root module or upper owner page. `README.md` owns the flat Canonical Module Index; former `module-map.md`-style pages must become C2 root module pages when they draw a confirmed C2 runtime unit as the enclosing component, or remain blocked as `meaning_loss_risk` until their root boundary is clarified.
 
 ### 05-models/
 
-Explains important system-understanding models: core objects, state, relationships, and rules. These are not strict DDD models and do not focus on persistence technology such as MySQL or Redis.
+Explains model families: highly related groups of system-understanding models, their relationships, member definitions, key fields, demo/examples, state, and rules. Model family boundaries are driven by shared reader questions, stable fact chains, lifecycle, source-of-truth relationships, or demo explainability. These are not strict DDD models, not one-page-per-model inventories, and do not focus on persistence technology such as MySQL or Redis.
 
 ### 06-decisions.md
 

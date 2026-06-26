@@ -15,7 +15,7 @@ Read these before acting:
 - `../references/writing-blocks/canonical-index.md`
 - Relevant `../references/writing-guidance/*.md` files for target pages
 - Relevant `../references/writing-blocks/*.md` files for explanatory blocks
-- For canonical module owner pages, including confirmed C2 runtime-unit or stable-subsystem module pages, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
+- For canonical module owner pages, including C2 root module pages and confirmed lower-level module pages tied to a C2 root or upper owner page, `../references/writing-guidance/module-page.md` and `../references/writing-blocks/whitebox-component.md`
 - `../references/writing-guidance/module-overview.md` only when maintaining or interpreting older skill-suite references; do not use it as a new page-family route.
 
 ## Boundary
@@ -47,10 +47,12 @@ Do not use schema, validator, lint, compliance, PASS, or FAIL language. Use huma
    - `02-flows/**` for key user, business, or system flows.
    - `03-pages/**` for user-visible pages, entry points, navigation, page layout, page variants, visible states, and page-level interactions.
    - `04-modules/**` for capability boundaries, public surfaces, internal capabilities, collaboration rules, module-to-module drill-down routes, and related flows/pages/models.
-   - `05-models/**` for system-understanding models.
+   - `05-models/**` for model families, member system-understanding models, model relationships, key fields, demo/examples, and source-of-truth facts.
    - `06-decisions.md` for current active decisions and tradeoffs.
 5. Read the matching writing guidance before editing. When writing or updating `wiki/01-system.md`, read `../references/writing-guidance/system-overview.md`.
-   - When writing or updating any canonical module owner page under `wiki/04-modules/**`, including former `module-map.md` pages whose enclosing C2 runtime unit or stable subsystem is confirmed as a canonical module, read `../references/writing-guidance/module-page.md`.
+   - When writing or updating any canonical module owner page under `wiki/04-modules/**`, including former `module-map.md` pages whose enclosing C2 runtime unit is confirmed as a C2 root module or whose lower-level boundary is tied to a C2 root or upper owner page, read `../references/writing-guidance/module-page.md`.
+   - When writing or updating any model family page under `wiki/05-models/**`, read `../references/writing-guidance/model-page.md`.
+   - When choosing or creating a `wiki/05-models/**` owner page, group models by shared reader question, stable fact chain, lifecycle, source-of-truth relationship, or demo/example explainability. Do not group or split model pages by code directory, table name, DTO/package name, field similarity, or because each model seems individually important.
    - Do not create ownerless directory-level module overview pages. If a proposed `module-map.md` does not have a confirmed canonical module name, owner page, and boundary, ask for confirmation instead of writing it as a separate overview page family.
 6. Read the relevant writing blocks for the content shape:
    - `canonical-index.md` for any new or updated stable name, owner route, boundary, or catalog README entry.

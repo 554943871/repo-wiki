@@ -43,6 +43,7 @@ Outdated guidance shape alone is not semantic drift. For example, an existing `w
    - Models in `wiki/05-models/README.md`.
    - Decisions in `wiki/06-decisions.md`.
 5. Use canonical indexes to decide whether a concept is already covered, which page should own it, and what `Suggested owner page` should be. Treat unclear names, owner conflicts, and missing boundaries as risks to report, not as permission to rewrite indexes.
+   - For model coverage gaps, suggest or reuse a `wiki/05-models/**` owner page by shared reader question, stable fact chain, lifecycle, source-of-truth relationship, or demo/example explainability. Do not suggest one page per model, table, DTO, package, or field-similar group unless the evidence also shows a real model family boundary.
 6. Read current system evidence from code, tests, routes, config, docs, and git diff as useful for the scope.
 7. Classify each finding before writing:
    - `Wiki Drift`: wiki is outdated or wrong, so wiki should change.

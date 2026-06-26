@@ -14,7 +14,7 @@ V1 不新增单独的 wiki glossary page。不要创建 `wiki/glossary.md`、`wi
 | Flows | `wiki/02-flows/README.md` | flow 名称、reader route、owner flow page 和关键相关对象。 |
 | Pages | `wiki/03-pages/README.md` | 用户可见 page 名称、入口定位、owner page 和相关 flow/module/model。 |
 | Modules | `wiki/04-modules/README.md` | 人类可理解的能力边界、owner module page 和主要责任。 |
-| Models | `wiki/05-models/README.md` | 系统理解模型名称、owner model page、边界和关键关系。 |
+| Models | `wiki/05-models/README.md` | model family 名称、包含的系统理解模型、owner model family page、边界和关键关系。 |
 | Decisions | `wiki/06-decisions.md` | 当前仍有效的 decision 名称、取舍含义和相关页面。 |
 
 `wiki/README.md` 只做顶层阅读入口，不承担具体知识家族的 canonical index。子页面可以解释细节，但稳定名称应回到上表中的 owner index。

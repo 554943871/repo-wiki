@@ -1,8 +1,8 @@
 # Module Page Guidance
 
-Module 页面解释一个 canonical module 的人类可理解能力和职责边界。Module 不等于代码目录、页面、服务进程或 package；它也可以是一个已经确认的 C2 runtime unit 或 stable subsystem，只要它在 `wiki/04-modules/README.md` 中拥有 canonical name 和 owner page。
+Module 页面解释一个 canonical module 的人类可理解能力和职责边界。Module 不等于代码目录、页面、服务进程或 package。内容生成的第一层入口是 `wiki/01-system.md` 中已经确认的 C2 runtime unit：每个 confirmed C2 runtime unit 默认应在 `wiki/04-modules/` 下拥有一个 root module owner page。
 
-This guidance is for all canonical module owner pages under `wiki/04-modules/`. A former directory-level `module-map.md` becomes a module owner page when it draws a confirmed C2 runtime unit or subsystem as the enclosing component. `wiki/04-modules/README.md` remains the flat Canonical Module Index and reader route; module-to-module hierarchy and cross-jumps belong inside the relevant owner pages.
+This guidance is for all canonical module owner pages under `wiki/04-modules/`. Root module owner pages are generated from confirmed C2 runtime units first. Stable subsystems, code modules, or other lower-level modules become child or collaborating module owner pages only when they are identified from a root page's Whitebox internal parts, existing wiki content, repo evidence, or explicit user confirmation. A former directory-level `module-map.md` becomes a module owner page only when its enclosing boundary can be tied to a confirmed C2 root module or to a confirmed lower-level module under that root. `wiki/04-modules/README.md` remains the flat Canonical Module Index and reader route; module-to-module hierarchy and cross-jumps belong inside the relevant owner pages.
 
 ## 应该帮助读者回答
 
@@ -16,12 +16,13 @@ This guidance is for all canonical module owner pages under `wiki/04-modules/`. 
 - 每个重要 boundary port 聚合了哪些高度相关的 contracts。
 - 哪些内部稳定能力支撑这些对外行为，但不应被外部直接依赖。
 - 它和其他 module page 如何下钻或横向跳转。
+- 如果它不是 C2 root module，它从哪个 C2 root module 或上层 owner page 下钻而来。
 - 哪些边界规则、must / must not、owner decision 或 active uncertainty 会影响后续修改。
 - 当前代码中哪些位置能帮助验证这个理解。
 
 ## 适合写
 
-- 能力定位，尤其说明这个 module 是代码模块、C2 runtime unit、stable subsystem，还是其他人类可理解能力边界。
+- 能力定位，尤其说明这个 module 是 C2 root module，还是从某个 C2 root module 下钻出来的 stable subsystem、代码模块或其他人类可理解能力边界。
 - 负责 / 不负责边界。
 - 上游、下游和协作关系。
 - 对外入口或关键行为；当多个 APIs、tools、routes、events、entry points 或 capabilities 共同定义 module 边界时，使用 Public Surface table 说明 stable interaction points、使用者、稳定行为和 owner boundary。
@@ -40,6 +41,7 @@ This guidance is for all canonical module owner pages under `wiki/04-modules/`. 
 - 直接复制 package tree。
 - 服务进程或部署单元清单。
 - 把 C2 runtime unit 页面写成部署 inventory，而不是人类可理解的 module boundary。
+- 绕过 C2 root module，直接从代码目录、package、helper、adapter、store、queue 或普通 class 生成第一层 module owner page。
 - 页面清单。
 - 普通 helper 方法说明。
 - 把内部能力当成跨 module contract。
@@ -50,6 +52,7 @@ This guidance is for all canonical module owner pages under `wiki/04-modules/`. 
 - 过期历史讨论或未拍板 ownership。
 - 把 public surface 写成 controller、helper、adapter、文件树或完整方法索引；这些只作为 secondary code evidence。
 - 未确认的 owner 或职责归属。
+- 未说明 lower-level module 归属哪个 C2 root module 或上层 owner page。
 - 把 Mermaid、PlantUML、draw.io XML、Markdown prose、生成 SVG 或其他生成图片当作 Module Boundary Map 的事实源。
 - 为了让图看起来完整而发明 boundary port、external node、internal part、interface role、connector direction 或 evidence。
 
@@ -58,6 +61,7 @@ This guidance is for all canonical module owner pages under `wiki/04-modules/`. 
 Module 页面可以自然组合：
 
 - 模块定位。
+- C2 root / 下钻来源：如果不是 C2 root module，说明它从哪个 root module 或上层 owner page 下钻而来。
 - 负责 / 不负责（Owns / Does not own）。
 - 模块边界图（Whitebox Component Diagram / Module Boundary Map）：必备。Markdown 必须先展示 `./assets/<name>.whitebox.svg`，紧挨着保留平级 `.whitebox.yaml` source model link，并从 `.whitebox.yaml` 重新渲染所有 SVG 到同目录 `assets/` 子目录。Derived Whitebox Views 只有在回答明确读者问题或显著降低 dense diagram 理解成本时才嵌入；每个嵌入的派生图使用清楚的 `... Derived Whitebox View` 标题、alt text 和 reader-purpose 说明，表明它们只是同一 source model 的派生阅读视图。
 - 内部模块：只列图中的 canonical module internal parts，列为 `模块 | 图中节点 | 摘要 | 下钻页面`。支撑参与方不进入这张表。
@@ -87,6 +91,7 @@ Module 页面可以自然组合：
 - 协作关系是否说明方向和原因？可见 connector label 是否表达动作、数据、协议、契约或责任关系，而不是只写 `A -> B` 这种端点复述？
 - Public surfaces 是否说明 stable interaction points、使用者、稳定行为和 owner boundary，而不是列举 private helpers 或文件？
 - `内部模块` 表是否只列 canonical module internal parts，并用一两句话加下钻页面，而不是复制下钻 module 的完整内容？
+- 第一层 module owner page 是否来自 confirmed C2 runtime unit？lower-level module 是否说明了它的 C2 root 或上层 owner page？
 - Boundary port contract tables 是否按一个 port 一张表组织，列出 `Contract | 输入 | 输出 | 简介 | 副作用`，并避免完整函数清单或字段 schema？
 - 内部能力是否只解释 module 内部稳定能力，没有被误写成跨 module contract？
 - Supporting participants 是否被解释为支撑节点，而不是被内部模块表或正文提升成 canonical module？

@@ -24,6 +24,21 @@ wiki/
 
 最终 wiki 的 reader-facing 标题使用中文为主，并在固定 page family 标题中保留英文别名作为稳定锚点。文件名和目录名继续使用英文。
 
+## 目录与页面归属
+
+本文件只固定顶层目录、README 入口和每个目录的最小初始正文。它不预先规定每个目录下必须有哪些子页面，也不把 child page 变成固定模板。
+
+每个 active page family 的详细写作规则由 `skills/references/writing-guidance/` 下唯一、独占的元知识文档维护。`wiki-structure.md` 不承担详细 page-family 规范；它只提供初始化骨架和目录归属。
+
+目录下是否新增页面，取决于是否存在已经确认、值得长期维护的主题或边界。`04-modules` 例外更严格：第一层生成入口来自 `wiki/01-system.md` 的 confirmed C2 runtime units，而不是任意看起来可独立维护的代码对象。
+
+- `wiki/02-flows/`: 放关键 flow owner pages，例如关键用户旅程、跨模块业务流程、异步处理、回调、重试或工具调用链路。
+- `wiki/03-pages/`: 放用户可见 page owner pages，例如关键页面、入口、导航、页面状态和页面级交互。
+- `wiki/04-modules/`: 放 canonical module owner pages。`README.md` 是平铺 Canonical Module Index，不维护强制模块树；confirmed C2 runtime unit 默认生成 root module owner page。stable subsystem、代码模块或其他 lower-level module 只在从 C2 root page 的 Whitebox internal parts、既有 wiki、repo 证据或用户确认中明确需要下钻时，才拥有自己的 owner page。
+- `wiki/05-models/`: 放 model family pages。每个页面呈现一组高度相关 model 之间的关系，并说明涉及 model 的定义、关键字段、demo/example、事实来源和证据。
+
+如果名称、边界、owner page 或长期价值不清楚，先保留为候选说明、drift item 或待确认问题，不要为了填目录而创建页面。
+
 ## 初始正文
 
 ### wiki/README.md
@@ -39,7 +54,7 @@ wiki/
 - [关键流程（Flows）](./02-flows/README.md): 关键用户、业务和系统流程。
 - [页面与入口（Pages）](./03-pages/README.md): 用户可见页面、入口、导航、页面状态和页面级交互。
 - [模块边界（Modules）](./04-modules/README.md): 人类可理解的能力和职责边界。
-- [核心模型（Models）](./05-models/README.md): 理解系统所需的核心模型、状态和关系。
+- [核心模型（Models）](./05-models/README.md): 理解系统所需的一组组核心模型、关系、关键字段和示例。
 - [设计决策（Decisions）](./06-decisions.md): 当前仍影响系统理解的重要取舍。
 - [漂移治理（Drift）](./07-drift.md): 当前待治理的 wiki/code 不一致和覆盖缺口。
 
@@ -158,7 +173,7 @@ flowchart LR
 
 本目录解释人类可理解的能力、职责边界、稳定入口、内部能力和协作规则。Module 可以和代码目录一致，也可以不一致。
 
-本 README 是平铺 Canonical Module Index，不维护强制模块树。C2 runtime unit、stable subsystem、代码模块或其他 confirmed module 都应拥有自己的 module owner page；module page 之间可以通过“内部模块”、相关模块和读者路线进行下钻或横向跳转。
+本 README 是平铺 Canonical Module Index，不维护强制模块树。confirmed C2 runtime unit 默认拥有 root module owner page；stable subsystem、代码模块或其他 lower-level module 只在从 root page 下钻或被明确确认时拥有自己的 owner page。module page 之间可以通过“内部模块”、相关模块和读者路线进行下钻或横向跳转。
 
 适合写：
 - 模块负责什么。
@@ -184,19 +199,21 @@ flowchart LR
 ```md
 # 核心模型（Models）
 
-本目录解释理解系统所需的核心模型、状态、关系和规则。这里的 model 不是严格 DDD 分类，也不是数据库结构目录。
+本目录解释理解系统所需的 model families：每个页面呈现一组高度相关 model 之间的关系，并说明涉及 model 的定义、关键字段、demo/example 和事实来源。这里的 model 不是严格 DDD 分类，也不是数据库结构目录。
 
 适合写：
-- 核心对象或概念的含义。
-- 模型边界。
+- 一组高度相关 model 的共同语境和关系。
+- 成员 model 的定义、边界和排除项。
+- 会影响协作理解的关键字段或属性。
+- 能说明 model 关系的 demo/example。
 - 状态和生命周期。
 - 模型之间的引用、组成、衍生或事实来源关系。
-- 会影响协作理解的关键字段。
 
 避免写：
+- 为每个琐碎 model 单独建页。
 - 完整数据库表结构。
+- 完整 DTO、API payload 或 ORM 映射清单。
 - Redis key 清单。
-- ORM 映射细节。
 - 临时变量或局部布尔状态。
 ```
 

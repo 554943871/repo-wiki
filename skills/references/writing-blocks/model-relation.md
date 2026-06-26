@@ -1,13 +1,13 @@
 # Model Relation Block
 
-用于解释 model 页面里的稳定概念关系、事实来源和可追溯证据。这个 block 关注 reader 能否看懂 model 之间的含义关系，不用于表达普通调用链、模块依赖或数据库结构清单。
+用于解释 model family page 里一组高度相关 model 的稳定概念关系、事实来源和可追溯证据。这个 block 关注 reader 能否看懂 model 之间的含义关系，不用于表达普通调用链、模块依赖或数据库结构清单。
 
 ## 适合使用时机
 
-- 一个 model 和多个 model、角色、外部系统或关键事实有关联。
+- 一个 model family 包含多个 model、角色、外部系统或关键事实关联。
 - 关系方向容易混淆，例如直接引用和派生事实容易被写成同一种依赖。
 - 页面需要同时保留证据、不确定性和 source-of-truth 说明。
-- prose 已经太密，读者必须重新拼关系才能理解 model。
+- prose 已经太密，读者必须重新拼关系才能理解这组 model。
 
 ## 关系标签
 
@@ -41,7 +41,7 @@
 
 ## 推荐表达
 
-Model relation 默认优先使用 Mermaid `flowchart` 或等价关系图表达关系本体。只要 model 关系包含多节点、多方向、事实源、`引用` / `衍生` 区分或读者需要看清拓扑，主表达就应该是关系图，而不是关系表。
+Model relation 默认优先使用 Mermaid `flowchart` 或等价关系图表达关系本体。只要 model family 关系包含多节点、多方向、事实源、`引用` / `衍生` 区分或读者需要看清拓扑，主表达就应该是关系图，而不是关系表。
 
 关系表适合两类内容：
 
@@ -101,7 +101,7 @@ flowchart LR
 
 ## Representative Example
 
-下面示例展示 model 页面可以怎样同时呈现关系、事实源、证据和 uncertainty。示例路径是格式演示；实际 wiki 页面必须替换为目标 repo 的真实锚点。
+下面示例展示 model family page 可以怎样同时呈现关系、事实源、证据和 uncertainty。示例路径是格式演示；实际 wiki 页面必须替换为目标 repo 的真实锚点。
 
 ```mermaid
 flowchart LR

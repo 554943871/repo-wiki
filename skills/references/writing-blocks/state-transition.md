@@ -36,7 +36,7 @@
 
 ## 示例使用条件
 
-当一个 model page 写到 `Pending`、`Approved`、`Rejected`，但代码还显示 `Expired` 是定时任务触发的终态时，可以增加 State Transition Block：
+当一个 model family page 写到 `Pending`、`Approved`、`Rejected`，但代码还显示 `Expired` 是定时任务触发的终态时，可以增加 State Transition Block：
 
 - States: `Pending`、`Approved`、`Rejected`、`Expired`。
 - Events: submit review、manual approve、manual reject、expiry job。

@@ -42,6 +42,14 @@ _Avoid_: schema system, validator suite, template framework
 The shared principles that every wiki skill follows when writing, rewriting, or judging repo-local wiki content.
 _Avoid_: validator rules, compliance gate
 
+**Page-Family Meta-Knowledge Document**:
+The dedicated and exclusive `skills/references/writing-guidance/*.md` file that owns detailed writing guidance for one active Page Family. Each active Page Family has exactly one primary meta-knowledge document; detailed rules for the same Page Family should not be duplicated across `wiki-structure.md`, `wiki-suite-design.md`, skill instructions, or another Page Family document.
+_Avoid_: duplicated page-family rules, split ownership, structure skeleton as detailed guidance, implicit template source
+
+**Block Family**:
+A reusable semantic expression family under `skills/references/writing-blocks/`. A Block Family can appear inside multiple Page Families and defines when to use that expression, what reader question it answers, preferred diagram/table/prose shape, evidence and uncertainty rules, and common anti-patterns.
+_Avoid_: fragment schema, required section schema, field-completeness checklist
+
 **Reader-Facing Chinese Headings**:
 The convention that final `wiki/**/*.md` page titles, catalog entries, and section headings use Chinese by default for Chinese-native readers, while preserving stable English aliases when they help LLMs and cross-page anchors stay aligned.
 _Avoid_: English-only reader headings, forced translation of code symbols
@@ -159,15 +167,15 @@ A module-detail writing block for stable responsibility boundaries, public surfa
 _Avoid_: package tree, helper list, deployment inventory, unconfirmed ownership
 
 **Canonical Module Owner Page**:
-A page under `wiki/04-modules/` that owns one confirmed module boundary. The enclosing module may be a code module, a C2 runtime unit, or a stable subsystem when it is named as a canonical module and explained through responsibilities, boundary ports, contracts, internal parts, module-to-module drill-down routes, related pages, and a Whitebox Component Diagram.
-_Avoid_: directory-level map, supporting-participant promotion, package/deployment map, unowned overview
+A page under `wiki/04-modules/` that owns one confirmed module boundary. First-level module content is generated from confirmed C2 runtime units, which become C2 root module owner pages. Stable subsystems, code modules, or other lower-level modules may become canonical module owner pages only when tied to a C2 root module or upper owner page and explained through responsibilities, boundary ports, contracts, internal parts, module-to-module drill-down routes, related pages, and a Whitebox Component Diagram.
+_Avoid_: directory-level map, supporting-participant promotion, package/deployment map, unowned overview, first-level package module
 
 **Module Drill-Down Route**:
 A reader route from one Canonical Module Owner Page to another module page when the second page explains a lower-level part, collaborating module, or related boundary in more detail. It supports hierarchy and cross-module jumps without turning the source page into a separate overview page family; `wiki/04-modules/README.md` stays a flat Canonical Module Index rather than a forced module tree.
 _Avoid_: ownerless overview, duplicate module ownership, package-tree navigation, forced single-parent module tree
 
 **Module Overview Page**:
-An older page-family term for directory-level module maps. In the current model, a page that draws a confirmed C2 runtime unit or subsystem as an enclosing component is a Canonical Module Owner Page; `wiki/04-modules/README.md` remains the Canonical Module Index and reader route.
+An older page-family term for directory-level module maps. In the current model, a page that draws a confirmed C2 runtime unit as an enclosing component is a C2 root Canonical Module Owner Page; stable subsystem or code-module maps need a confirmed C2-root or upper-owner relationship before they become lower-level module owner pages. `wiki/04-modules/README.md` remains the Canonical Module Index and reader route.
 _Avoid_: separate overview page family, ownerless enclosing component, parallel module index
 
 **Whitebox Component Diagram**:
@@ -284,9 +292,13 @@ _Avoid_: DOM tree, CSS detail, component inventory, backend call chain
 The repo-local wiki section that explains human-meaningful capability and responsibility boundaries, stable public surfaces, internal capabilities, collaboration rules, and related flows/pages/models after key flows are understood, even when those boundaries do not match code directories.
 _Avoid_: package tree, runtime unit inventory, page inventory
 
+**Model Family Page**:
+A page under `wiki/05-models/` that presents one highly related set of system-understanding models, their relationships, member definitions, key fields, demo/examples, source-of-truth facts, and evidence. Its boundary is driven by a shared reader question, stable fact chain, lifecycle, source-of-truth relationship, or demo explainability.
+_Avoid_: one page per trivial model, schema catalog, raw demo dump
+
 **Model Catalog**:
-The repo-local wiki section that explains important system-understanding models, including their meaning, state, and relationships, without requiring strict DDD classification or focusing on persistence technology.
-_Avoid_: strict DDD model, database table catalog, storage inventory
+The repo-local wiki section that collects model family pages. It is for explaining related model groups, not for one-page-per-model inventory, strict DDD classification, or persistence schema documentation.
+_Avoid_: strict DDD model, database table catalog, storage inventory, DTO catalog
 
 **wiki-drift-radar**:
 The radar skill that compares the target repository's current working-tree system with its repo-local wiki across the whole project by default or a user-specified scope, classifies each finding as wiki drift, code drift, or coverage gap, asks the user to resolve ambiguity before writing, and may refresh the Drift Page without confirmation after classification when the Drift Page has no active items.

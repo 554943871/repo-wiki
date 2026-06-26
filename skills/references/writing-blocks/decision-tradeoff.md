@@ -1,6 +1,6 @@
 # Decision Tradeoff Block
 
-用于解释一个当前仍重要的取舍。适合放在 `06-decisions.md`，也可以嵌入 flow、page、module 或 model 页面。
+用于解释一个当前仍重要的取舍。适合放在 `06-decisions.md`，也可以嵌入 flow、page、module 或 model family 页面。
 
 ## 适合使用时机
 
