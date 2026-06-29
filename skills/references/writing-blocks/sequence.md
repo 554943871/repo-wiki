@@ -46,8 +46,9 @@ sequenceDiagram
 
 ## 写作要求
 
-- 参与方保持同一抽象层级。
-- 系统参与方应选择同一层级的业务或系统边界；不要在同一张图里混用系统、module、component、class、method 和 table。
+- 参与方 header 保持同一抽象层级。Mermaid `actor` / `participant` header 必须是这个场景中真实发送、接收、触发、回调或承接结果的协作者，不是结果、状态、model、字段或展示物的标题。
+- 系统参与方应选择同一层级的业务或系统边界；不要在同一张图里混用系统、runtime unit、page、module、component、class、method 和 table。若借用 C1-C4 语义，用户/外部系统可作为 C1 触发者或结果接收者；除这些外，同一张 sequence 的系统 participant 应尽量停留在同一个层级，例如全是 C2 runtime units、全是 C3 modules、全是 pages，或全是页面内已声明的局部 participants。
+- 不要把 `用户可见 UI 卡片`、`后续状态变更`、`订单草稿卡片`、`base_slots 写入结果` 这类 outcome / projection / state change 写成 participant header。它们应放在 message 文本、`Note over <participant>`、图后 outcome 表、state-transition / lifecycle，或 `模型关系` 中；只有当它们已经是当前页面确认的 page、module、runtime unit 或 page-local active participant，且会主动发送/接收消息时，才可进入 header。
 - 推荐使用稳定 alias，并在图后用短表说明 alias、显示名、边界层级和证据锚点。
 - 用户、业务角色或人工岗位只作为触发者、协作者或结果接收者；不要把它们和内部实现类混成同一层级。
 - 先写触发者和触发条件，再写正常顺序，最后写结果。
@@ -77,6 +78,7 @@ sequenceDiagram
 - 用步骤表替代有多参与方、分支、回调、重试、异步或异常出口的关键协作。
 - 把 Controller、DTO、SQL、表等实现细节画成主要参与方。
 - 在同一张图里混用不同抽象层级的参与方。
+- 把结果卡片、状态变化、model、payload 或事实结论写成 participant header。
 - 把 activity map 的主业务顺序拆散成多个互相竞争的 sequence。
 - 一条消息混入多个不同含义的动作。
 - 一条消息混入多个 public surfaces、contracts、routes、events 或 module capabilities。

@@ -132,14 +132,17 @@ flowchart LR
 
 使用语境图只承担入口职责，不替代 flow page、sequence、lifecycle 或 model-relation block。图只画读者理解 model usage 必需的关键路径：哪个角色、页面、模块、运行单元或外部系统触发了哪段活动，边上标注创建、读取、引用、衍生、展示、校验、失效或终止了哪些 model，以及后续应跳到哪个 flow / module / decision / model page。
 
+每张使用语境图都必须有明确入口和可观察出口。入口可以是角色动作、页面入口、模块触发、运行单元处理或外部系统事件；出口可以是读者能看到的结果、后续处理、稳定状态、异常终止、下一页/下一 flow/module/decision，或一个有边界的持续态。Mermaid `flowchart` 可以包含回退边或重试边，但每条回环边都必须写清业务条件、用户动作或系统动作，例如“校验失败，返回编辑”“用户修改后重新提交”“超时后重试”。不要留下无标签、无条件、无起点终点的闭环；如果补不出语义，改成 uncertainty、短 prose 或删除该边。
+
 图形选择规则：
 
 - 逻辑分叉、异常路径、回退或多种结果多时，优先用 Mermaid `flowchart`。
 - 跨端、跨模块、跨系统、异步回调或时间顺序是理解重点时，优先用 Mermaid `sequenceDiagram`。
+- 如果一个 `flowchart` 回环实际表达的是参与方消息往返、调用返回、异步回调、轮询或重试顺序，改用 `sequenceDiagram`；如果表达的是稳定状态变化，改用 state-transition / lifecycle；如果表达的是 model 间互相引用或衍生，移到 `模型关系`。
 - 多个核心使用路径可以放多张图，但每张图必须有清楚标题，例如 `创建路径`、`展示路径`、`失效路径`；不要为了覆盖所有代码调用而堆图。
 - 简单场景或证据不足以安全画图时，可以退回短 prose 或小表；表格仍只承担 reader entry，不替代动态图、flow page 或 `模型关系`。
 
-使用语境图的节点和参与方不能把 model 当执行者。Model 是被创建、读取、引用、衍生、展示、校验、失效或终止的对象，应放在边标签、message 文本或 note 中；图节点 / participant 应优先使用已确认的角色、页面、模块、运行单元、外部系统，或当前页面先声明且有证据的 page-local subject。Controller、Service、adapter、DTO、payload、表、字段、日志和临时 helper 通常只作为 evidence 或边标签的实现锚点，不应被提升成读者入口图的稳定主体。
+使用语境图的节点和参与方不能把 model 当执行者。Model 是被创建、读取、引用、衍生、展示、校验、失效或终止的对象，应放在边标签、message 文本或 note 中；图节点 / participant 应优先使用已确认的角色、页面、模块、运行单元、外部系统，或当前页面先声明且有证据的 page-local subject。`sequenceDiagram` 的 header 必须遵守 `skills/references/writing-blocks/sequence.md` 的 participant header 规则：同一张图里的系统参与方保持同一抽象层级，结果卡片、状态变化、model、payload 或事实结论不做 header，除非它们已被确认成会主动发送/接收消息的 page、module、runtime unit 或 page-local active participant。Controller、Service、adapter、DTO、payload、表、字段、日志和临时 helper 通常只作为 evidence 或边标签的实现锚点，不应被提升成读者入口图的稳定主体。
 
 使用语境图之后不要再重复解释同一批概念。`user_purchase_context 指代...`、`本页展开的成员模型是...`、`包含：...`、`不等同于：...` 这类内容只有在图、简短入口和范围说明没有覆盖且读者确实会误解时，才压缩成一句范围说明；否则应迁移到 `成员模型`、`模型关系`、`相关页面` 或直接删除重复表述。
 
@@ -313,7 +316,8 @@ State transition 解释稳定状态之间的变化。只有当状态集合和触
 - 页面是否解释了一组高度相关 model 的共同语境和关系，而不是只列单个字段？
 - `定位与边界` 是否先给出核心 reader question，再用 usage context diagram 或安全退路说明活动场景、执行链路、代码路径或读者任务入口？
 - `定位与边界` 的图是否根据场景选择了合适表达：分支多用 `flowchart`，跨端 / 跨模块 / 跨系统 / 时间顺序重要时用 `sequenceDiagram`？
-- `定位与边界` 的图是否把 model 放在边标签、message 或 note 中，而不是把 model 当执行者、participant 或 activity node？
+- `定位与边界` 的图是否有明确入口和可观察出口；若存在回退或重试边，是否标明业务条件或动作，并避免无语义闭环？
+- `定位与边界` 的图是否把 model、结果卡片、状态变化或事实结论放在边标签、message、note、outcome、state-transition 或 `模型关系` 中，而不是把它们当执行者、participant header 或 activity node？
 - `定位与边界` 是否只画理解 model usage 必需的关键路径，没有退化成完整代码调用链？
 - `定位与边界` 是否避免长篇概念定义、成员声明、`包含` 清单和过长排除项清单？
 - 成员 model 的定义、边界和排除项是否清楚？
