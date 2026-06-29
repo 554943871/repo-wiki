@@ -11,7 +11,7 @@ benchmark and it did not rewrite the target repository's wiki.
 - Gate note: target `wiki/07-drift.md` was in the standard empty state.
 - Source read scope: markdown files under `/Users/god/project_jdx/agent_pjt_auto_select/wiki`.
 - Target write scope: none.
-- Code lookup: none. Code anchors were preserved only as existing wiki text.
+- Code lookup: none in this demonstration. A real `wiki-doctor` run may inspect target source, docs, config, and other local evidence, then write direct evidence-grounded stable facts when the evidence is clear enough to cite.
 
 ## Preserved Facts
 
@@ -51,25 +51,27 @@ These are demonstration changes only. They were not applied to the target wiki.
 | Merge `H5 Surfaces` and `Web Event Surfaces` because both mention routes. | `meaning_loss_risk` | `risk_report_only` | The existing wiki separates user-visible page entry from protocol/module boundary. Merging could lose owner-page meaning. |
 | Rename `Runtime And Tooling` or split it into runtime, skill, tool, and storage pages. | `meaning_loss_risk` | `risk_report_only` | The current wiki does not prove a safer canonical owner split. |
 | Split `Turn Event And Candidate Set` into separate model pages. | `meaning_loss_risk` | `risk_report_only` | The page explicitly groups models that are easy to confuse; splitting may hide that teaching purpose. |
-| Add new API, event, Tool, or Skill names from current code. | `drift_or_coverage_suspect` | `recommend_drift_radar` | That requires code/wiki comparison, which wiki-doctor does not do. |
+| Add new API, event, Tool, or Skill names from current code. | `evidence_grounded_update` when direct evidence is inspected; otherwise `drift_or_coverage_suspect` | `write_evidence_grounded_fact` or `recommend_drift_radar` | A real `wiki-doctor` run may write direct repo evidence; this demo did not inspect current code. |
 
 ## Suspected Drift Or Coverage Items
 
-These are not findings from a code comparison. They are only candidate areas that
-would need `wiki-drift-radar` if maintainers want current-system verification.
+These are not findings from a code comparison in this demonstration. In a real
+`wiki-doctor` run, direct inspected evidence can be written into stable wiki
+pages; broader comparison or unresolved coverage should still use
+`wiki-drift-radar`.
 
 | Suspect area | Classification | Recommended route |
 | --- | --- | --- |
-| `SELECT_AGENT_RUNTIME` values and DeepAgent runtime creation behavior may change over time. | `drift_or_coverage_suspect` | Run `wiki-drift-radar`; govern active items with `wiki-drift-govern`. |
-| Registered Tool names under `SELECT_TOOL_NAMES` may change over time. | `drift_or_coverage_suspect` | Run `wiki-drift-radar`; do not update stable wiki from this demo. |
-| H5 route list, API route list, and event-name list may drift as Web surfaces evolve. | `drift_or_coverage_suspect` | Run `wiki-drift-radar`; use `wiki-drift-govern` for any active items. |
-| Candidate-set retention count and expiration behavior may drift. | `drift_or_coverage_suspect` | Run `wiki-drift-radar` before changing stable model text. |
+| `SELECT_AGENT_RUNTIME` values and DeepAgent runtime creation behavior may change over time. | `evidence_grounded_update` if direct evidence is inspected; otherwise `drift_or_coverage_suspect` | Write with Evidence Anchors when clear; use `wiki-drift-radar` for broad comparison. |
+| Registered Tool names under `SELECT_TOOL_NAMES` may change over time. | `evidence_grounded_update` if direct evidence is inspected; otherwise `drift_or_coverage_suspect` | Write with Evidence Anchors when clear; do not guess from this demo. |
+| H5 route list, API route list, and event-name list may drift as Web surfaces evolve. | `evidence_grounded_update` if direct evidence is inspected; otherwise `drift_or_coverage_suspect` | Write scoped route facts when clear; use `wiki-drift-radar` for broad route inventory. |
+| Candidate-set retention count and expiration behavior may drift. | `evidence_grounded_update` if direct evidence is inspected; otherwise `drift_or_coverage_suspect` | Write direct evidence when clear; use `wiki-drift-radar` for broad lifecycle audit. |
 | Visual calibration and order-draft coverage may need more reader pages if maintainers want deeper documentation. | `drift_or_coverage_suspect` | Treat as possible Coverage Gap through `wiki-drift-radar`, not as wiki-doctor rewrite scope. |
 
 ## Out Of Scope
 
 - Rewriting files under `/Users/god/project_jdx/agent_pjt_auto_select/wiki`.
-- Inspecting target source code, tests, docs, root README, or skill files.
+- Inspecting target source code, tests, docs, root README, or skill files was out of scope for this demonstration only.
 - Resolving suspected drift or coverage items in this slice.
 - Treating this sample as a universal benchmark for all generated wikis.
 - Turning the demonstration into mechanical quality scoring.
@@ -78,6 +80,6 @@ would need `wiki-drift-radar` if maintainers want current-system verification.
 
 - The after demonstration preserves all facts listed in the before snippets.
 - The rewrite changes presentation, not source-of-truth claims.
-- Unverified current-system questions are routed to `wiki-drift-radar` /
-  `wiki-drift-govern` vocabulary.
+- Unverified current-system questions are either direct evidence-grounded update
+  candidates for a real `wiki-doctor` run or broader `wiki-drift-radar` work.
 - Target wiki files were not modified.

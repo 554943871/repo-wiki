@@ -15,7 +15,7 @@ Each fixture has:
 - `case.json`: the behavior contract being covered.
 - `input/wiki/`: the target wiki snippets that `wiki-doctor` would read.
 - `expected/report.md`: the expected final report shape.
-- Optional `expected/wiki/`: snippets that demonstrate required preservation, link updates, or no-write behavior.
+- Optional `expected/wiki/`: snippets that demonstrate required preservation, link updates, evidence-grounded updates, or no-write behavior.
 
 Whitebox refresh fixtures may include a `.whitebox.yaml` source model beside the module page plus generated complete and derived Whitebox SVGs under that module directory's `assets/` subdirectory. The module page should show the complete diagram first from `./assets/`, keep the source model link visible, and embed only reader-purpose derived views from the same `assets/` directory as aids from the same source model.
 

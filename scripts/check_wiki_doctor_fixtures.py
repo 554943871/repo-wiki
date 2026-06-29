@@ -35,11 +35,11 @@ REQUIRED_BEHAVIORS = {
     "existing_incomplete_wiki_completes_skeleton_without_new_facts",
     "duplicate_same_concept_pages_preserve_unique_info_and_links",
     "naming_conflicts_report_meaning_loss_risk",
-    "suspected_code_wiki_mismatch_recommends_drift_radar",
+    "source_supported_code_wiki_mismatch_writes_stable_fact",
     "audit_only_does_not_rewrite_stable_pages",
     "old_module_map_refreshes_to_whitebox_source_and_svg",
     "old_module_map_insufficient_evidence_reports_meaning_loss_risk",
-    "old_module_map_needing_code_comparison_recommends_drift_radar",
+    "old_module_map_source_evidence_updates_stable_page",
 }
 
 ALLOWED_GATES = {
@@ -50,6 +50,7 @@ ALLOWED_GATES = {
 
 ALLOWED_CLASSIFICATIONS = {
     "safe_guidance_rewrite",
+    "evidence_grounded_update",
     "meaning_loss_risk",
     "drift_or_coverage_suspect",
 }
@@ -58,6 +59,7 @@ ALLOWED_ACTIONS = {
     "rewrite_page",
     "add_reader_entry",
     "add_table_or_diagram",
+    "write_evidence_grounded_fact",
     "update_canonical_index",
     "relocate_content",
     "split_page",
@@ -512,17 +514,20 @@ def check_naming_conflict(case_dir: Path, metadata: dict[str, object]) -> list[s
     return errors
 
 
-def check_code_wiki_mismatch(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+def check_source_supported_update(case_dir: Path, metadata: dict[str, object]) -> list[str]:
     errors: list[str] = []
     report = read_text(case_dir / "expected" / "report.md")
-    if "drift_or_coverage_suspect" not in expect_list(metadata, "classifications"):
-        errors.append(f"{rel(case_dir / 'case.json')} must classify drift_or_coverage_suspect")
-    if "recommend_drift_radar" not in expect_list(metadata, "actions"):
-        errors.append(f"{rel(case_dir / 'case.json')} must expect recommend_drift_radar")
-    if "wiki-drift-radar" not in report:
-        errors.append(f"{rel(case_dir / 'expected' / 'report.md')} must recommend wiki-drift-radar")
-    if metadata.get("stable_pages_rewritten") is not False:
-        errors.append(f"{rel(case_dir / 'case.json')} must not rewrite stable pages")
+    if "evidence_grounded_update" not in expect_list(metadata, "classifications"):
+        errors.append(f"{rel(case_dir / 'case.json')} must classify evidence_grounded_update")
+    if "write_evidence_grounded_fact" not in expect_list(metadata, "actions"):
+        errors.append(f"{rel(case_dir / 'case.json')} must expect write_evidence_grounded_fact")
+    if "Evidence-grounded facts written:" not in report:
+        errors.append(f"{rel(case_dir / 'expected' / 'report.md')} must report evidence-grounded facts written")
+    if "wiki-drift-radar" in report:
+        errors.append(f"{rel(case_dir / 'expected' / 'report.md')} must not route direct evidence updates to wiki-drift-radar")
+    if metadata.get("stable_pages_rewritten") is not True:
+        errors.append(f"{rel(case_dir / 'case.json')} must rewrite stable pages")
+    errors.extend(check_expected_text_requirements(case_dir, metadata))
     return errors
 
 
@@ -729,9 +734,8 @@ def check_old_module_map_meaning_loss(case_dir: Path, metadata: dict[str, object
     return errors
 
 
-def check_old_module_map_drift_radar(case_dir: Path, metadata: dict[str, object]) -> list[str]:
-    errors = check_code_wiki_mismatch(case_dir, metadata)
-    errors.extend(check_unchanged_wiki_paths(case_dir, metadata))
+def check_old_module_map_source_update(case_dir: Path, metadata: dict[str, object]) -> list[str]:
+    errors = check_source_supported_update(case_dir, metadata)
     errors.extend(check_expected_text_requirements(case_dir, metadata))
     errors.extend(check_no_expected_whitebox_files(case_dir))
     return errors
@@ -940,11 +944,11 @@ def main() -> int:
         "existing_incomplete_wiki_completes_skeleton_without_new_facts": check_incomplete_skeleton,
         "duplicate_same_concept_pages_preserve_unique_info_and_links": check_duplicate_same_concept,
         "naming_conflicts_report_meaning_loss_risk": check_naming_conflict,
-        "suspected_code_wiki_mismatch_recommends_drift_radar": check_code_wiki_mismatch,
+        "source_supported_code_wiki_mismatch_writes_stable_fact": check_source_supported_update,
         "audit_only_does_not_rewrite_stable_pages": check_audit_only,
         "old_module_map_refreshes_to_whitebox_source_and_svg": check_old_module_map_safe_whitebox,
         "old_module_map_insufficient_evidence_reports_meaning_loss_risk": check_old_module_map_meaning_loss,
-        "old_module_map_needing_code_comparison_recommends_drift_radar": check_old_module_map_drift_radar,
+        "old_module_map_source_evidence_updates_stable_page": check_old_module_map_source_update,
     }
 
     for case_dir, metadata in cases:

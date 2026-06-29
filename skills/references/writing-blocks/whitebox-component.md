@@ -135,7 +135,7 @@ When converting an older Module Boundary block, Mermaid diagram, table, prose ma
 - Convert only facts that already identify legal whitebox concepts: boundary ports, externals, internal parts, part ports, interface roles, and typed connectors.
 - If the old map combines multiple concepts in one arrow or row, split only when the split is explicit in the old content.
 - If conversion would choose a new owner, hide uncertainty, drop evidence, or turn private implementation details into stable contracts, report `meaning_loss_risk`.
-- If conversion appears to require current-code comparison or missing coverage classification, report `drift_or_coverage_suspect` and recommend the drift workflow.
+- If direct current repo evidence clearly supports the missing Whitebox fact, `wiki-doctor` may write it as `evidence_grounded_update` with Evidence Anchors. If conversion requires broad current-code comparison, unresolved conflict handling, or missing coverage classification beyond the scoped evidence, report `drift_or_coverage_suspect` and recommend the drift workflow.
 
 ## Diagram Complexity Signal
 

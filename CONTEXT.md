@@ -50,6 +50,10 @@ _Avoid_: duplicated page-family rules, split ownership, structure skeleton as de
 A reusable semantic expression family under `skills/references/writing-blocks/`. A Block Family can appear inside multiple Page Families and defines when to use that expression, what reader question it answers, preferred diagram/table/prose shape, evidence and uncertainty rules, and common anti-patterns.
 _Avoid_: fragment schema, required section schema, field-completeness checklist
 
+**Structured Example Block**:
+A writing block for Model Family Page member model mock data. It uses compact `jsonc` examples with line-end comments for every visible field key, placed after the model definition and before supporting notes.
+_Avoid_: unannotated JSON, invented fields, complete schema, raw dump, field-completeness checklist
+
 **Reader-Facing Chinese Headings**:
 The convention that final `wiki/**/*.md` page titles, catalog entries, and section headings use Chinese by default for Chinese-native readers, while preserving stable English aliases when they help LLMs and cross-page anchors stay aligned.
 _Avoid_: English-only reader headings, forced translation of code symbols
@@ -83,8 +87,8 @@ A stable externally visible entry point, capability, API, tool, route, command, 
 _Avoid_: helper list, private implementation method, runtime unit by default
 
 **wiki-doctor**:
-The explicit refresh skill that checks whether an existing Repo-Local Wiki follows the current Wiki Guidance System, then rewrites formatting, structure, and expression when the original information can be preserved.
-_Avoid_: validator, readability drift, wiki-drift-radar, wiki-drift-govern
+The explicit refresh skill that checks whether an existing Repo-Local Wiki follows the current Wiki Guidance System, may read target-repository context, rewrites formatting, structure, and expression when information can be preserved, and may write direct evidence-grounded current repo facts into stable wiki pages.
+_Avoid_: validator, readability drift, guessed stable knowledge, queue-style drift classification, wiki-drift-radar, wiki-drift-govern
 
 **Drift Page**:
 The top-level numbered repo-local wiki file that records the current active semantic drift and coverage gaps while they are being governed; a new wiki-drift-radar check must not start while it still contains active items.
@@ -293,8 +297,8 @@ The repo-local wiki section that explains human-meaningful capability and respon
 _Avoid_: package tree, runtime unit inventory, page inventory
 
 **Model Family Page**:
-A page under `wiki/05-models/` that presents one highly related set of system-understanding models, their relationships, member definitions, key fields, demo/examples, source-of-truth facts, and evidence. Its boundary is driven by a shared reader question, stable fact chain, lifecycle, source-of-truth relationship, or demo explainability.
-_Avoid_: one page per trivial model, schema catalog, raw demo dump
+A page under `wiki/05-models/` that presents one highly related set of system-understanding models, their dynamic usage entry in important scenarios or code paths, static relationships, member definitions, key fields, demo/examples, source-of-truth facts, and evidence. Its boundary is driven by a shared reader question, stable fact chain, lifecycle, source-of-truth relationship, or demo explainability.
+_Avoid_: one page per trivial model, schema catalog, raw demo dump, full call chain
 
 **Model Catalog**:
 The repo-local wiki section that collects model family pages. It is for explaining related model groups, not for one-page-per-model inventory, strict DDD classification, or persistence schema documentation.

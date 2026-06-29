@@ -5,7 +5,7 @@ Repo Wiki Skill Suite is a local skill suite for maintaining a human-readable `w
 The suite is intentionally small:
 
 - `wiki-sink` initializes and writes stable wiki knowledge.
-- `wiki-doctor` refreshes existing wiki pages against the latest Wiki Guidance System without losing original information.
+- `wiki-doctor` refreshes existing wiki pages against the latest Wiki Guidance System, and may write direct evidence-grounded current repo facts.
 - `wiki-drift-radar` compares the current working tree with the wiki and refreshes `wiki/07-drift.md`.
 - `wiki-drift-govern` resolves active drift items by updating wiki pages or changing code.
 
@@ -56,7 +56,7 @@ wiki-drift-govern
 
 Use `wiki-sink` first when a target repository has no repo-local wiki, or when you want to write confirmed, reusable system knowledge into stable wiki pages.
 
-Use `wiki-doctor` when an existing repo-local wiki should be refreshed against the latest Wiki Guidance System. It rewrites formatting, structure, and expression only when the original information can be preserved.
+Use `wiki-doctor` when an existing repo-local wiki should be refreshed against the latest Wiki Guidance System. It may read target-repository context while refreshing pages, and it may write direct evidence-grounded current repo facts into stable wiki pages when the evidence is clear enough to cite.
 
 Use `wiki-drift-radar` when the target repository already has a wiki and you want to compare the current working tree with it. `wiki-drift-radar` only refreshes `wiki/07-drift.md`. If that file already contains active items, resolve them with `wiki-drift-govern` before starting another radar pass.
 
@@ -66,7 +66,7 @@ Typical workflow:
 
 ```text
 1. Create or seed wiki knowledge with wiki-sink.
-2. Run wiki-doctor when existing pages need guidance refresh without changing meaning.
+2. Run wiki-doctor when existing pages need guidance refresh or scoped evidence-grounded updates.
 3. Run wiki-drift-radar to find current drift and coverage gaps.
 4. Run wiki-drift-govern until wiki/07-drift.md is empty.
 5. Repeat radar only after the previous drift queue is cleared.
@@ -87,8 +87,9 @@ Do not use the suite as a raw archive. Stable wiki pages should contain current,
 | Wiki Structure | The fixed target wiki layout and minimal initial page text, defined in `skills/references/wiki-structure.md`. |
 | Writing Guidance | Page-family guidance for root, system, flow, page, module, model, decision, and drift pages. Each active page family has exactly one primary meta-knowledge document under `skills/references/writing-guidance/`. |
 | Page-Family Meta-Knowledge Document | The dedicated and exclusive `writing-guidance/*.md` file that owns detailed writing guidance for one active page family. Detailed page-family rules should not be duplicated in `wiki-structure.md`, `wiki-suite-design.md`, skill instructions, or another page-family document. |
-| Writing Blocks | Reusable semantic writing patterns for activity maps, canonical indexes, decisions, dependencies, evidence anchors, model relations, module boundaries, page layout, page navigation, public surfaces, sequence, and state transitions. |
+| Writing Blocks | Reusable semantic writing patterns for activity maps, canonical indexes, decisions, dependencies, evidence anchors, model relations, structured examples, module boundaries, page layout, page navigation, public surfaces, sequence, and state transitions. |
 | Block Family | A reusable semantic expression family under `skills/references/writing-blocks/`. A block family can appear inside multiple page families and defines when to use that expression, what reader question it answers, preferred diagram/table/prose shape, evidence and uncertainty rules, and common anti-patterns. It is not a required section schema. |
+| Structured Example Block | A writing block for Model Family Page member model mock data. It uses compact `jsonc` examples with line-end comments for every visible field key, and keeps the example after the model definition and before supporting notes. |
 | Drift Page Rules | Rules for `wiki/07-drift.md`, including radar gating, finding types, evidence notes, and governance lifecycle. |
 | Information Preservation | A global principle: readability work must not lose unique information, evidence anchors, naming, boundaries, decision meaning, or uncertainty. |
 | Canonical Index | The stable naming and navigation source for roles, external systems, flows, pages, modules, models, and decisions. |
@@ -107,6 +108,6 @@ Do not use the suite as a raw archive. Stable wiki pages should contain current,
 
 The suite uses human-readable guidance and LLM semantic judgment. It does not use mechanical validators, lint checks, or pass/fail compliance gates for wiki quality.
 
-`skills/references/wiki-guidance-principles.md` is the shared first reference for all wiki skills. It treats Information Preservation as the highest-priority rule and distinguishes reader-facing rewrites from drift detection, drift resolution, and new stable knowledge capture.
+`skills/references/wiki-guidance-principles.md` is the shared first reference for all wiki skills. It treats Information Preservation as the highest-priority rule and distinguishes reader-facing rewrites, evidence-grounded stable updates, drift detection, drift resolution, and initial knowledge capture.
 
 Fine-grained guidance is still expected. The suite should borrow useful expression rules from mature documentation systems, but translate them into natural-language writing guidance and writing blocks instead of schemas or mechanical checks.

@@ -35,7 +35,7 @@ wiki/
 - `wiki/02-flows/`: 放关键 flow owner pages，例如关键用户旅程、跨模块业务流程、异步处理、回调、重试或工具调用链路。
 - `wiki/03-pages/`: 放用户可见 page owner pages，例如关键页面、入口、导航、页面状态和页面级交互。
 - `wiki/04-modules/`: 放 canonical module owner pages。`README.md` 是平铺 Canonical Module Index，不维护强制模块树；confirmed C2 runtime unit 默认生成 root module owner page。stable subsystem、代码模块或其他 lower-level module 只在从 C2 root page 的 Whitebox internal parts、既有 wiki、repo 证据或用户确认中明确需要下钻时，才拥有自己的 owner page。
-- `wiki/05-models/`: 放 model family pages。每个页面呈现一组高度相关 model 之间的关系，并说明涉及 model 的定义、关键字段、demo/example、事实来源和证据。
+- `wiki/05-models/`: 放 model family pages。每个页面先给出这组 model 在重要场景或代码路径中的动态使用入口，再呈现高度相关 model 之间的静态关系，并说明涉及 model 的定义、关键字段、demo/example、事实来源和证据。
 
 如果名称、边界、owner page 或长期价值不清楚，先保留为候选说明、drift item 或待确认问题，不要为了填目录而创建页面。
 
@@ -199,22 +199,21 @@ flowchart LR
 ```md
 # 核心模型（Models）
 
-本目录解释理解系统所需的 model families：每个页面呈现一组高度相关 model 之间的关系，并说明涉及 model 的定义、关键字段、demo/example 和事实来源。这里的 model 不是严格 DDD 分类，也不是数据库结构目录。
+本目录解释理解系统所需的 model families：每个页面先给出这组 model 在重要场景或代码路径中的动态使用入口，再呈现高度相关 model 之间的静态关系，并说明涉及 model 的定义、关键字段、demo/example 和事实来源。这里的 model 不是严格 DDD 分类，也不是数据库结构目录。
 
-适合写：
-- 一组高度相关 model 的共同语境和关系。
-- 成员 model 的定义、边界和排除项。
-- 会影响协作理解的关键字段或属性。
-- 能说明 model 关系的 demo/example。
-- 状态和生命周期。
-- 模型之间的引用、组成、衍生或事实来源关系。
+## 模型目录
 
-避免写：
-- 为每个琐碎 model 单独建页。
-- 完整数据库表结构。
-- 完整 DTO、API payload 或 ORM 映射清单。
-- Redis key 清单。
-- 临时变量或局部布尔状态。
+当前还没有确认的 model family page。新增详情页后，本节用短表说明每个页面承载什么内容、读者什么时候应该先看它，以及它关联的 flow / module / decision / evidence。
+
+| 页面 | 承载内容 | 先看它的情况 | 相关页面 / 证据 |
+| --- | --- | --- | --- |
+
+## 收录边界
+
+- 每个详情页围绕一个共同 reader question、稳定事实链路、生命周期、事实来源关系或 demo/example explainability。
+- 详情页说明成员 model 的定义、边界、关键字段摘要、关系和证据。
+- 不按代码目录、DTO、数据库表、字段相似度或“每个 model 都很重要”来建页。
+- 不收录完整数据库表结构、完整 DTO / API payload / ORM 映射、Redis key 清单、临时变量或局部布尔状态。
 ```
 
 ### wiki/06-decisions.md

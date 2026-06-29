@@ -125,9 +125,13 @@ When initializing an existing `wiki/`, `wiki-sink` must not overwrite existing f
 
 `wiki-doctor` checks an existing Repo-Local Wiki against the current Wiki Guidance System.
 
-It rewrites formatting, structure, and expression when the original information can be preserved. It is for guidance refresh and reader-first normalization, not for drift classification, code comparison, or new stable knowledge capture.
+It rewrites formatting, structure, and expression when the original information can be preserved, and it may write direct evidence-grounded stable facts from current target-repository context. It is for guidance refresh, reader-first normalization, and scoped repo-evidence updates, not for queue-style drift classification or broad coverage inventory.
 
-It must not write guessed stable knowledge, classify code/wiki drift, refresh `wiki/07-drift.md`, or change confirmed meanings while making pages easier to read.
+`wiki-doctor` may read target-repository source code, tests, routes, config, root `README.md`, `docs/**`, ADRs, AGENTS files, and other locally available files while refreshing wiki pages. These reads support safe rewriting and direct stable wiki updates: understanding names already present in the wiki, preserving links and evidence anchors, avoiding meaning loss, and writing current repo facts when the evidence is direct, local, readable, and cited.
+
+Outside-wiki files are allowed stable fact sources for `wiki-doctor` writes. If outside-wiki context is conflicting, ambiguous, too broad to inspect in the requested scope, or insufficient to decide a name, boundary, relationship, field, module, flow, or ownership fact, `wiki-doctor` reports `drift_or_coverage_suspect` and recommends `wiki-drift-radar` or focused user confirmation instead of guessing.
+
+It must not write guessed stable knowledge, refresh `wiki/07-drift.md`, run queue-style drift classification, or change confirmed meanings without evidence while making pages easier to read.
 
 `wiki-doctor` has a hard Drift Page gate. It normally requires `wiki/07-drift.md` to be empty before doing any page audit or rewrite. If `wiki/07-drift.md` contains active items, it stops and asks the user to run `wiki-drift-govern`.
 
@@ -140,16 +144,18 @@ If `wiki/07-drift.md` exists and is semantically empty but not in standard empty
 The result classifications are:
 
 - `safe_guidance_rewrite`: the existing wiki information can be reformatted, moved, split, merged, renamed, indexed, or diagrammed without changing meaning.
+- `evidence_grounded_update`: current target-repository evidence directly supports a new or corrected stable wiki fact, with enough evidence to write and cite it without guessing.
 - `meaning_loss_risk`: the change may alter meaning, naming, ownership, page/module/model boundary, business intent, decision meaning, or unique evidence.
-- `drift_or_coverage_suspect`: the issue appears to require code/wiki comparison, fact verification, or missing coverage classification, so `wiki-doctor` reports it and recommends `wiki-drift-radar`.
+- `drift_or_coverage_suspect`: the issue appears to require broad current-system comparison, unresolved conflict handling, missing coverage classification, or a fact decision not directly supported by inspected evidence, so `wiki-doctor` reports it and recommends `wiki-drift-radar` or focused confirmation.
 
-`wiki-doctor` may write only `safe_guidance_rewrite` items. It reports `meaning_loss_risk` and `drift_or_coverage_suspect` without changing those areas. It can ask focused follow-up questions for a small number of blocking `meaning_loss_risk` items, but it is not a broad interview skill.
+`wiki-doctor` may write `safe_guidance_rewrite` and `evidence_grounded_update` items. It reports `meaning_loss_risk` and unresolved `drift_or_coverage_suspect` without changing those areas. It can ask focused follow-up questions for a small number of blocking risk items, but it is not a broad interview skill.
 
 Supported actions are report vocabulary, not a machine schema:
 
 - `rewrite_page`
 - `add_reader_entry`
 - `add_table_or_diagram`
+- `write_evidence_grounded_fact`
 - `update_canonical_index`
 - `relocate_content`
 - `split_page`
@@ -165,7 +171,7 @@ Supported actions are report vocabulary, not a machine schema:
 
 `wiki-doctor` defaults to the whole stable wiki scope: `wiki/**/*.md` except `wiki/07-drift.md`. It supports page, directory, or wiki-topic scope. Scope limits writes. Scope-external pages may be read for context but are not rewritten, except for canonical index updates directly required by a safe action unless the user explicitly says to edit only one file.
 
-`wiki-doctor` does not process files outside the target repository's top-level `wiki/`, such as root `README.md`, `docs/**`, ADRs, AGENTS files, source code, this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill source files.
+`wiki-doctor` writes only inside the target repository's top-level `wiki/`, including allowed Whitebox artifacts. It may read files outside `wiki/` for context, but it does not edit target source code, root `README.md`, `docs/**`, ADRs, AGENTS files, config, or this Skill Suite Source Repository's `CONTEXT.md`, `wiki-suite-design.md`, `skills/references/**`, or skill source files.
 
 `wiki-doctor` does not run mechanical checks. Its report is semantic: reader-quality audit, changed pages, skipped risk items, suspected drift or coverage, out-of-scope suggestions, deleted/renamed/merged pages, and Drift Page gate notes.
 
@@ -226,7 +232,7 @@ The Repo-Local Wiki does not use a separate glossary page. Canonical naming and 
 
 Catalog README files are canonical indexes for their own family. They are not passive directories; they route readers and agents to the right flow, page, module, or model family page.
 
-`wiki-sink` must maintain canonical indexes when writing new stable knowledge whose name, owner, and boundary are confirmed. `wiki-doctor` may rebuild or update canonical indexes from existing wiki pages. `wiki-drift-radar` reads canonical indexes to judge coverage and owner pages but does not write them. `wiki-drift-govern` must update canonical indexes when resolving Wiki Drift or Coverage Gap items that change stable wiki content.
+`wiki-sink` must maintain canonical indexes when writing new stable knowledge whose name, owner, and boundary are confirmed. `wiki-doctor` may rebuild or update canonical indexes from existing wiki pages or direct target-repository evidence during a refresh. `wiki-drift-radar` reads canonical indexes to judge coverage and owner pages but does not write them. `wiki-drift-govern` must update canonical indexes when resolving Wiki Drift or Coverage Gap items that change stable wiki content.
 
 If names conflict, boundaries are unclear, or owner pages are not confirmed, the skill must ask the user or report `meaning_loss_risk`; it must not invent a canonical name.
 

@@ -137,10 +137,10 @@ Activity map 的活动节点必须显式写出 Subject，并使用 SVO 业务动
 
 这些原则适用于所有 wiki skills，但不同 skill 不能互相越界。
 
-- Reader-facing rewrite work, such as `wiki-doctor`, 只改善已有 wiki 的格式、结构和表达。它必须保留原信息，不能发明新稳定事实，不能做 drift classification。
+- Reader-facing rewrite work, such as `wiki-doctor`, 可以读取 target repository 里能读到的源码、文档、配置和其它上下文来避免误改，也可以把直接、可引用的当前仓库证据写成稳定 wiki 事实。它必须保留原信息，不能猜测稳定事实，不能改写 Drift Page，也不能做 queue-style drift classification。
 - Drift detection, `wiki-drift-radar`, 对照 current working tree 和 wiki，分类 Wiki Drift、Code Drift、Coverage Gap 或 Wiki Too Thin，只刷新 `wiki/07-drift.md`。Candidate wiki note 不是稳定事实。
 - Drift resolution, `wiki-drift-govern`, 只治理已经分类的 Drift Page items。它可以更新 wiki、补 coverage gap、或在确认的 Code Drift 下改代码，并在治理完成后清空 drift queue。
-- New stable knowledge capture, `wiki-sink`, 只在没有 active drift items 时初始化 wiki 或写入 confirmed / evidence-grounded stable knowledge。它不能持久化原始聊天记录，不能把猜测写进稳定页面。
+- New stable knowledge capture, `wiki-sink`, 只在没有 active drift items 时初始化 wiki 或写入 confirmed / evidence-grounded stable knowledge。`wiki-doctor` 在刷新已有 wiki 时也可以写入 scoped evidence-grounded updates。两者都不能持久化原始聊天记录，不能把猜测写进稳定页面。
 
 ## Dense Prose Rewrite Example
 

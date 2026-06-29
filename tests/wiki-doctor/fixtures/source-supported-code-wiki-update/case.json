@@ -1,0 +1,26 @@
+{
+  "id": "source-supported-code-wiki-update",
+  "behavior": "source_supported_code_wiki_mismatch_writes_stable_fact",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "evidence_grounded_update"
+  ],
+  "actions": [
+    "write_evidence_grounded_fact"
+  ],
+  "stable_pages_rewritten": true,
+  "expected_wiki_must_contain": [
+    "Checkout total ownership comes from Pricing.",
+    "Evidence: `src/checkout/PricingGateway.ts`."
+  ],
+  "report_must_contain": [
+    "Classification: `evidence_grounded_update`.",
+    "Action: `write_evidence_grounded_fact`.",
+    "Evidence-grounded facts written:"
+  ],
+  "report_must_not_contain": [
+    "recommend_drift_radar",
+    "Recommended next skill: `wiki-drift-radar`."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "old-module-map-source-update",
+  "behavior": "old_module_map_source_evidence_updates_stable_page",
+  "mode": "default",
+  "gate": "empty_drift_allows_default",
+  "classifications": [
+    "evidence_grounded_update"
+  ],
+  "actions": [
+    "rewrite_page",
+    "write_evidence_grounded_fact"
+  ],
+  "stable_pages_rewritten": true,
+  "expected_wiki_must_contain": [
+    "[Shipping flow](../02-flows/shipping.md)",
+    "Current shipment creation enters through `/delivery/shipments` and is owned by Delivery Orchestrator.",
+    "Evidence: `src/shipping/routes.ts`."
+  ],
+  "expected_wiki_must_not_contain": [
+    "The old map says Checkout API calls Shipping Planner through Create Shipment.",
+    "before the route cleanup",
+    "Current code may now route through Delivery Orchestrator."
+  ],
+  "report_must_contain": [
+    "Classification: `evidence_grounded_update`.",
+    "Actions: `rewrite_page`, `write_evidence_grounded_fact`.",
+    "Evidence-grounded facts written:"
+  ],
+  "report_must_not_contain": [
+    "recommend_drift_radar",
+    "Recommended next skill: `wiki-drift-radar`.",
+    "Whitebox files refreshed:"
+  ]
+}
